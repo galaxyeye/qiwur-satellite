@@ -1,4 +1,18 @@
 var fs = require("fs");
+var system = require("system");
+
+var md5 = require("./md5");
+
+var Salt = null;
+
+if (Salt == null) {
+	Salt = new Date().getDate();
+	var env = system.env;
+	Object.keys(env).forEach(function(key) {
+		Salt += env[key];
+	});
+	Salt = md5.hex_md5(Salt);
+}
 
 var functions = {
 	/**
@@ -112,23 +126,43 @@ var functions = {
         });
     },
 
+
+    /**********************************************************/
+    // directories
+    /**********************************************************/
     getOutputDir: function() {
     	return fs.workingDirectory + fs.separator + "output";
     },
 
-    getLockDir: function() {
+    getFetcherLockDir: function() {
     	return this.getOutputDir() + fs.separator + "f";
     },
 
-    getLockFile: function() {
-    	return this.getLockDir() + fs.separator + system.pid + ".pid";
+    getFetcherLockFile: function() {
+    	return this.getFetcherLockDir() + fs.separator + system.pid + ".pid";
     },
 
-    getRunningWorkerProcessNumber: function() {
-		files = fs.list(this.getLockDir());
+    getRunnigFetcherNumber: function() {
+		files = fs.list(this.getFetcherLockDir());
 		return files.length - 2;
     },
 
+
+    // spider directory
+    getSpiderLockDir: function() {
+    	return this.getOutputDir() + fs.separator + "s";
+    },
+
+    getSpiderLockFile: function() {
+    	return this.getSpiderLockDir() + fs.separator + system.pid + ".pid";
+    },
+
+    getRunningSpiderNumber: function() {
+		files = fs.list(this.getSpiderLockDir());
+		return files.length - 2;
+    },
+
+    
 
 	// get the web server's document root
 	// the remote access must be inside this directory
@@ -186,7 +220,23 @@ var functions = {
 
 		return this.normalizeVirtualPath(localPath);
 	},
+    /**********************************************************/
+	// end directories
+    /**********************************************************/
 
+
+    /**********************************************************/
+    // web server
+    /**********************************************************/
+	getSafeCommand : function(c) {
+		return md5.hex_md5(c + md5.hex_md5(Salt + c));
+	},
+
+    /**********************************************************/
+    // end web server
+    /**********************************************************/
+
+	
     getResourceUrls: function (page) {
         return page.evaluate(function () {
             var

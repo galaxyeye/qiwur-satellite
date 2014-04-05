@@ -4,6 +4,7 @@ var system = require('system');
 var fs = require('fs');
 
 var utils = require('./utils');
+var DefaultPort = 80;
 
 var services = {
 
@@ -51,24 +52,35 @@ var services = {
 
 var httpServer = {
 
-	port : null,
+	port : DefaultPort,
+
 	run : function() {
-		if (system.args.length !== 2) {
-		    console.log('Usage: server.js <some port>');
-		    phantom.exit(1);
+		if (system.args.length == 2) {
+		    this.port = system.args[1];
 		}
 
-	    this.port = system.args[1];
-
+		// 建立http服务器
 	    service = server.listen(this.port, { keepAlive: true }, function (request, response) {
 	        console.log('Request at ' + new Date());
 	        // console.log(JSON.stringify(request, null, 4));
-	
+
+	        // local IPC
+	        if (request.url == "/" + utils.getSafeCommand("exit")) {
+	        	console.log('exit command received, bye');
+	            phantom.exit();	        	
+	        }
+
 	        var body = "";
 	        response.statusCode = 200;
 	        var path = utils.virtualPath2LocalPath(request.url);
 
-	        if (fs.isFile(path)) {
+	        if (request.url == ("/" + utils.getSafeCommand("hello"))) {
+	        	body = "hello";
+	        }
+	        else if (request.url == ("/" + utils.getSafeCommand("echo"))) {
+	        	body = JSON.stringify(request, null, 4);
+	        }
+	        else if (fs.isFile(path)) {
 	        	body = services.get(path);
 	        }
 	        else if (fs.isDirectory(path)) {
@@ -94,7 +106,7 @@ var httpServer = {
 	    if (service) {
 	        console.log('Web server running on port ' + this.port);
 	    } else {
-	        console.log('Error: Could not create web server listening on port ' + this.port);
+	        console.error('Error: Could not create web server listening on port ' + this.port);
 	        phantom.exit();
 	    }
 	}

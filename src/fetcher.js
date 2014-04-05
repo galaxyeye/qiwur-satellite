@@ -3,6 +3,9 @@ var system = require("system");
 var tasks = require('./tasks');
 var utils = require('./utils');
 
+// 爬取超时时间，如果超时，则放弃爬取
+var FetchTimeout = 1000 * 60 * 2;
+
 var fetcher = {
     argumentConfig : [
          {
@@ -21,26 +24,35 @@ var fetcher = {
 
     run: function () {
         var cliConfig = {};
-        if (!utils.processArgs(cliConfig, this.argumentConfig)) {
+        if (!utils.processArgs(cliConfig, fetcher.argumentConfig)) {
             phantom.exit();
             return;
         }
 
         config = utils.mergeConfig(cliConfig, cliConfig.configFile);
 
-    	utils.emitConfig(this.config, " ");
+    	utils.emitConfig(config, " ");
 
-    	fs.touch(utils.getLockFile());
+    	// 创建文件锁
+    	fs.touch(utils.getFetcherLockFile());
 
+    	// 加载网页
     	tasks.load(config, tasks.fetch, tasks);
-    }
+
+        // 等待退出
+    	fetcher.waitForExit();
+    },
+
+	waitForExit: function() {
+		// 超时后强制退出进程
+		setTimeout(function () {
+			console.log("fetcher timeout, resource might not be saved");
+    		// 删除文件锁
+			fs.remove(utils.getFetcherLockFile());
+			phantom.exit(0);
+		},
+		FetchTimeout);
+	}
 };
 
 fetcher.run();
-
-// 2m后强制退出程序
-setTimeout(function () {
-	console.log("fetcher timeout, resource did not saved");
-	fs.remove(utils.getLockFile());
-	phantom.exit(0);
-}, 1000 * 60 * 2);

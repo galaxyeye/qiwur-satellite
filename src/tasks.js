@@ -18,7 +18,7 @@ var tools = {
     	if (task.pageSaved) {
     		console.log("page has been already saved");
 
-        	fs.remove(utils.getLockFile());
+        	fs.remove(utils.getFetcherLockFile());
         	phantom.exit();
 
     		return;
@@ -35,7 +35,7 @@ var tools = {
     	interval = setInterval(function() {
     		if (task.pageSaved) {
     			clearInterval(interval);
-            	fs.remove(utils.getLockFile());
+            	fs.remove(utils.getFetcherLockFile());
     			phantom.exit();
     		}
 
@@ -54,7 +54,7 @@ var tools = {
         		tools.saveHtml(page.url, page.content);
 
         		task.pageSaved = true;
-            	fs.remove(utils.getLockFile());
+            	fs.remove(utils.getFetcherLockFile());
             	phantom.exit();
             }
         }, 500);
@@ -92,6 +92,15 @@ var load = function (config, task, scope) {
         }
     });
 
+    page.onResourceRequested = function(requestData, request) {
+        if ((/http:\/\/.+?\.css/gi).test(requestData['url']) || requestData['Content-Type'] == 'text/css') {
+            console.log('css resource, aborting: ' + requestData['url']);
+            request.abort();
+        }
+
+        // console.log("#" + requestData.id + " : " + requestData.url);
+    };
+
     if (task.onLoadFinished) {
         page.onLoadFinished = function (status) {
         	// 接到phantomjs的Load Finished消息后，等待DOM建立，完成后才触发用户自定义消息处理器
@@ -127,7 +136,15 @@ var tasks = {
             }
         },
 
-        onResourceRequested: function (page, config, request) {
+        onResourceRequested: function (requestData, request) {
+        	console.log("#" + request.id + " : " + request.url);
+            if ((/http:\/\/.+?\.css/gi).test(requestData['url']) ) {
+                console.log('The url of the request is matching. Aborting: ' + request.url);
+                request.abort();
+            }
+
+            // console.log(JSON.stringify(request.headers));
+
         	if (this.fetch.pageLoaded) {
         		// console.log("#" + request.id + " is loading...");
 
