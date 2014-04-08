@@ -8,6 +8,10 @@ var ServerPort = 19080;
 var ControlCenter = "http://qiwur.com/satellite/controller";
 var PHANTOMJS = "phantomjs";
 
+/************************************************************/
+// 这是一个实验性程序，目前并不能保证正常运行
+/************************************************************/
+
 var coordinator = {
 
     argumentConfig : [
