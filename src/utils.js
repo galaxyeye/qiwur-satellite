@@ -31,28 +31,33 @@ var functions = {
 	 *            the max amount of time to wait. If not specified, 3 sec is used.
 	 */
 
-	waitFor: function(testFx, onReady, timeOutMillis) {
-	    var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 3000, // < Default Max Timout is 3s
-	        start = new Date().getTime(),
-	        condition = false,
-	        result = 'success',
-	        interval = setInterval(function() {
+	waitFor: function(testFx, onReady, onTimeout, timeOutMillis) {
+		// default timeout limit is 3s
+	    var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 3000;
+
+	    var start = new Date().getTime();
+	    var condition = false;
+	    var result = 'success';
+
+	    var interval = setInterval(function() {
 	            if ( (new Date().getTime() - start < maxtimeOutMillis) && !condition ) {
 	                // If not time-out yet and condition not yet fulfilled
-	                condition = (typeof(testFx) === "string" ? eval(testFx) : testFx())
+	                condition = (typeof(testFx) === "string" ? eval(testFx) : testFx());
 	            } else {
 	                if(!condition) {
 	                    // If condition still not fulfilled (timeout but condition
 						// is 'false')
-	                    // console.log("'waitFor()' timeout");
-	                    clearInterval(interval); // < Stop this interval
+	                    // console.log("waitFor timeout");
+
+	                	if (onTimeout) typeof(onTimeout) === "string" ? eval(onTimeout) : onTimeout();
+	                    clearInterval(interval);
 
 	                    result = 'timeout';
 	                } else {
 	                    // Condition fulfilled (timeout and/or condition is 'true')
 	                    // console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
-	                    typeof(onReady) === "string" ? eval(onReady) : onReady();
-	                    clearInterval(interval); // < Stop this interval
+	                	if (onReady) typeof(onReady) === "string" ? eval(onReady) : onReady();
+	                    clearInterval(interval);
 	                }
 	            }
 	        }, 250); // < repeat check every 250ms
@@ -60,6 +65,10 @@ var functions = {
 	    return result;
 	},
 
+
+    /**********************************************************/
+    // config
+    /**********************************************************/
 	processArgs: function (config, contract) {
 	    var a = 0;
 	    var ok = true;
@@ -86,22 +95,24 @@ var functions = {
 	    return ok;
 	},
 
-	mergeConfig: function (config, configFile) {
+	mergeConfigFile: function (config, configFile) {
 		var fs = require('fs');
-		
+
 	    if (!fs.exists(configFile)) {
 	       configFile = "config.json";
 	    }
 
 	    var result = JSON.parse(fs.read(configFile));
-	    var key = null;
-	    for (key in config) {
-	    	if (!result[key]) {
-	    		result[key] = config[key];
-	    	}
+
+	    return this.mergeConfig(config, result);
+	},
+
+	mergeConfig: function (config, config2) {
+	    for (var key in config2) {
+    		config[key] = config2[key];
 	    }
 
-	    return result;
+	    return config;
 	},
 
     emitConfig: function (config, prefix) {
@@ -118,6 +129,17 @@ var functions = {
                console.log(prefix + ' ' + key + ': ' + config[key]);
            }
        }
+    },
+
+    buildConfig: function(argumentConfig) {
+        var cliConfig = {};
+        if (!this.processArgs(cliConfig, argumentConfig)) {
+            return;
+        }
+
+        var config = this.mergeConfigFile(cliConfig, cliConfig.configFile);
+
+        return config;
     },
 
     getFinalUrl: function (page) {
@@ -162,7 +184,6 @@ var functions = {
 		return files.length - 2;
     },
 
-    
 
 	// get the web server's document root
 	// the remote access must be inside this directory
@@ -182,6 +203,11 @@ var functions = {
 		}
 
 		return this.docRoot() + separator + relativePath;
+	},
+
+	getTemporaryFile: function(url) {
+		var file = md5.hex_md5(url);
+		return utils.docRoot() + fs.separator + new Date().getDate() + fs.separator + file;
 	},
 
 	normalizeVirtualPath: function(virtualPath) {
@@ -232,6 +258,21 @@ var functions = {
 		return md5.hex_md5(c + md5.hex_md5(Salt + c));
 	},
 
+
+	//decode host and port info from header
+	decode_host : function(host) {
+		out = {};
+		host = host.split(':');
+		out.host = host[0];
+		out.port = host[1] || 80;
+		return out;
+	},
+
+	// encode host field
+	encode_host : function(host) {
+		return host.host + ((host.port == 80) ? "" : ":" + host.port);
+	},
+	
     /**********************************************************/
     // end web server
     /**********************************************************/
@@ -340,7 +381,8 @@ var functions = {
 	        str += chr;
 	    }
 	    return str;
-	}
+	},
+
 };
 
 for (var f in functions) {

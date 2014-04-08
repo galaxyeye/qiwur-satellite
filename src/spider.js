@@ -10,27 +10,6 @@ var PHANTOMJS = "phantomjs";
 var spider = {
     urls: [],
 
-    waitForExit: function() {
-    	// 每5秒钟检查一次是否需要退出程序
-        var exit = false;
-        setInterval(function() {
-        	if (exit && spider.urls.length == 0 && utils.getRunnigFetcherNumber() == 0) {
-        		console.log("mission complete! bye!");
-        		// 删除文件锁
-        		fs.remove(utils.getSpiderLockFile());
-        		phantom.exit(0);
-        	}
-
-        	// 可能要退出，先置标志位，5s后重新检查，5s后如果确认退出，则退出程序
-        	if (spider.urls.length == 0 && utils.getRunnigFetcherNumber() == 0) {
-        		exit = true;
-        	}
-        	else {
-        		exit = false;
-        	}
-        }, 5000);
-    },
-
     removeFetcherLockFiles: function() {
         // 删除所有fetcher的文件锁
         files = fs.list(utils.getFetcherLockDir());
@@ -38,17 +17,17 @@ var spider = {
         	file = files[i];
 
         	if (file === "." || file === "..") continue;
-        	
+
         	file = utils.getFetcherLockDir() + fs.separator + file;
 
     		console.log("remove file : " + file);
-    		
+
         	if (fs.isFile(file)) {
         		fs.remove(file);
         	}
         }
     },
-    
+
     run: function () {
     	// 系统中只能有一个爬虫，每个爬虫可以产生多个fetcher进程
     	// NOTICE ： 不能严格满足只有一个爬虫，如果在不同的目录下运行spider，可以产生多个爬虫
@@ -108,7 +87,28 @@ var spider = {
 
         // 等待退出
         spider.waitForExit();
-    } // run
+    }, // run
+
+    waitForExit: function() {
+    	// 每5秒钟检查一次是否需要退出程序
+        var exit = false;
+        setInterval(function() {
+        	if (exit && spider.urls.length == 0 && utils.getRunnigFetcherNumber() == 0) {
+        		console.log("mission complete! bye!");
+        		// 删除文件锁
+        		fs.remove(utils.getSpiderLockFile());
+        		phantom.exit(0);
+        	}
+
+        	// 可能要退出，先置标志位，5s后重新检查，5s后如果确认退出，则退出程序
+        	if (spider.urls.length == 0 && utils.getRunnigFetcherNumber() == 0) {
+        		exit = true;
+        	}
+        	else {
+        		exit = false;
+        	}
+        }, 5000);
+    }    
 };
 
 spider.run();
