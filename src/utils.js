@@ -47,7 +47,7 @@ var functions = {
 	                if(!condition) {
 	                    // If condition still not fulfilled (timeout but condition
 						// is 'false')
-	                    // console.log("waitFor timeout");
+	                    // logger.debug("waitFor timeout");
 
 	                	if (onTimeout) typeof(onTimeout) === "string" ? eval(onTimeout) : onTimeout();
 	                    clearInterval(interval);
@@ -55,7 +55,7 @@ var functions = {
 	                    result = 'timeout';
 	                } else {
 	                    // Condition fulfilled (timeout and/or condition is 'true')
-	                    // console.log("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
+	                    // logger.debug("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
 	                	if (onReady) typeof(onReady) === "string" ? eval(onReady) : onReady();
 	                    clearInterval(interval);
 	                }
@@ -65,46 +65,19 @@ var functions = {
 	    return result;
 	},
 
-
     /**********************************************************/
     // config
     /**********************************************************/
-	processArgs: function (config, contract) {
-	    var a = 0;
-	    var ok = true;
-	    contract.forEach(function(argument) {
-	        if (a < phantom.args.length) {
-	            config[argument.name] = phantom.args[a];
-	        } else {
-	            if (argument.req) {
-	                console.log('"' + argument.name + '" argument is required. This ' + argument.desc + '.');
-	                ok = false;
-	            } else {
-	                config[argument.name] = argument.def;
-	            }
-	        }
-
-	        if (argument.oneof && argument.oneof.indexOf(config[argument.name]) == -1) {
-	            console.log('"' + argument.name + '" argument must be one of: ' + argument.oneof.join(', '));
-	            ok = false;
-	        }
-
-	        a++;
-	    });
-
-	    return ok;
-	},
-
-	mergeConfigFile: function (config, configFile) {
+	loadConfig : function (configFile) {
 		var fs = require('fs');
 
 	    if (!fs.exists(configFile)) {
-	       configFile = "config.json";
+	       configFile = "conf/config.json";
 	    }
 
 	    var result = JSON.parse(fs.read(configFile));
 
-	    return this.mergeConfig(config, result);
+	    return result;
 	},
 
 	mergeConfig: function (config, config2) {
@@ -115,40 +88,6 @@ var functions = {
 	    return config;
 	},
 
-    emitConfig: function (config, prefix) {
-        console.log(prefix + 'Config:');
-        for (key in config) {
-           if (config[key].constructor === Object) {
-                if (key === config.task) {
-                    console.log(prefix + ' ' + key + ':');
-                    for (key2 in config[key]) {
-                        console.log(prefix + '  ' + key2 + ': ' + config[key][key2]);
-                    }
-                }
-           } else {
-               console.log(prefix + ' ' + key + ': ' + config[key]);
-           }
-       }
-    },
-
-    buildConfig: function(argumentConfig) {
-        var cliConfig = {};
-        if (!this.processArgs(cliConfig, argumentConfig)) {
-            return;
-        }
-
-        var config = this.mergeConfigFile(cliConfig, cliConfig.configFile);
-
-        return config;
-    },
-
-    getFinalUrl: function (page) {
-        return page.evaluate(function () {
-            return document.location.toString();
-        });
-    },
-
-
     /**********************************************************/
     // directories
     /**********************************************************/
@@ -157,43 +96,46 @@ var functions = {
     },
 
     getFetcherLockDir: function() {
-    	return this.getOutputDir() + fs.separator + "f";
+    	return utils.getOutputDir() + fs.separator + "f";
     },
 
     getFetcherLockFile: function() {
-    	return this.getFetcherLockDir() + fs.separator + system.pid + ".pid";
+    	return utils.getFetcherLockDir() + fs.separator + system.pid + ".pid";
     },
 
     getRunnigFetcherNumber: function() {
-		files = fs.list(this.getFetcherLockDir());
+		files = fs.list(utils.getFetcherLockDir());
 		return files.length - 2;
     },
 
 
     // spider directory
     getSpiderLockDir: function() {
-    	return this.getOutputDir() + fs.separator + "s";
+    	return utils.getOutputDir() + fs.separator + "s";
     },
 
     getSpiderLockFile: function() {
-    	return this.getSpiderLockDir() + fs.separator + system.pid + ".pid";
+    	return utils.getSpiderLockDir() + fs.separator + system.pid + ".pid";
     },
 
     getRunningSpiderNumber: function() {
-		files = fs.list(this.getSpiderLockDir());
+		files = fs.list(utils.getSpiderLockDir());
 		return files.length - 2;
     },
-
 
 	// get the web server's document root
 	// the remote access must be inside this directory
 	docRoot: function() {
-		return this.getOutputDir() + fs.separator + "wwwroot";
+		return utils.getOutputDir() + fs.separator + "wwwroot";
+	},
+
+	logDir: function() {
+		return utils.getOutputDir() + fs.separator + "logs";
 	},
 
 	// get the absolute path for a relative path
 	absolute: function(relativePath) {
-		if (relativePath.indexOf(this.docRoot()) == 0) {
+		if (relativePath.indexOf(utils.docRoot()) == 0) {
 			return relativePath;
 		}
 
@@ -202,12 +144,12 @@ var functions = {
 			separator = fs.separator;
 		}
 
-		return this.docRoot() + separator + relativePath;
+		return utils.docRoot() + separator + relativePath;
 	},
 
 	getTemporaryFile: function(url) {
 		var file = md5.hex_md5(url);
-		return utils.docRoot() + fs.separator + new Date().getDate() + fs.separator + file;
+		return utils.docRoot() + fs.separator + new Date().getDate() + fs.separator + file + ".html";
 	},
 
 	normalizeVirtualPath: function(virtualPath) {
@@ -227,7 +169,7 @@ var functions = {
 	},
 
 	parentVirtualPath: function(virtualPath) {
-		virtualPath = this.normalizeVirtualPath(virtualPath);
+		virtualPath = utils.normalizeVirtualPath(virtualPath);
 
 		var last = virtualPath.lastIndexOf("/", 0);
 		if (last == 0) return "/";
@@ -236,15 +178,15 @@ var functions = {
 	},
 
 	virtualPath2LocalPath: function(virtualPath) {
-		return this.absolute(virtualPath);
+		return utils.absolute(virtualPath);
 	},
 
 	localPath2VirtualPath: function(localPath) {
-		if (localPath.indexOf(this.docRoot()) === 0) {
-			localPath = localPath.substr(this.docRoot().length);
+		if (localPath.indexOf(utils.docRoot()) === 0) {
+			localPath = localPath.substr(utils.docRoot().length);
 		}
 
-		return this.normalizeVirtualPath(localPath);
+		return utils.normalizeVirtualPath(localPath);
 	},
     /**********************************************************/
 	// end directories
@@ -272,12 +214,60 @@ var functions = {
 	encode_host : function(host) {
 		return host.host + ((host.port == 80) ? "" : ":" + host.port);
 	},
-	
+
+	// sdbm algorithm
+	hashString2Int: function(str) {
+	    var hash = 0;
+
+		if (typeof(str) !== "string" || str.length == 0) return hash;
+
+	    for (var i = 0; i < str.length; i++) {
+	        var char = str.charCodeAt(i);
+	        hash = char + (hash << 6) + (hash << 16) - hash;
+	    }
+
+		return hash;
+	},
+
+	// magic numbers in this function : 
+	// 97 === 'a'.charCodeAt(0);
+	// 122 === 'z'.charCodeAt(0);
+	// 27777778775 === hash("zzzzzzzzzz")
+	// 20000 : 将端口号限制在[10000, 30000]之间，系统最大端口号一般是65535(2^16-1)，也就是unsigned short的最大值
+	portGenerator : function(serviceName) {
+		if (typeof(serviceName) !== "string" || serviceName.length == 0) return hash;
+
+		var hash = 0;
+
+		if (serviceName.length > 10) {
+			serviceName = serviceName.substr(0, 10);
+		}
+
+		serviceName = serviceName.toLowerCase();
+	    for (var i = 0; i < serviceName.length; i++) {
+	        var char = serviceName.charCodeAt(i);
+	        if (char < 97 || char > 122) continue;
+
+	        char = char - 97;
+
+	        hash += char * Math.pow(10, i);
+	    }
+
+	    hash = Math.round(10000 + hash / 27777778775.0 * 20000);
+
+		return hash;
+	},
+
     /**********************************************************/
     // end web server
     /**********************************************************/
 
-	
+    getFinalUrl: function (page) {
+        return page.evaluate(function () {
+            return document.location.toString();
+        });
+    },
+
     getResourceUrls: function (page) {
         return page.evaluate(function () {
             var
@@ -371,9 +361,9 @@ var functions = {
 	pad: function (str, length) {
 	    var padded = str.toString();
 	    if (padded.length > length) {
-	        return this.pad(padded, length * 2);
+	        return utils.pad(padded, length * 2);
 	    }
-	    return this.repeat(' ', length - padded.length) + padded;
+	    return utils.repeat(' ', length - padded.length) + padded;
 	},
 
 	repeat: function (chr, length) {

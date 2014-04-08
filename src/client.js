@@ -1,28 +1,31 @@
 var fs = require("fs");
+var system = require("system");
 var utils = require('./utils');
 var fetcher = require('./fetcher');
+var logger = require('./logger');
 
 var httpClient = {
-	argumentConfig : [
-		{
-			name : 'url',
-			def : 'http://qiwur.com',
-			req : false,
-			desc : 'the target url to fetch if this program runs in standalone mode'
-		}, 
-	],
-
     config: false,
 
     run: function () {
-    	this.config = utils.buildConfig(this.argumentConfig);
+    	if (system.args.length < 2) {
+    		console.log("usage : phantomjs [options] client.js url");
+    		phantom.exit(0);
+    	}
+
+    	this.config = utils.loadConfig().fetcher;
+    	this.config.url = system.args[1];
+
+//        system.args.forEach(function (arg, i) {
+//            console.log(i + ': ' + arg);
+//        });
+
+//    	console.log(JSON.stringify(this.config));
 
     	// 创建文件锁
     	fs.touch(utils.getFetcherLockFile());
 
     	fetcher.fetch(this.config.url, this.config, function(response, content) {
-    		console.log(JSON.stringify(response));
-
     		file = utils.getTemporaryFile(response.url);
 
     		console.log("full page content has been saved in file : " + file);

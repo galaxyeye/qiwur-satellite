@@ -37,7 +37,6 @@ exports.any_hmac_md5 = function(k, d, e) {
 	return rstr2any(rstr_hmac_md5(str2rstr_utf8(k), str2rstr_utf8(d)), e);
 };
 
-
 /*
  * Perform a simple self-test to see if the VM is working
  */

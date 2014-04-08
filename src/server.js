@@ -5,6 +5,7 @@ var fs = require('fs');
 
 var utils = require('./utils');
 var fetcher = require('./fetcher');
+var logger = require('./logger');
 
 var httpServer = {
 
@@ -14,22 +15,12 @@ var httpServer = {
              def: '19080',
              req: false,
              desc: 'fetcher process time out limit'
-         },
-         {
-             name: 'fetchTimeout',
-             def: 1000 * 60 * 2,
-             req: false,
-             desc: 'fetcher process time out limit'
-         },
-         {
-             name: 'scrollDown',
-             def: 5,
-             req: false,
-             desc: 'scroll count after paged is loaded'
-         },
+         }
     ],
 
-    config: false,
+    serverConfig: false,
+
+    fetcherConfig: false,
 
     handleHttpRequest: function(request, response) {
 		console.log("handle http request");
@@ -63,7 +54,7 @@ var httpServer = {
 	},
 
 	handleProxyRequest: function(request, response) {
-		console.log("handle proxy request");
+		console.log("handle proxy request, url : " + request.url);
 
     	// TODO : ip black list check
 
@@ -75,20 +66,17 @@ var httpServer = {
 
     	// TODO : route : redirect or forward
 
-    	this.forward(request, response);
+		services.forward(request, response);
 	},
 
 	run : function() {
-    	this.config = utils.buildConfig(this.argumentConfig);
-
-    	utils.emitConfig(this.config, " ");
+    	var config = this.config = utils.loadConfig().server;
 
     	var service = null;
-    	var port = this.config.port;
-    	var isProxy = port.indexOf('p') !== -1;
+    	var isProxy = config.port.indexOf('p') !== -1;
 
-	    service = server.listen(port, { keepAlive: true }, function (request, response) {
-	    	console.log(JSON.stringify(request));
+	    service = server.listen(config.port, { keepAlive: true }, function (request, response) {
+	    	logger.debug(JSON.stringify(request));
 
 	        if (isProxy) {
 	        	httpServer.handleProxyRequest(request, response);
@@ -99,9 +87,9 @@ var httpServer = {
 	    });
 
 	    if (service) {
-	        console.log('Web server running on port ' + this.config.port);
+	        console.log('Web server running on port ' + config.port);
 	    } else {
-	        console.error('Error: Could not create web server listening on port ' + this.config.port);
+	        console.error('Error: Could not create web server listening on port ' + config.port);
 	        phantom.exit();
 	    }
 	}
@@ -160,9 +148,11 @@ var services = {
 	},
 
 	forward: function(request, response) {
-		console.log("forward to : " + request.url);
+		logger.debug("forward to : " + request.url);
 
-		fetcher.onContentComplete = function(proxyResponse, proxyContent) {
+		fetcher.fetch(request.url, httpServer.fetcherConfig, function(proxyResponse, proxyContent) {
+			logger.debug("forward to : " + JSON.stringify(proxyResponse));
+
 			response.statusCode = proxyResponse.statusCode;
 			response.headers = proxyResponse.headers;
 			response.headers['Connection'] = 'Keep-Alive';
@@ -171,9 +161,7 @@ var services = {
 			response.write(proxyContent);
 
 			response.close();
-		};
-
-		fetcher.fetch(request.url);
+		});
 	},
 };
 

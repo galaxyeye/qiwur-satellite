@@ -2,14 +2,16 @@ var fs = require("fs");
 var system = require("system");
 var tasks = require('./tasks');
 var utils = require('./utils');
+var logger = require('./logger');
 
 var DefaultConfig = {
     "userAgent": "chrome",
     "userAgentAliases": {
         "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
     },
-    "fetchTimeout" : 2 * 60 * 1000,
-    "scrollCount" : 5,
+    "fetchTimeout" : 1 * 60 * 1000,
+    "scrollCount" : 10,
+    "scrollTimeout" : 10 * 1000,
     "consolePrefix": "#"
 };
 
@@ -17,50 +19,55 @@ var fetcher = {
     config: DefaultConfig,
 
     onContentComplete: function(response, content) {
-    	console.log("content complete in fetcher");
-    	console.log(JSON.stringify(response));
+    	logger.debug("content complete in fetcher");
+    	logger.debug(JSON.stringify(response));
 
 		response.close();
-		fetcher.page.close();    	
     },
 
     page: null,
 
     fetch: function(url, config, onContentComplete) {
     	if (config) {
-        	fetcher.config = utils.mergeConfig(fetcher.config, config);
+    		this.config = utils.mergeConfig(this.config, config);
     	}
-    	fetcher.config.url = url;
+    	this.config.url = url;
 
     	if (onContentComplete) {
-    		fetcher.onContentComplete = function(response, content) {
+    		this.onContentComplete = function(response, content) {
+    			logger.debug("call user defined complete handler");
     			onContentComplete(response, content);
 
-    			response.close();
-    			fetcher.page.close();
+    			// logger.debug("close response and page");
+
+    			// response.close();
+    			// page.close();
     		};
     	}
 
     	// 加载网页
-    	fetcher.load(tasks.fetch, tasks);
+    	this.load(tasks.fetch, tasks);
     },
 
     load: function (task, scope) {
-        var page = fetcher.page = new WebPage();
+        var page = this.page = new WebPage();
+        var config = this.config;
 
         // set console prefix
-        if (fetcher.config.consolePrefix) {
+        if (config.consolePrefix) {
         	page.onConsoleMessage = function (msg, line, src) {
-                console.log(fetcher.config.consolePrefix + ' ' + msg + ' (' + src + ', #' + line + ')');
+                logger.debug(config.consolePrefix + ' ' + msg + ' (' + src + ', #' + line + ')');
             };
         }
 
         // set user agent
-        if (fetcher.config.userAgentAliases[fetcher.config.userAgent]) {
-            fetcher.config.userAgent = fetcher.config.userAgentAliases[fetcher.config.userAgent];
+        if (config.userAgentAliases[config.userAgent]) {
+        	config.userAgent = config.userAgentAliases[config.userAgent];
         }
 
-        page.settings.userAgent = fetcher.config.userAgent;
+        page.settings.userAgent = config.userAgent;
+
+        // logger.debug(page.settings.userAgent);
 
         // 注册WebPage回调函数
         // @see https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#callbacks-list
@@ -78,7 +85,7 @@ var fetcher = {
         events.forEach(function (event) {
             if (task[event]) {
                 page[event] = function () {
-                    var args = [page, fetcher.config];
+                    var args = [page, config];
                     for (var a = 0; a < arguments.length; a++) {
                         args.push(arguments[a]);
                     }
@@ -89,17 +96,19 @@ var fetcher = {
             }
         });
 
-        task.onContentComplete = function(response, content) {
-        	// console.log("content complete in fetcher.load");
-        	fetcher.onContentComplete.call(fetcher, response, content);
-        };
+        task.onContentComplete = this.onContentComplete;
 
-        console.log("fetch url : " + fetcher.config.url);
+        logger.debug("fetch url : " + config.url);
+
+        page.viewportSize = { width: 1920, height: 1080 };
+        logger.debug(JSON.stringify(page.viewportSize));
 
         // 所有的回调函数都已经注册完毕，启动网络请求
-        page.open(fetcher.config.url);
+        page.open(config.url);
     },
 
 };
 
-exports.fetch = fetcher.fetch;
+for (var t in fetcher) {
+	exports[t] = fetcher[t];
+}
