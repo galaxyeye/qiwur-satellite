@@ -39,28 +39,28 @@ var functions = {
 	    var condition = false;
 	    var result = 'success';
 
-	    var interval = setInterval(function() {
-	            if ( (new Date().getTime() - start < maxtimeOutMillis) && !condition ) {
-	                // If not time-out yet and condition not yet fulfilled
-	                condition = (typeof(testFx) === "string" ? eval(testFx) : testFx());
-	            } else {
-	                if(!condition) {
-	                    // If condition still not fulfilled (timeout but condition
-						// is 'false')
-	                    // logger.debug("waitFor timeout");
+	    interval = setInterval(function() {
+            if ( (new Date().getTime() - start < maxtimeOutMillis) && !condition ) {
+                // If not time-out yet and condition not yet fulfilled
+                condition = (typeof(testFx) === "string" ? eval(testFx) : testFx());
+            } else {
+                if(!condition) {
+                    // If condition still not fulfilled (timeout but condition
+					// is 'false')
+                    // logger.debug("waitFor timeout");
 
-	                	if (onTimeout) typeof(onTimeout) === "string" ? eval(onTimeout) : onTimeout();
-	                    clearInterval(interval);
+                	if (onTimeout) typeof(onTimeout) === "string" ? eval(onTimeout) : onTimeout();
+                    clearInterval(interval);
 
-	                    result = 'timeout';
-	                } else {
-	                    // Condition fulfilled (timeout and/or condition is 'true')
-	                    // logger.debug("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
-	                	if (onReady) typeof(onReady) === "string" ? eval(onReady) : onReady();
-	                    clearInterval(interval);
-	                }
-	            }
-	        }, 250); // < repeat check every 250ms
+                    result = 'timeout';
+                } else {
+                    // Condition fulfilled (timeout and/or condition is 'true')
+                    // logger.debug("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
+                	if (onReady) typeof(onReady) === "string" ? eval(onReady) : onReady();
+                    clearInterval(interval);
+                }
+            }
+        }, 250); // < repeat check every 250ms
 
 	    return result;
 	},

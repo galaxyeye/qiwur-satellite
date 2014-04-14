@@ -1,4 +1,5 @@
 var fs = require('fs');
+var FlushCachePeriod = 250;
 
 var loggerImpl = {
 
@@ -6,8 +7,16 @@ var loggerImpl = {
 
 	cache : [],
 
+	getTime : function() {
+		var d = new Date();
+		return d.getUTCMonth() + "/" + d.getUTCDate() + " "
+			+ d.getUTCHours() + ":" + d.getUTCMinutes() + ":" + d.getUTCSeconds() 
+			+ "." + d.getUTCMilliseconds();
+	},
+
 	write : function(file, msg) {
-		this.cache.push({"file" : file, "msg" : msg + "\n"});
+		msg = "[" + this.getTime() + "]" + " " + msg + "\n";
+		this.cache.push({"file" : file, "msg" : msg});
 	},
 
 	run : function() {
@@ -16,7 +25,7 @@ var loggerImpl = {
 				var item = loggerImpl.cache.pop();
 				fs.write(item.file, item.msg, 'a');
 			}
-		}, 250);
+		}, FlushCachePeriod);
 	},
 
 	close : function () {

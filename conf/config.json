@@ -23,5 +23,10 @@
     },
     "reporter" : {
         "url" : "http://qiwur.com:19081/"
+    },
+    "coordinator" : {
+        "ServerPortBase" : 19080,
+        "ProxyProcessCount" : 10,
+        "ControlCenter" : "http://qiwur.com/satellite/controller"
     }
 }
