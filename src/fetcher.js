@@ -43,15 +43,18 @@ var tools = {
 
 function Fetcher() {
 	this.config = DefaultConfig;
-	this.page = null;
+	this.page = false;
+
+	this.pageRequested = false;
 	this.pageLoaded = false;
 	this.pageClosed = false;
+
 	this.scrollCount = 0;
-	this.scrollInterval = null;
+	this.scrollInterval = false;
 	this.lastScrollTime = new Date().getTime();
 	this.ajaxRequests = 0;
 	this.ajaxResponses = 0;
-	this.mainResponse = null;
+	this.mainResponse = false;
 };
 
 Fetcher.prototype.fetch = function(url, config, onContentComplete) {
@@ -67,15 +70,13 @@ Fetcher.prototype.fetch = function(url, config, onContentComplete) {
             logger.debug("call user defined complete handler");
 
             if (!fetcher.pageClosed) {
+            	fetcher.pageClosed = true;
                 onContentComplete(response, page);
             	page.close();
             }
             else {
                 logger.error("page is closed");
-                onContentComplete(response, null);
             }
-
-            fetcher.pageClosed = true;
         };
     }
 
@@ -84,7 +85,7 @@ Fetcher.prototype.fetch = function(url, config, onContentComplete) {
 };
 
 Fetcher.prototype.load = function () {
-    var page = this.page = new WebPage();
+    var page = this.page = require('webpage').create();
     var config = this.config;
 
     // set user agent
@@ -124,17 +125,32 @@ Fetcher.prototype.load = function () {
         }
     });
 
-    logger.debug("fetch url : " + config.url);
-
     page.viewportSize = { width: config.viewportWidth, height: config.viewportHeight };
     logger.debug(JSON.stringify(page.viewportSize));
 
+	logger.debug('page status : ' + this.pageRequested + ', ' + this.pageLoaded + ', ' + this.pageClosed);
+
     // 所有的回调函数都已经注册完毕，启动网络请求
-    page.open(config.url);
+    if (!this.pageRequested && !this.pageLoaded && !this.pageClosed) {
+        logger.debug("fetch url : " + config.url);
+
+        this.pageRequested = true;
+
+        page.open(config.url);
+
+        // page.navigationLocked = true;
+    }
 };
 
 Fetcher.prototype.onError = function(msg, trace) {
-    // logger.debug(JSON.stringify(msg));
+	var msgStack = ['ERROR: ' + msg];
+	if (trace && trace.length) {
+	    msgStack.push('TRACE:');
+	    trace.forEach(function(t) {
+	    	msgStack.push(' -> ' + t.file + ': ' + t.line);
+	    });
+	}
+	logger.error(msgStack.join('\n'));
 };
 
 Fetcher.prototype.onLoadStarted = function (page, config) {
@@ -168,47 +184,52 @@ Fetcher.prototype.onResourceReceived = function (page, config, response) {
 };
 
 Fetcher.prototype.onResourceTimeout = function(page, config, request) {
-	logger.debug("#" + request.id + " timeout");
+	logger.error("#" + request.id + " timeout");
 };
 
 Fetcher.prototype.onLoadFinished = function (page, config, status) {
-    if (status != 'success') {
-        logger.debug('# FAILED TO LOAD');
-        return;
-    }
+    // enter here twice due to a phantomjs bug
+    // http://stackoverflow.com/questions/11597990/phantomjs-ensuring-that-the-response-object-stays-alive-in-server-listen
 
-    if (this.pageClosed) {
-    	this.onContentComplete(this.mainResponse, null);
+    if (!this.pageRequested || this.pageLoaded || this.pageClosed) {
+    	logger.error('bad page status : ' + this.pageStatus());
     	return;
     }
 
-    var fetcher = this;
+    if (status != 'success') {
+        logger.error('FAILED TO LOAD');
+        return;
+    }
+
     this.pageLoaded = true;
 
-    // 每隔一段时间滚动一次
-    var tick = config['scrollCount'];
-    fetcher.scrollInterval = setInterval(function() {
-        logger.debug("tick : " + tick + " scroll down : " + fetcher.scrollCount);
-        --tick;
+    page.evaluate(function() {
+    	document.body.setAttribute("source", document.URL);
+    });
 
-        page.evaluate(function() {
-            document.body.setAttribute("source", document.URL);
-            window.document.body.scrollTop = document.body.scrollHeight / 1.5;
-        });
+    this.startScrollTimer();
 
-        fetcher.lastScrollTime = new Date().getTime();
+    this.waitForContentComplete();
+};
 
-        if (++fetcher.scrollCount >= config['scrollCount']) {
-        	// TODO : is this scrollInterval really cleared?
-        	if (fetcher.scrollInterval) {
-                clearInterval(fetcher.scrollInterval);
-                fetcher.scrollInterval = null;
-        	}
-        }
-    }, 500);
+Fetcher.prototype.onContentComplete = function(response, page) {
+    logger.debug("content complete in fetcher");
+    logger.debug(JSON.stringify(response));
+
+    response.close();
+};
+
+Fetcher.prototype.waitForContentComplete = function() {
+	var fetcher = this;
+	var config = fetcher.config;
 
     var checkTimes = 16; // 检查16次，间隔250ms，也就是4s
-    utils.waitFor(function() {
+    var waitfor = require('./waitfor').create(function() {
+    	if (fetcher.pageClosed) {
+        	logger.debug('the page is already closed, quit waiting');
+    		return true;
+    	}
+
 //            logger.debug(" scroll count : " + this.scrollCount
 //            + " ajax requests : " + this.ajaxRequests 
 //            + " ajax respounses : " + this.ajaxResponses);
@@ -239,36 +260,66 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
             return --checkTimes <= 0;
         }
 
+        // try again until timeout
         return false;
     }, function() {
         // condition fulfilled
-        logger.debug("condition fulfilled, page is valid : " + !fetcher.pageClosed);
+        logger.info("condition fulfilled. " + fetcher.pageStatus());
 
-        if (fetcher.scrollInterval) {
-        	clearInterval(fetcher.scrollInterval);
-            fetcher.scrollInterval = null;
-        }
+        fetcher.stopScrollTimer();
 
-    	fetcher.onContentComplete(fetcher.mainResponse, page);
+        fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
     }, function() {
-        // 
-        logger.debug("time out, page is valid : " + !fetcher.pageClosed);
+        // timeout processor
+        logger.info("time out, page is valid. " + fetcher.pageStatus());
 
-        if (fetcher.scrollInterval) {
-        	clearInterval(fetcher.scrollInterval);
-            fetcher.scrollInterval = null;
-        }
+        fetcher.stopScrollTimer();
 
-    	fetcher.onContentComplete(fetcher.mainResponse, page);
+        fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
     },
     config.fetchTimeout);
+
+    waitfor.startTimer();
 };
 
-Fetcher.prototype.onContentComplete = function(response, page) {
-    logger.debug("content complete in fetcher");
-    logger.debug(JSON.stringify(response));
+Fetcher.prototype.startScrollTimer = function() {
+    // 每隔一段时间滚动一次
+    var fetcher = this;
+    var config = this.config;
 
-    response.close();
+    var tick = config['scrollCount'];
+    fetcher.scrollInterval = setInterval(function() {
+    	if (fetcher.pageClosed) {
+    		fetcher.stopScrollTimer();
+            return;
+    	}
+
+        logger.debug("tick : " + tick + " scroll down : " + fetcher.scrollCount);
+        --tick;
+
+        // send scroll event
+        fetcher.page.evaluate(function() {
+            window.document.body.scrollTop = document.body.scrollHeight / 1.5;
+        });
+
+        fetcher.lastScrollTime = new Date().getTime();
+
+        if (++fetcher.scrollCount >= config['scrollCount']) {
+        	fetcher.stopScrollTimer();
+        }
+    }, 500);
+};
+
+Fetcher.prototype.stopScrollTimer = function() {
+	if (this.scrollInterval) {
+        clearInterval(this.scrollInterval);
+        this.scrollInterval = null;
+	}
+};
+
+Fetcher.prototype.pageStatus = function() {
+	return 'page status : { requested : ' + this.pageRequested + ', loaded : ' 
+		+ this.pageLoaded + ', closed : ' + this.pageClosed + '}';
 };
 
 exports.create = function() {

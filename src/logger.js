@@ -1,5 +1,16 @@
 var fs = require('fs');
-var FlushCachePeriod = 250;
+var FlushCachePeriod = 500;
+var DefaultLevel = 'info';
+var ConfigLevel = 'debug';
+
+var loggerLevel = {
+	'trace' : 0,
+	'debug' : 1,
+	'info' : 2,
+	'warn' : 3,
+	'error' : 4,
+	'fatal' : 5
+};
 
 var loggerImpl = {
 
@@ -21,6 +32,7 @@ var loggerImpl = {
 
 	run : function() {
 		this.interval = setInterval(function() {
+			loggerImpl.cache.reverse();
 			while (loggerImpl.cache.length > 0) {
 				var item = loggerImpl.cache.pop();
 				fs.write(item.file, item.msg, 'a');
@@ -34,21 +46,38 @@ var loggerImpl = {
 };
 
 var logger = {
-		
-	info : function(msg) {
-		this.log(msg, "info");
+	trace: function(msg) {
+		this.log(msg, "trace");
 	},
 
 	debug: function(msg) {
 		this.log(msg, "debug");
 	},
 
+	warn : function(msg) {
+		this.log(msg, "warn");
+	},
+
+	info : function(msg) {
+		this.log(msg, "info");
+	},
+
 	error : function(msg) {
 		this.log(msg, "error");
 	},
 
+	fatal : function(msg) {
+		this.log(msg, "fatal");
+	},
+
 	log: function(msg, level) {
-		if (!level) level = "debug";
+		if (!level || !loggerLevel[level]) {
+			level = DefaultLevel;
+		}
+
+		if (loggerLevel[level] < loggerLevel[ConfigLevel]) {
+			return;
+		}
 
 		file = utils.logDir() + fs.separator + new Date().getDate() + fs.separator + 
 			"satellite." + level + ".log";

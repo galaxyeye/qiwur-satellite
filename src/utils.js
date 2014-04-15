@@ -15,56 +15,6 @@ if (Salt == null) {
 }
 
 var functions = {
-	/**
-	 * Wait until the test condition is true or a timeout occurs. Useful for waiting
-	 * on a server response or for a ui change (fadeIn, etc.) to occur.
-	 * 
-	 * @param testFx
-	 *            javascript condition that evaluates to a boolean, it can be passed
-	 *            in as a string (e.g.: "1 == 1" or "$('#bar').is(':visible')" or as
-	 *            a callback function.
-	 * @param onReady
-	 *            what to do when testFx condition is fulfilled, it can be passed in
-	 *            as a string (e.g.: "1 == 1" or "$('#bar').is(':visible')" or as a
-	 *            callback function.
-	 * @param timeOutMillis
-	 *            the max amount of time to wait. If not specified, 3 sec is used.
-	 */
-
-	waitFor: function(testFx, onReady, onTimeout, timeOutMillis) {
-		// default timeout limit is 3s
-	    var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 3000;
-
-	    var start = new Date().getTime();
-	    var condition = false;
-	    var result = 'success';
-
-	    interval = setInterval(function() {
-            if ( (new Date().getTime() - start < maxtimeOutMillis) && !condition ) {
-                // If not time-out yet and condition not yet fulfilled
-                condition = (typeof(testFx) === "string" ? eval(testFx) : testFx());
-            } else {
-                if(!condition) {
-                    // If condition still not fulfilled (timeout but condition
-					// is 'false')
-                    // logger.debug("waitFor timeout");
-
-                	if (onTimeout) typeof(onTimeout) === "string" ? eval(onTimeout) : onTimeout();
-                    clearInterval(interval);
-
-                    result = 'timeout';
-                } else {
-                    // Condition fulfilled (timeout and/or condition is 'true')
-                    // logger.debug("'waitFor()' finished in " + (new Date().getTime() - start) + "ms.");
-                	if (onReady) typeof(onReady) === "string" ? eval(onReady) : onReady();
-                    clearInterval(interval);
-                }
-            }
-        }, 250); // < repeat check every 250ms
-
-	    return result;
-	},
-
     /**********************************************************/
     // config
     /**********************************************************/

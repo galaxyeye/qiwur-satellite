@@ -45,7 +45,8 @@ var httpServer = {
 
     handleProxyRequest: function(request, response) {
         console.log("handle proxy request, url : " + request.url);
-        logger.debug("response : " + JSON.stringify(response));
+        logger.info("handle proxy request, url : " + request.url);
+        logger.debug("prepared response : " + JSON.stringify(response));
 
         // TODO : ip black list check
 
@@ -150,29 +151,47 @@ var services = {
         var responsed = false;
         var fetcher = require('./fetcher').create();
         fetcher.fetch(request.url, httpServer.fetcherConfig, function(proxyResponse, page) {
-            if (responsed) {
-                logger.debug("response has already been sent back, quit...");
+            if (!page) {
+                logger.error("page is closed, quit...");
+
                 return;
             }
 
-            if (!page) {
-                logger.debug("page is closed, quit...");
+            if (responsed) {
+                logger.error("response has already been sent back, quit...");
+
                 return;
             }
 
             logger.debug("forward for response : " + JSON.stringify(proxyResponse));
             logger.debug("page length : " + page.content.length);
 
+            // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，如Redirect, Content-Encoding，Content-MD5等
+            var ForwardHeaders = ['Server', 'Content-Type', 'X-Powered-By',
+                                  'Set-Cookie', 'Vary', 'Date',
+                                  'Cache-Control', 'Last-Modified', 'Expires'];
             for (var i = 0; i < proxyResponse.headers.length; ++i) {
-//                logger.debug("proxy response headers : " + JSON.stringify(proxyResponse.headers[i]));
                 var name = proxyResponse.headers[i].name;
                 var value = proxyResponse.headers[i].value;
-                response.setHeader(name, value);
+
+                if (ForwardHeaders.indexOf(name) !== -1) {
+                    response.setHeader(name, value);
+
+                    // 设置内容编码，将会以该编码方式在网络上传输，并且内容编码方式需和header中的Content-Type、网页文本中的<meta charset=''>
+                    // 保持一致。
+                    // 如果不设置内容编码，将会以默认的utf-8进行编码。如果不和header以及meta保持一致，将可能会导致某些外部软件的解析错误。
+                    if (name == 'Content-Type') {
+                    	var pos = value.lastIndexOf('=');
+                    	if (pos !== -1) {
+                    		response.setEncoding(value.substring(pos + 1));
+                    	}
+                    }
+                }
             }
 
-            response.setHeader('Connection', 'Keep-Alive');
             // 客户端可以和proxy server保持20分钟的长连接，并且在20分钟内可以使用该连接发送最多1000次请求
             // 超时或者请求次数超过限制，则重现建立连接
+            response.setHeader('Connection', 'Keep-Alive');
             response.setHeader('Keep-Alive', 'timeout=1200, max=1000');
             response.setHeader('Content-Length', page.content.length);
 
@@ -180,14 +199,15 @@ var services = {
 
             var msg = "-----------------------response-------------------------\n";
             msg += "response : " + JSON.stringify(response) + "\n";
-            msg += "response headers : " + JSON.stringify(response.headers) + "\n";
             logger.debug(msg);
 
-            response.writeHead(response.statusCode, proxyResponse.headers);
+            response.writeHead(response.statusCode, response.headers);
+            // TODO ： gzip压缩。如果使用gzip压缩，则需要设置Content-Encoding头部信息。
+            // TODO ： Transfer-Encoding
             response.write(page.content);
 
             responsed = true;
-            response.closeGracefully();
+            response.close();
         });
     },
 };
