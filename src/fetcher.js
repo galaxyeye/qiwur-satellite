@@ -17,6 +17,8 @@ var DefaultConfig = {
     "viewportHeight": 1080
 };
 
+var DefaultScrollInterval = 500; // ms
+
 var tools = {
 
     saveAndExit: function(url, html) {
@@ -138,7 +140,11 @@ Fetcher.prototype.load = function () {
 
         page.open(config.url);
 
-        // page.navigationLocked = true;
+        // don't leave this url, all redirection will be handled by the client
+        page.navigationLocked = true;
+    }
+    else {
+    	logger.error('bad page status. ' + this.pageStatus());
     }
 };
 
@@ -190,18 +196,28 @@ Fetcher.prototype.onResourceTimeout = function(page, config, request) {
 Fetcher.prototype.onLoadFinished = function (page, config, status) {
     // enter here twice due to a phantomjs bug
     // http://stackoverflow.com/questions/11597990/phantomjs-ensuring-that-the-response-object-stays-alive-in-server-listen
-
+	// or there is a redirect request
     if (!this.pageRequested || this.pageLoaded || this.pageClosed) {
-    	logger.error('bad page status : ' + this.pageStatus());
+    	logger.error('bad page status. ' + this.pageStatus());
     	return;
     }
+
+    this.pageLoaded = true;
+
+	// redirect response. NOTICE : status is fail here
+	if (this.mainResponse && this.mainResponse.status > 300 && this.mainResponse.status < 400) {
+		fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
+		return;
+	}
+
+	// TODO : we do not handle the following redirect situations : 
+	// 1. <meta http-equiv="refresh" ...>
+	// 2. redirect using javascript:location
 
     if (status != 'success') {
         logger.error('FAILED TO LOAD');
         return;
     }
-
-    this.pageLoaded = true;
 
     page.evaluate(function() {
     	document.body.setAttribute("source", document.URL);
@@ -250,7 +266,7 @@ Fetcher.prototype.waitForContentComplete = function() {
 
         // 情形3
         // 发出了滚动事件，有结果没有收回，反复检查几次，认为滚动事件已经不能触发ajax请求了
-        var hasTrivalScroll = fetcher.scrollCount > fetcher.ajaxRequests 
+        var hasTrivalScroll = fetcher.scrollCount > fetcher.ajaxRequests
             || fetcher.scrollCount > fetcher.ajaxResponses;
 
         if (hasTrivalScroll) {
@@ -307,7 +323,7 @@ Fetcher.prototype.startScrollTimer = function() {
         if (++fetcher.scrollCount >= config['scrollCount']) {
         	fetcher.stopScrollTimer();
         }
-    }, 500);
+    }, DefaultScrollInterval);
 };
 
 Fetcher.prototype.stopScrollTimer = function() {

@@ -1,6 +1,7 @@
 {
     "server" : {
-        "port": "19080p"
+        "port": "19080p",
+        "keepAlive": true
     },
     "fetcher" : {
         "userAgent": "chrome",

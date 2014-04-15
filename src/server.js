@@ -69,10 +69,11 @@ var httpServer = {
 
         var service = null;
         var isProxy = config.port.indexOf('p') !== -1;
+        var keepAlive = config.keepAlive;
 
         // 每一个请求会在一个单独的线程中执行
         // TODO : 在phontomjs环境中，mongoose是单线程执行的，需要进一步验证
-        service = server.listen(config.port, {'keepAlive': true}, function (request, response) {
+        service = server.listen(config.port, {'keepAlive': keepAlive}, function (request, response) {
             logger.debug("----------------------received a request-------------------------");
             logger.debug(JSON.stringify(request));
 
@@ -166,9 +167,14 @@ var services = {
             logger.debug("forward for response : " + JSON.stringify(proxyResponse));
             logger.debug("page length : " + page.content.length);
 
-            // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，如Redirect, Content-Encoding，Content-MD5等
-            var ForwardHeaders = ['Server', 'Content-Type', 'X-Powered-By',
+            // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，Content-Encoding，Content-MD5等
+            // copy all responses from the target web server
+            // NOTICE : some headers are not applicable, such as Content-Encoding，Content-MD5, etc
+            // TODO : check more applicable headers
+            var ForwardHeaders = ['Server', 'Content-Type', 'Content-Language', 'X-Powered-By',
+                                  'Location',
                                   'Set-Cookie', 'Vary', 'Date',
+                                  'X-Cache', 'X-Cache-Lookup',
                                   'Cache-Control', 'Last-Modified', 'Expires'];
             for (var i = 0; i < proxyResponse.headers.length; ++i) {
                 var name = proxyResponse.headers[i].name;
@@ -180,6 +186,9 @@ var services = {
                     // 设置内容编码，将会以该编码方式在网络上传输，并且内容编码方式需和header中的Content-Type、网页文本中的<meta charset=''>
                     // 保持一致。
                     // 如果不设置内容编码，将会以默认的utf-8进行编码。如果不和header以及meta保持一致，将可能会导致某些外部软件的解析错误。
+                    // set the content encoding, the content encoding must keep the same with 
+                    // 1. Content-Type in resposne header
+                    // 2. <meta charset=xxx> tag in html header
                     if (name == 'Content-Type') {
                     	var pos = value.lastIndexOf('=');
                     	if (pos !== -1) {
@@ -191,11 +200,14 @@ var services = {
 
             // 客户端可以和proxy server保持20分钟的长连接，并且在20分钟内可以使用该连接发送最多1000次请求
             // 超时或者请求次数超过限制，则重现建立连接
-            response.setHeader('Connection', 'Keep-Alive');
-            response.setHeader('Keep-Alive', 'timeout=1200, max=1000');
+            if (httpServer.serverConfig.keepAlive) {
+                response.setHeader('Connection', 'Keep-Alive');
+                response.setHeader('Keep-Alive', 'timeout=1200, max=1000');
+            }
+
             response.setHeader('Content-Length', page.content.length);
 
-            response.statusCode = proxyResponse.headers.status;
+            response.statusCode = proxyResponse.status;
 
             var msg = "-----------------------response-------------------------\n";
             msg += "response : " + JSON.stringify(response) + "\n";
