@@ -12,6 +12,40 @@ var httpServer = {
 
     fetcherConfig: false,
 
+    run : function() {
+        var config = this.config = utils.loadConfig().server;
+        if (system.args.length === 2) {
+        	this.config.port = system.args[1];
+        }
+
+        var service = null;
+        var isProxy = config.port.indexOf('p') !== -1;
+        var keepAlive = config.keepAlive;
+
+        logger.info('start a server at port ' + config.port);
+
+        // 每一个请求会在一个单独的线程中执行
+        // TODO : 在phontomjs环境中，mongoose是单线程执行的，需要进一步验证
+        service = server.listen(config.port, {'keepAlive': keepAlive}, function (request, response) {
+            logger.debug("----------------------received a request-------------------------");
+            logger.debug(JSON.stringify(request));
+
+            if (isProxy) {
+                httpServer.handleProxyRequest(request, response);
+            }
+            else {
+                httpServer.handleHttpRequest(request, response);
+            }
+        });
+
+        if (service) {
+            console.log('Web server running on port ' + config.port);
+        } else {
+            console.error('Error: Could not create web server listening on port ' + config.port);
+            phantom.exit();
+        }
+    },
+
     handleHttpRequest: function(request, response) {
         console.log("handle http request");
         // console.log(JSON.stringify(request, null, 4));
@@ -44,9 +78,9 @@ var httpServer = {
     },
 
     handleProxyRequest: function(request, response) {
-        console.log("handle proxy request, url : " + request.url);
+        // console.log("handle proxy request, url : " + request.url);
         logger.info("handle proxy request, url : " + request.url);
-        logger.debug("prepared response : " + JSON.stringify(response));
+        // logger.debug("prepared response : " + JSON.stringify(response));
 
         // TODO : ip black list check
 
@@ -59,41 +93,11 @@ var httpServer = {
         // TODO : route : redirect or forward
 
         services.forward(request, response);
-    },
-
-    run : function() {
-        var config = this.config = utils.loadConfig().server;
-        if (system.args.length === 2) {
-        	this.config.port = system.args[1];
-        }
-
-        var service = null;
-        var isProxy = config.port.indexOf('p') !== -1;
-        var keepAlive = config.keepAlive;
-
-        // 每一个请求会在一个单独的线程中执行
-        // TODO : 在phontomjs环境中，mongoose是单线程执行的，需要进一步验证
-        service = server.listen(config.port, {'keepAlive': keepAlive}, function (request, response) {
-            logger.debug("----------------------received a request-------------------------");
-            logger.debug(JSON.stringify(request));
-
-            if (isProxy) {
-                httpServer.handleProxyRequest(request, response);
-            }
-            else {
-                httpServer.handleHttpRequest(request, response);
-            }
-        });
-
-        if (service) {
-            console.log('Web server running on port ' + config.port);
-        } else {
-            console.error('Error: Could not create web server listening on port ' + config.port);
-            phantom.exit();
-        }
     }
+
 };
 
+// services should have no member properties, it's stateless
 var services = {
 
     list: function(localPath) {
@@ -137,6 +141,10 @@ var services = {
         }
     },
 
+    report: function() {
+    	
+    },
+
     // proxy server
     redirect: function(response, host) {
         response.statusCode = 301;
@@ -147,7 +155,7 @@ var services = {
     },
 
     forward: function(request, response) {
-        logger.debug("forward to : " + request.url);
+        // logger.debug("forward to : " + request.url);
 
         var responsed = false;
         var fetcher = require('./fetcher').create();
@@ -164,7 +172,7 @@ var services = {
                 return;
             }
 
-            logger.debug("forward for response : " + JSON.stringify(proxyResponse));
+            // logger.debug("forward for response : " + JSON.stringify(proxyResponse));
             logger.debug("page length : " + page.content.length);
 
             // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，Content-Encoding，Content-MD5等
@@ -176,12 +184,18 @@ var services = {
                                   'Set-Cookie', 'Vary', 'Date',
                                   'X-Cache', 'X-Cache-Lookup',
                                   'Cache-Control', 'Last-Modified', 'Expires'];
+            // var DoNotForwardHeaders = ['Content-Encoding', 'Content-MD5', 'Transfer-Encoding'];
             for (var i = 0; i < proxyResponse.headers.length; ++i) {
                 var name = proxyResponse.headers[i].name;
                 var value = proxyResponse.headers[i].value;
 
                 if (ForwardHeaders.indexOf(name) !== -1) {
+                	// nutch seeks a "\n\t" or "\n " as a line continue mark
+                	// but it seems that some response header use only '\n' for a line continue mark
+                	value = value.replace(/\n\t*/g, "\n\t");
                     response.setHeader(name, value);
+
+                    // logger.debug("set header -> " + name + " : " + value);
 
                     // 设置内容编码，将会以该编码方式在网络上传输，并且内容编码方式需和header中的Content-Type、网页文本中的<meta charset=''>
                     // 保持一致。

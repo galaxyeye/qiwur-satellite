@@ -9,9 +9,9 @@ var DefaultConfig = {
     "userAgentAliases": {
         "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
     },
-    "fetchTimeout" : 1 * 60 * 1000,
+    "fetchTimeout" : 30 * 1000,
     "scrollCount" : 10,
-    "scrollTimeout" : 10 * 1000,
+    "scrollTimeout" : 5 * 1000,
     "consolePrefix": "#",
     "viewportWidth": 1920,
     "viewportHeight": 1080
@@ -130,7 +130,7 @@ Fetcher.prototype.load = function () {
     page.viewportSize = { width: config.viewportWidth, height: config.viewportHeight };
     logger.debug(JSON.stringify(page.viewportSize));
 
-	logger.debug('page status : ' + this.pageRequested + ', ' + this.pageLoaded + ', ' + this.pageClosed);
+	// logger.debug('page status : ' + this.pageRequested + ', ' + this.pageLoaded + ', ' + this.pageClosed);
 
     // 所有的回调函数都已经注册完毕，启动网络请求
     if (!this.pageRequested && !this.pageLoaded && !this.pageClosed) {
@@ -173,7 +173,7 @@ Fetcher.prototype.onResourceRequested = function (page, config, requestData, req
 
 Fetcher.prototype.onResourceReceived = function (page, config, response) {
     if (!this.mainResponse) {
-        logger.debug("main response : " + JSON.stringify(response));
+        // logger.debug("main response : " + JSON.stringify(response));
         this.mainResponse = response;
     }
 
@@ -182,8 +182,6 @@ Fetcher.prototype.onResourceReceived = function (page, config, response) {
          // logger.debug("#" + response.id + " loaded \n" + JSON.stringify(response));
     }
 
-    // 如果页面加载完毕，那么将会通过模拟用户行为的方法来请求新资源
-    // 目前是向下滚动5次，每次滚动一个页面高度（接近）
     if (this.pageLoaded && response.stage == 'end') {
         ++this.ajaxResponses;
     }
@@ -205,7 +203,7 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
     this.pageLoaded = true;
 
 	// redirect response. NOTICE : status is fail here
-	if (this.mainResponse && this.mainResponse.status > 300 && this.mainResponse.status < 400) {
+	if (this.mainResponse && this.mainResponse.status >= 300 && this.mainResponse.status < 400) {
 		fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
 		return;
 	}
@@ -215,7 +213,7 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 	// 2. redirect using javascript:location
 
     if (status != 'success') {
-        logger.error('FAILED TO LOAD');
+        logger.error('FAILED TO LOAD ');
         return;
     }
 
@@ -280,7 +278,7 @@ Fetcher.prototype.waitForContentComplete = function() {
         return false;
     }, function() {
         // condition fulfilled
-        logger.info("condition fulfilled. " + fetcher.pageStatus());
+        // logger.info("condition fulfilled. " + fetcher.pageStatus());
 
         fetcher.stopScrollTimer();
 
@@ -310,7 +308,7 @@ Fetcher.prototype.startScrollTimer = function() {
             return;
     	}
 
-        logger.debug("tick : " + tick + " scroll down : " + fetcher.scrollCount);
+        // logger.debug("tick : " + tick + " scroll down : " + fetcher.scrollCount);
         --tick;
 
         // send scroll event

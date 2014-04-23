@@ -46,6 +46,10 @@ var loggerImpl = {
 };
 
 var logger = {
+	config : null,
+
+	logLevel: DefaultLevel,
+
 	trace: function(msg) {
 		this.log(msg, "trace");
 	},
@@ -71,8 +75,13 @@ var logger = {
 	},
 
 	log: function(msg, level) {
+		if (!this.config) {
+	        this.config = utils.loadConfig().logger;
+	        this.logLevel = this.config.logLevel;
+		}
+
 		if (!level || !loggerLevel[level]) {
-			level = DefaultLevel;
+			level = this.logLevel ? this.logLevel : DefaultLevel;
 		}
 
 		if (loggerLevel[level] < loggerLevel[ConfigLevel]) {
