@@ -16,18 +16,23 @@
             "Baiduspider - 2": "Baiduspider+(+http://www.baidu.com/search/spider.htm)",
             "Baiduspider - 3": "BaiDuSpider"
         },
-        "fetchTimeout" : 120000,
+        "fetchTimeout" : 30000,
         "scrollCount" : 10,
-        "scrollTimeout" : 20000,
+        "scrollTimeout" : 5000,
         "consolePrefix": "#",
         "loadImages": false
     },
     "reporter" : {
-        "url" : "http://qiwur.com:19081/"
+        "url" : "http://qiwur.com:19380/monitor/report"
     },
     "coordinator" : {
-        "ServerPortBase" : 19080,
-        "ProxyProcessCount" : 10,
-        "ControlCenter" : "http://qiwur.com/satellite/controller"
+        "port" : 19180,
+        "reportPeriod" : 120000,
+        "serverPortBase" : 19080,
+        "proxyProcessCount" : 10,
+        "controlCenter" : "http://qiwur.com/satellite/controller"
+    },
+    "logger" : {
+        "logLevel" : "debug"
     }
 }
