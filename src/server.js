@@ -94,7 +94,6 @@ var httpServer = {
 
         services.forward(request, response);
     }
-
 };
 
 // services should have no member properties, it's stateless
@@ -172,12 +171,15 @@ var services = {
                 return;
             }
 
+            var content = page.content;
+            content = content.replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
+
             // logger.debug("forward for response : " + JSON.stringify(proxyResponse));
             logger.debug("page length : " + page.content.length);
 
-            // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，Content-Encoding，Content-MD5等
+            // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，Content-Encoding，Content-MD5, Transfer-Encoding等
             // copy all responses from the target web server
-            // NOTICE : some headers are not applicable, such as Content-Encoding，Content-MD5, etc
+            // NOTICE : some headers are not applicable, such as Content-Encoding，Content-MD5, Transfer-Encoding, etc
             // TODO : check more applicable headers
             var ForwardHeaders = ['Server', 'Content-Type', 'Content-Language', 'X-Powered-By',
                                   'Location',
@@ -193,22 +195,12 @@ var services = {
                 	// nutch seeks a "\n\t" or "\n " as a line continue mark
                 	// but it seems that some response header use only '\n' for a line continue mark
                 	value = value.replace(/\n\t*/g, "\n\t");
+                	if (name == 'Content-Type') {
+                		// the content encoding is utf-8 now for all pages
+                		value = value.replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
+                	}
+
                     response.setHeader(name, value);
-
-                    // logger.debug("set header -> " + name + " : " + value);
-
-                    // 设置内容编码，将会以该编码方式在网络上传输，并且内容编码方式需和header中的Content-Type、网页文本中的<meta charset=''>
-                    // 保持一致。
-                    // 如果不设置内容编码，将会以默认的utf-8进行编码。如果不和header以及meta保持一致，将可能会导致某些外部软件的解析错误。
-                    // set the content encoding, the content encoding must keep the same with 
-                    // 1. Content-Type in resposne header
-                    // 2. <meta charset=xxx> tag in html header
-                    if (name == 'Content-Type') {
-                    	var pos = value.lastIndexOf('=');
-                    	if (pos !== -1) {
-                    		response.setEncoding(value.substring(pos + 1));
-                    	}
-                    }
                 }
             }
 
@@ -219,18 +211,16 @@ var services = {
                 response.setHeader('Keep-Alive', 'timeout=1200, max=1000');
             }
 
-            response.setHeader('Content-Length', page.content.length);
-
             response.statusCode = proxyResponse.status;
 
             var msg = "-----------------------response-------------------------\n";
             msg += "response : " + JSON.stringify(response) + "\n";
             logger.debug(msg);
 
-            response.writeHead(response.statusCode, response.headers);
             // TODO ： gzip压缩。如果使用gzip压缩，则需要设置Content-Encoding头部信息。
             // TODO ： Transfer-Encoding
-            response.write(page.content);
+            response.writeHead(response.statusCode, response.headers);
+            response.write(content);
 
             responsed = true;
             response.close();

@@ -1,6 +1,39 @@
-var str = "ECM_ID=91e854f67f6817c733be18c01de3353f156c12aa; path=/\n\tPHPSESSID=3tahn5jc8e6j15rl028uoscua4; path=/\nECS[visit_times]=1; expires=Thu, 23-Apr-2015 03:37:14 GMT; Max-Age=31536000; path=/\nuser_ucookies=f4bd9e66-ca97-11e3-bb8d-21533e3c7287; expires=Sat, 20-Apr-2024 03:37:14 GMT; Max-Age=315360000; path=/";
-str = str.replace(/\n\t*/g, "\n\t");
+function extractCharsetFromMeta() {
+	var str = [
+	"text/html; charset=utf-8",
+	"<meta  charset  =  '  utf-8'     >",
+	'<meta name="title" value="charset=utf-8 — is it really useful (yep)?">',
+	'<meta  http-equiv  =  Content-Type  content  =  text/html  ;  ;  ;  charset  =  iso-8859-1  >'
+	];
+	
+	for (var i = 0; i < str.length; ++i) {
+		var result = str[i].match(/<meta(?!\s*(?:name|value)\s*=)(?:[^>]*?content\s*=[\s"']*)?([^>]*?)[\s"';]*charset\s*=[\s"']*([^\s"'/>]*)/);
+	
+		if (result && result.length > 2) {
+			console.log(result[2]);
+		}
+		else {
+			console.log(result);
+		}
+	}	
+}
 
-console.log(str);
+function extractCharsetFromContentType() {
+	var str = [
+	   	"text/html; charset=utf-8",
+	   	"text/html; charset=gb2312",
+	   	'application/x-javascript; charset=gb2312',
+	   	'<meta  http-equiv  =  Content-Type  content  =  text/html  ;  ;  ;  charset  =  iso-8859-1  >',
+		"<meta  charset  =  '  utf-8'     >",
+		"<meta  content  =  text/html  ;  ;  ;  charset  =  iso-8859-1  http-equiv  =  Content-Type  >"
+   	];
+
+   	for (var i = 0; i < str.length; ++i) {
+   		var s = str[i].replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
+   		console.log(s);
+   	}
+}
+
+extractCharsetFromContentType();
 
 phantom.exit();

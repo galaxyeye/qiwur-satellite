@@ -17,8 +17,8 @@
             "Baiduspider - 3": "BaiDuSpider"
         },
         "fetchTimeout" : 30000,
-        "scrollTimeout" : 5000,
         "scrollCount" : 10,
+        "scrollTimeout" : 5000,
         "consolePrefix": "#",
         "loadImages": false
     },

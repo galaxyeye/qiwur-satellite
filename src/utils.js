@@ -291,6 +291,30 @@ var functions = {
         });
     },
 
+    getEncoding: function(str) {
+    	var encoding = null;
+
+    	var pos = str.indexOf('charset=');
+    	if (pos !== -1) {
+    		encoding = str.substring(pos + 'charset='.length);
+    		encoding = encoding.replace(/[\"|\']/g, "");
+    	}
+
+    	return encoding;
+    },
+
+    getEncodingFromMeta: function(str) {
+    	var encoding = null;
+
+    	var pos = str.indexOf('charset=');
+    	if (pos !== -1) {
+    		encoding = str.substring(pos + 'charset='.length);
+    		encoding = encoding.replace(/[\"|\']/g, "");
+    	}
+
+    	return encoding;
+    },
+
 	isJS: function(url) {
 	    if ((/http:\/\/.+?\.js/gi).test(url)) {
 	    	return true;

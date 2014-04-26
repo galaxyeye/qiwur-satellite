@@ -73,6 +73,7 @@ Fetcher.prototype.fetch = function(url, config, onContentComplete) {
 
             if (!fetcher.pageClosed) {
             	fetcher.pageClosed = true;
+            	
                 onContentComplete(response, page);
             	page.close();
             }

@@ -1,7 +1,7 @@
 var fs = require("fs");
 var system = require("system");
 var utils = require('./utils');
-var fetcher = require('./fetcher');
+var fetcher = require('./fetcher').create();
 var logger = require('./logger');
 
 var httpClient = {
