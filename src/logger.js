@@ -1,4 +1,6 @@
 var fs = require('fs');
+var system = require('system');
+
 var FlushCachePeriod = 500;
 var DefaultLevel = 'info';
 var ConfigLevel = 'debug';
@@ -26,7 +28,7 @@ var loggerImpl = {
 	},
 
 	write : function(file, msg) {
-		msg = "[" + this.getTime() + "]" + " " + msg + "\n";
+		msg = "[" + this.getTime() + "] " + system.pid + " " + msg + "\n";
 		this.cache.push({"file" : file, "msg" : msg});
 	},
 

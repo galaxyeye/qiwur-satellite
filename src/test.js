@@ -34,6 +34,4 @@ function extractCharsetFromContentType() {
    	}
 }
 
-extractCharsetFromContentType();
-
 phantom.exit();

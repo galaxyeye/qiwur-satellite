@@ -12,6 +12,8 @@ var httpServer = {
 
     fetcherConfig: false,
 
+    servedPages: 0,
+    
     run : function() {
         var config = this.config = utils.loadConfig().server;
         if (system.args.length === 2) {
@@ -27,8 +29,8 @@ var httpServer = {
         // 每一个请求会在一个单独的线程中执行
         // TODO : 在phontomjs环境中，mongoose是单线程执行的，需要进一步验证
         service = server.listen(config.port, {'keepAlive': keepAlive}, function (request, response) {
-            logger.debug("----------------------received a request-------------------------");
-            logger.debug(JSON.stringify(request));
+//            logger.debug("----------------------received a request-------------------------");
+//            logger.debug(JSON.stringify(request));
 
             if (isProxy) {
                 httpServer.handleProxyRequest(request, response);
@@ -39,7 +41,7 @@ var httpServer = {
         });
 
         if (service) {
-            console.log('Web server running on port ' + config.port);
+            console.log('web server running on port ' + config.port);
         } else {
             console.error('Error: Could not create web server listening on port ' + config.port);
             phantom.exit();
@@ -79,7 +81,7 @@ var httpServer = {
 
     handleProxyRequest: function(request, response) {
         // console.log("handle proxy request, url : " + request.url);
-        logger.info("handle proxy request, url : " + request.url);
+        // logger.info("handle proxy request, url : " + request.url);
         // logger.debug("prepared response : " + JSON.stringify(response));
 
         // TODO : ip black list check
@@ -175,7 +177,7 @@ var services = {
             content = content.replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
 
             // logger.debug("forward for response : " + JSON.stringify(proxyResponse));
-            logger.debug("page length : " + page.content.length);
+        	// logger.debug("page length : " + page.content.length);
 
             // 将目标网站的响应头部复制一遍，注意某些头部是不再适用的，Content-Encoding，Content-MD5, Transfer-Encoding等
             // copy all responses from the target web server
@@ -210,20 +212,34 @@ var services = {
                 response.setHeader('Connection', 'Keep-Alive');
                 response.setHeader('Keep-Alive', 'timeout=1200, max=1000');
             }
-
-            response.statusCode = proxyResponse.status;
-
-            var msg = "-----------------------response-------------------------\n";
-            msg += "response : " + JSON.stringify(response) + "\n";
-            logger.debug(msg);
-
+            response.setHeader('Content-Length', content.length);
             // TODO ： gzip压缩。如果使用gzip压缩，则需要设置Content-Encoding头部信息。
             // TODO ： Transfer-Encoding
+
+//            var msg = "-----------------------response-------------------------\n";
+//            msg += "response : " + JSON.stringify(response) + "\n";
+//            logger.debug(msg);
+
+            response.statusCode = proxyResponse.status;
             response.writeHead(response.statusCode, response.headers);
             response.write(content);
 
+            ++httpServer.servedPages;
+
+            logger.debug("response url : " + request.url +
+            		", status : " + response.statusCode +
+            		", content length : " + content.length +
+            		", served pages : " + httpServer.servedPages);
+
             responsed = true;
             response.close();
+
+            if (httpServer.servedPages > httpServer.config.maxServedPage) {
+            	// it seems phantomjs can not recycle resource correctly
+            	// give the process a chance to recycle resources
+            	// the process will be restarted by coordinator
+            	phantom.exit(0);
+            }
         });
     },
 };
