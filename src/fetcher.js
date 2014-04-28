@@ -69,11 +69,11 @@ Fetcher.prototype.fetch = function(url, config, onContentComplete) {
     	fetcher = this;
 
         this.onContentComplete = function(response, page) {
-            logger.debug("call user defined complete handler");
+            // logger.debug("call user defined complete handler");
 
             if (!fetcher.pageClosed) {
             	fetcher.pageClosed = true;
-            	
+
                 onContentComplete(response, page);
             	page.close();
             }
@@ -129,7 +129,7 @@ Fetcher.prototype.load = function () {
     });
 
     page.viewportSize = { width: config.viewportWidth, height: config.viewportHeight };
-    logger.debug(JSON.stringify(page.viewportSize));
+    // logger.debug(JSON.stringify(page.viewportSize));
 
 	// logger.debug('page status : ' + this.pageRequested + ', ' + this.pageLoaded + ', ' + this.pageClosed);
 
@@ -215,6 +215,7 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 
     if (status != 'success') {
         logger.error('FAILED TO LOAD ');
+		fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
         return;
     }
 
@@ -238,7 +239,7 @@ Fetcher.prototype.waitForContentComplete = function() {
 	var fetcher = this;
 	var config = fetcher.config;
 
-    var checkTimes = 16; // 检查16次，间隔250ms，也就是4s
+    var checkTimes = 8; // 检查8次，间隔250ms，也就是2s
     var waitfor = require('./waitfor').create(function() {
     	if (fetcher.pageClosed) {
         	logger.debug('the page is already closed, quit waiting');
@@ -264,13 +265,13 @@ Fetcher.prototype.waitForContentComplete = function() {
         }
 
         // 情形3
-        // 发出了滚动事件，有结果没有收回，反复检查几次，认为滚动事件已经不能触发ajax请求了
+        // 发出了滚动事件，结果没有收回，反复检查几次，认为滚动事件已经不能触发ajax请求了
         var hasTrivalScroll = fetcher.scrollCount > fetcher.ajaxRequests
             || fetcher.scrollCount > fetcher.ajaxResponses;
 
         if (hasTrivalScroll) {
-            logger.debug("waiting ..." + fetcher.pageLoaded + " " + checkTimes + " "
-                    + fetcher.scrollCount + " " + fetcher.ajaxRequests + " " + fetcher.ajaxResponses);
+//            logger.debug("trival scroll, waiting ... status : " + fetcher.pageLoaded + " " + checkTimes + " "
+//                    + fetcher.scrollCount + " " + fetcher.ajaxRequests + " " + fetcher.ajaxResponses);
 
             return --checkTimes <= 0;
         }

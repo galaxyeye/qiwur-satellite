@@ -12,8 +12,7 @@ var coordinator = {
 	config : {
 		"port" : 19180,
 		"serverPortBase" : 19080,
-		"proxyProcessCount" : 10,
-		"controlCenter" : "http://qiwur.com:19181"
+		"proxyProcessCount" : 10
 	},
 
 	serverProcesses : [],
@@ -45,7 +44,9 @@ var coordinator = {
         });
 
         if (service) {
-            console.log('Web server running on port ' + this.config.port);
+        	var message = 'web server running on port ' + this.config.port;
+            console.log(message);
+            logger.debug(message);
         } else {
             console.error('Error: Could not create web server listening on port ' + this.config.port);
             phantom.exit();
@@ -100,7 +101,8 @@ var coordinator = {
     },
 
     status : function() {
-    	return 'not implemented';
+    	var message = 'proxy servers : ' + JSON.stringify(this.serverProcesses);
+    	return message;
     },
 
     report : function() {
@@ -125,46 +127,114 @@ var coordinator = {
 
         // 启动更新器
         process.execFile(PHANTOMJS, ["src/updater.js"], null, function(err, stdout, stderr) {
-              console.error(stderr);
+        	console.error(stderr);
         });
 
         return 'updated....';
 	},
 
+	startProxyServer: function(port) {
+    	// p为后缀表示启动代理服务器(proxy server)
+        var child = process.spawn(PHANTOMJS, ["src/server.js", port + "p"]);
+
+        child.stdout.on("data", function (data) {
+        	logger.debug(JSON.stringify(data));
+        });
+
+        child.stderr.on("data", function (data) {
+        	logger.error(JSON.stringify(data));
+        });
+
+        // TODO : status is deprecated
+        return {"port" : port, "process" : child, "status" : "running"};
+	},
+
 	start : function() {
-		var message = 'start proxy servers on port : ';
+		var message = "";
 
         // 启动代理服务器
         for (var i = 0; i < this.config.proxyProcessCount; ++i) {
-        	var port = this.config.serverPortBase + i + "p";
-
-        	console.log('start proxy process on port : ' + port);
-        	message += port + ', ';
-
-        	// p为后缀表示启动代理服务器(proxy server)
-            var child = process.spawn(PHANTOMJS, ["src/server.js", port]);
-
-            child.stdout.on("data", function (data) {
-            	logger.debug(JSON.stringify(data));
-            });
-
-            child.stderr.on("data", function (data) {
-            	logger.error(JSON.stringify(data));
-            });
-
-            this.serverProcesses.push(child);
+        	var port = this.config.serverPortBase + i;
+        	var process = this.startProxyServer(port);
+            this.serverProcesses.push(process);
         }
+
+		logger.debug("all proxy servers : " + JSON.stringify(this.serverProcesses));
 
         var services = this;
 
-        setTimeout(function () {
-        	services.report();
-        }, 20 * 1000);
-
         // report status periodly
+        var tick = 0;
+        // kill a process every 3 min, so if there are 10 threads, every thread serves for 30 min at most
+        var cleanProcessInterval = 180;
+        // restart the dead process after 15 seconds, hoping it is cleanly closed
+        var startDeadProcessInterval = 15;
+        var lastCleanTick = 0;
+        var reportInterval = 4; // report interval 4s, 8, 16, 32, ...
+        var coordinator = this;
+        var processes = this.serverProcesses;
+        var pindex = 0;
         setInterval(function() {
-        	services.report();
-        }, this.config.reportPeriod);
+        	++tick;
+
+        	if (tick % 10 == 0) {
+	    		for (var i = 0; i < processes.length; ++i) {
+					var process = processes[i];
+					if (process.process.pid === 0) {
+		    			logger.info("start process : " + JSON.stringify(process));
+		    			processes[i] = coordinator.startProxyServer(process.port);
+					}
+	    		}
+        	}
+
+//        	if (tick - lastCleanTick > startDeadProcessInterval) {
+//	    		// start all dead processes
+//	    		for (var i = 0; i < processes.length; ++i) {
+//	    			var process = processes[i];
+//	    			if (process.process.id == 0) {
+//	        			// logger.info("start process : " + JSON.stringify(process));
+//	        			processes[i] = coordinator.startProxyServer(process.port);
+//	    			}
+//	    		}
+//        	}
+
+//        	if (tick - lastCleanTick > startDeadProcessInterval) {
+//        		// start all dead processes
+//        		for (var i = 0; i < processes.length; ++i) {
+//        			var process = processes[i];
+//        			if (process.status == "dead") {
+//            			logger.info("start process : " + JSON.stringify(process));
+//            			processes[i] = coordinator.startProxyServer(process.port);
+//        			}
+//        		}
+//        	}
+//
+//        	// restart a process every min
+//        	if (tick % cleanProcessInterval == 0) {
+//        		var process = processes[pindex];
+//        		if (process.status == "running") {
+//        			logger.info("kill process : " + JSON.stringify(process));
+//
+//            		process.process.kill('SIGKILL');
+//            		process.status = "dead";
+//        		}
+//
+//        		lastCleanTick = tick;
+//
+//        		if (++pindex >= processes.length) {
+//        			pindex = 0;
+//        		}
+//        	}
+
+        	if (tick % reportInterval == 0) {
+        		services.report();
+        		reportInterval *= 2;
+        		// about 20 minites
+        		if (reportInterval >= 1024) {
+        			reportInterval = 1024;
+        		}
+        	}
+        }, 1000);
 
         message += ' all done.';
         return message;
@@ -175,9 +245,12 @@ var coordinator = {
 
 		// find pid files and send kill command
 		for (var i = 0; i < this.serverProcesses.length; ++i) {
-	    	console.log('kill proxy process');
+    		var process = this.serverProcesses[i].process;
+    		var port = this.serverProcesses[i].port;
 
-			this.serverProcesses[i].kill('SIGKILL');
+			process.kill('SIGKILL');
+
+	    	console.log('kill proxy process on port : ' + port);
 		}
 
     	console.log('all proxy servers are down');
