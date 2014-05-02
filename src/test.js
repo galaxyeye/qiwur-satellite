@@ -8,7 +8,7 @@ function extractCharsetFromMeta() {
 	
 	for (var i = 0; i < str.length; ++i) {
 		var result = str[i].match(/<meta(?!\s*(?:name|value)\s*=)(?:[^>]*?content\s*=[\s"']*)?([^>]*?)[\s"';]*charset\s*=[\s"']*([^\s"'/>]*)/);
-	
+
 		if (result && result.length > 2) {
 			console.log(result[2]);
 		}

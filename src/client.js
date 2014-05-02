@@ -25,12 +25,14 @@ var httpClient = {
     	// 创建文件锁
     	fs.touch(utils.getFetcherLockFile());
 
-    	fetcher.fetch(this.config.url, this.config, function(response, content) {
+    	fetcher.fetch(this.config.url, this.config, function(response, page) {
     		file = utils.getTemporaryFile(response.url);
 
     		console.log("full page content has been saved in file : " + file);
 
-    		fs.write(file, content, 'w');
+//    		console.log(page.content);
+
+    		fs.write(file, page.content, 'w');
 
     		fs.remove(utils.getFetcherLockFile());
 

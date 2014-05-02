@@ -5,7 +5,7 @@ var fs = require("fs");
 var utils = require('./utils');
 var logger = require('./logger');
 
-var PHANTOMJS = "bin/phantomjs";
+var PHANTOMJS = "bin" + fs.separator + "phantomjs";
 
 var coordinator = {
 
