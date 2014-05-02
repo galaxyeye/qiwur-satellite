@@ -33,6 +33,6 @@
         "proxyProcessCount" : 15
     },
     "logger" : {
-        "logLevel" : "info"
+        "logLevel" : "debug"
     }
 }

@@ -175,7 +175,7 @@ var coordinator = {
 					if (process.process.pid === 0) {
 						if (process.process.status == 'dead') {
 			    			logger.info("start process : " + JSON.stringify(process));
-			    			processes[i] = coordinator.startProxyServer(process.port);
+			    			processes[i] = coordinator.startProxyServer(process.port);							
 						}
 						else {
 							// mark as dead and we will restart it the next round
