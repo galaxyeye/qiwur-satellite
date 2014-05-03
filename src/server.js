@@ -6,14 +6,18 @@ var fs = require('fs');
 var utils = require('./utils');
 var logger = require('./logger');
 
+var quit = false;
+
 var httpServer = {
 
-    serverConfig: false,
+    serverConfig : false,
 
-    fetcherConfig: false,
+    fetcherConfig : false,
 
-    servedPages: 0,
-    
+    servedPages : 0,
+
+    stopped : false,
+
     run : function() {
         var config = this.config = utils.loadConfig().server;
         if (system.args.length === 2) {
@@ -32,6 +36,14 @@ var httpServer = {
 //            logger.debug("----------------------received a request-------------------------");
 //            logger.debug(JSON.stringify(request));
 
+        	if (quit) {
+        		response.statusCode = 503;
+                response.setHeader('Retry-After', 60);
+        		response.closeGracefully();
+
+        		return;
+        	}
+
             if (isProxy) {
                 httpServer.handleProxyRequest(request, response);
             }
@@ -41,11 +53,16 @@ var httpServer = {
         });
 
         if (service) {
-            console.log('web server running on port ' + config.port);
+            logger.info('web server running on port ' + config.port);
         } else {
-            console.error('Error: Could not create web server listening on port ' + config.port);
+        	logger.error('Error: Could not create web server listening on port ' + config.port);
             phantom.exit();
         }
+    },
+
+    stop : function() {
+    	server.close();
+    	this.stopped = true;
     },
 
     handleHttpRequest: function(request, response) {
@@ -131,7 +148,7 @@ var services = {
 
     get: function(localPath) {
         if (fs.exists(localPath)) {
-            return fs.read(localPath);
+            return fs.read(localPath, 'utf8');
         }
         return "";
     },
@@ -234,11 +251,13 @@ var services = {
             responsed = true;
             response.close();
 
-            if (httpServer.servedPages > httpServer.config.maxServedPage) {
+            if (httpServer.servedPages >= httpServer.config.maxServedPage) {
             	// it seems phantomjs can not recycle resource correctly
             	// give the process a chance to recycle resources
             	// the process will be restarted by coordinator
-            	phantom.exit(0);
+            	quit = true;
+            	httpServer.stop();
+            	console.log("terminate");
             }
         });
     },

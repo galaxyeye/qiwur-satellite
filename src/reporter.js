@@ -1,6 +1,8 @@
 var utils = require('./utils');
 var logger = require('./logger');
 
+var reported = false;
+
 var reporter = {
 
     run: function () {
@@ -16,14 +18,17 @@ var reporter = {
     	    	logger.info('satellite status reported');
     	    	// logger.info('response : ' + page.content);
     	    }
+
+	    	reported = true;
     	});
     },
 };
 
 reporter.run();
 
-setTimeout(function () {
-	logger.error('reporter seems failed to report');
-
-	phantom.exit();
-}, 2 * 60 * 1000);
+var tick = 0;
+setInterval(function() {
+    if (reported || ++tick > 30) {
+    	phantom.exit(0);
+    }
+}, 2000);

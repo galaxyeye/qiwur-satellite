@@ -4,6 +4,7 @@ var fetcher = require('./fetcher');
 var logger = require('./logger');
 
 var DefaultUpdateTimeout = 5 * 60 * 1000; // 5 min
+var updated = false;
 
 var updater = {
     config: false,
@@ -60,7 +61,6 @@ var updater = {
     	page.open(this.config.url, function (status) {
     	    if (status !== 'success') {
     	    	logger.error('FAIL to load the address');
-    	    	phantom.exit();
     	    }
     	    else {
     	    	var result = JSON.parse(page.content);
@@ -72,8 +72,17 @@ var updater = {
     	    		logger.info('every thing is up to date');
     	    	}
     	    }
+
+    	    updated = true;
     	});
     },
 };
 
 updater.run();
+
+var tick = 0;
+setInterval(function() {
+    if (updated || ++tick > 30) {
+    	phantom.exit(0);
+    }
+}, 2000);

@@ -2,7 +2,7 @@
     "server" : {
         "port": "19080p",
         "keepAlive": true,
-        "maxServedPage": 100
+        "maxServedPage": 2
     },
     "fetcher" : {
         "userAgent": "chrome",
@@ -30,7 +30,7 @@
         "port" : 19180,
         "reportPeriod" : 120000,
         "serverPortBase" : 19080,
-        "proxyProcessCount" : 15
+        "proxyProcessCount" : 2
     },
     "logger" : {
         "logLevel" : "debug"
