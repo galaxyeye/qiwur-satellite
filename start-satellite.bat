@@ -60,6 +60,7 @@ start /B http://127.0.0.1:19180/restart
 goto Loop
 :Exit
 taskkill /im phantomjs.exe /f /t
+taskkill /im maintenance.bat /f /t
 
 rem sleep for 5 seconds
 echo wait for 5 seconds ...

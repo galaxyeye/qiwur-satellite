@@ -2,10 +2,10 @@
 
 :Maintenance
 rem ping is better than sleep or timeout, see http://ss64.com/nt/timeout.html
-rem restart all processes every hour
+rem restart all processes every half a hour
 
 echo stop all processes
-ping -n 3600 127.0.0.1>nul
+ping -n 1800 127.0.0.1>nul
 taskkill /im phantomjs.exe /f /t
 
 echo delete old log files
