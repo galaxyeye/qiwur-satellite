@@ -21,15 +21,17 @@ echo ---------------------------------
 echo help : 
 echo 1) help - print this help message
 echo 2) pps - list phatonjs processes
-echo 3) start - start all proxy servers, the servers are started by default, so call this only if you called stop first
-echo 4) stop - stop all proxy servers, but the satellite system is still running
-echo 5) restart - restart all proxy servers
-echo 6) exit - exit the satellite system
+echo 3) web - open web based controller
+rem echo 3) start - start all proxy servers, the servers are started by default, so call this only if you called stop first
+rem echo 4) stop - stop all proxy servers, but the satellite system is still running
+rem echo 5) restart - restart all proxy servers
+echo 4) exit - exit the satellite system
 
 set /P command=satellite:
 echo:
 if "%command%"=="help" goto Help
 if "%command%"=="pps" goto Pps
+if "%command%"=="web" goto Web
 if "%command%"=="start" goto Start
 if "%command%"=="stop" goto Stop
 if "%command%"=="restart" goto Restart
@@ -41,6 +43,9 @@ echo:
 echo total : 
 tasklist /fi "Imagename eq phantomjs.exe" | find /i /n /c "phantomjs.exe"
 echo processes
+goto Loop
+:Web
+start /B http://127.0.0.1:19180/
 goto Loop
 :Start
 start /B http://127.0.0.1:19180/start
