@@ -13,6 +13,8 @@ rem sleep for 5 seconds
 ping -n 5 127.0.0.1 > nul
 start /B http://127.0.0.1:19180/
 
+start /B .\maintenance.bat > nul
+
 :Loop
 :Help
 echo:
@@ -20,7 +22,7 @@ echo:
 echo ---------------------------------
 echo help : 
 echo 1) help - print this help message
-echo 2) pps - list phatonjs processes
+echo 2) pps - list all phatonjs processes
 echo 3) web - open web based controller
 rem echo 3) start - start all proxy servers, the servers are started by default, so call this only if you called stop first
 rem echo 4) stop - stop all proxy servers, but the satellite system is still running
@@ -57,24 +59,10 @@ goto Loop
 start /B http://127.0.0.1:19180/restart
 goto Loop
 :Exit
-taskkill /im phantomjs.exe /t
+taskkill /im phantomjs.exe /f /t
+
+rem sleep for 5 seconds
 echo wait for 5 seconds ...
-
-	set /a retry = 1;
-	:Exiting
-	rem sleep for 5 seconds
-	ping -n 5 127.0.0.1 > nul
-	tasklist /fi "Imagename eq phantomjs.exe" 2>nul | find /i /n "phantomjs.exe" > nul
-	if %ERRORLEVEL% equ 0 if %retry% leq 3 (
-		echo still running, retry ...
-		taskkill /im phantomjs.exe /t > nul
-		set /a retry=retry+1
-		goto Exiting
-	)
-
-	if %retry% gtr 3 (
-		rem force kill all phantomjs processes
-		taskkill /im phantomjs.exe /f /t	
-	)
+ping -n 5 127.0.0.1 > nul
 
 echo Bye bye!!

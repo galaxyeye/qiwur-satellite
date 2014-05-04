@@ -1,5 +1,13 @@
-a proxy server to load the entire web page including lazy loaded part
+Satellite is a phantomjs based program to scraping web page with even ajax content. Satellite is designed as a proxy server which can be a front end of other spider systems such as nutch.
 
+To start satellite as a proxy server, just click : 
+start-satellite.bat
+
+If you are using a family network, and want to be accessed from outside your router, you may need to correctly config your router to allow your PC serve as a DMZ host.
+如果使用家庭网络，需要从外部访问satellite，需要通过配置路由器，将运行satellite的PC配置成为DMZ主机。
+This feature is be improved later.
+
+-----------------------------------------------------------
 phomtonjs API:
 
 All:
