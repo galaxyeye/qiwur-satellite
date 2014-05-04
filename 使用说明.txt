@@ -1,7 +1,9 @@
-﻿1. 配置路由器，配置DMZ主机
+﻿1. 安装 satellite/dependence/vcredist_x86.exe
+
+2. 配置路由器，配置DMZ主机
    参考文档：http://wenku.baidu.com/link?url=w0-U_50_KKPKememO0F0-Fpw3yzsSK9Qmyuu3gkfwSqepIINOQ2RrIDcnPStAKm8S2QkTCmTjFmXp5R4QZMut0MxHNI-XUtL1G1c9hyBoZu
    忽略文档中最后一节“端口映射”。
 
-2. 双击start-satellite.bat
+3. 双击start-satellite.bat
 
-3. 完成。
+4. 完成。
