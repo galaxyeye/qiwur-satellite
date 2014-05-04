@@ -1,7 +1,7 @@
 var fs = require('fs');
 var system = require('system');
 
-var FlushCachePeriod = 500;
+var FlushCachePeriod = 1000;
 var DefaultLevel = 'info';
 var ConfigLevel = 'debug';
 

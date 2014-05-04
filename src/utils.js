@@ -41,36 +41,16 @@ var functions = {
     /**********************************************************/
     // directories
     /**********************************************************/
-    getOutputDir: function() {
+    getOutputDir : function() {
     	return fs.workingDirectory + fs.separator + "output";
     },
 
-    getFetcherLockDir: function() {
-    	return utils.getOutputDir() + fs.separator + "f";
+    getSysDir : function() {
+    	return utils.getOutputDir() + fs.separator + "sys";
     },
 
-    getFetcherLockFile: function() {
-    	return utils.getFetcherLockDir() + fs.separator + system.pid + ".pid";
-    },
-
-    getRunnigFetcherNumber: function() {
-		files = fs.list(utils.getFetcherLockDir());
-		return files.length - 2;
-    },
-
-
-    // spider directory
-    getSpiderLockDir: function() {
-    	return utils.getOutputDir() + fs.separator + "s";
-    },
-
-    getSpiderLockFile: function() {
-    	return utils.getSpiderLockDir() + fs.separator + system.pid + ".pid";
-    },
-
-    getRunningSpiderNumber: function() {
-		files = fs.list(utils.getSpiderLockDir());
-		return files.length - 2;
+    getProxyProcessInfoFile : function() {
+    	return utils.getSysDir() + fs.separator + "proxy-processes.json";
     },
 
 	// get the web server's document root
@@ -210,6 +190,21 @@ var functions = {
 
     /**********************************************************/
     // end web server
+    /**********************************************************/
+
+    /**********************************************************/
+    // IPC
+    /**********************************************************/
+    loadProxyProcessInfo : function() {
+    	return JSON.parse(fs.read(utils.getProxyProcessInfoFile()));
+    },
+
+    saveProxyProcessInfo : function(info) {
+    	fs.write(utils.getProxyProcessInfoFile(), info, 'w');
+    },
+
+    /**********************************************************/
+    // end IPC
     /**********************************************************/
 
     getFinalUrl: function (page) {

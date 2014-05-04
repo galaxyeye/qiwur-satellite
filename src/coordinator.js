@@ -6,7 +6,6 @@ var utils = require('./utils');
 var logger = require('./logger');
 
 var PHANTOMJS = "bin" + fs.separator + "phantomjs";
-var quit = false;
 
 var coordinator = {
 
@@ -16,9 +15,11 @@ var coordinator = {
         "proxyProcessCount" : 10
     },
 
-    startWorkerInterval : false,
+    timer : false,
 
     serverProcesses : [],
+
+    status : 'notready',
 
     startWebServer : function() {
         var coordinator = this;
@@ -51,7 +52,7 @@ var coordinator = {
         if (service) {
             var message = 'web server running on port ' + this.config.port;
             console.log(message);
-            logger.debug(message);
+            logger.info(message);
         } else {
             console.error('Error: Could not create web server listening on port ' + this.config.port);
             phantom.exit();
@@ -80,7 +81,7 @@ var coordinator = {
         var result = '';
 
         if (cmd == 'status') {
-            result = this.status();
+            result = this.getStatus();
         }
         else if (cmd == 'report') {
             result = this.report();
@@ -95,17 +96,17 @@ var coordinator = {
             result = this.restart();
         }
         else if (cmd == 'stop') {
-        	result = this.stop();
+            result = this.stop();
         }
         else if (cmd == 'quit') {
-        	result = this.quit();
+            result = this.quit();
         }
         else {
-        	result = 'unrecognized command';
+            result = 'unrecognized command';
         }
 
         if (result != 'unrecognized command') {
-            logger.info('execute command : ' + cmd);
+            // logger.info('execute command : ' + cmd);
         }
 
         return result;
@@ -115,8 +116,12 @@ var coordinator = {
         return fs.read(utils.docRoot() + fs.separator + 'index.htm', 'utf-8');
     },
 
-    status : function() {
-        var message = 'free ports : ' + JSON.stringify(this.serverProcesses);
+    getStatus : function() {
+    	var message = this.status;
+    	if (this.status == 'started') {
+            message = JSON.stringify(this.serverProcesses);
+    	}
+
         return message;
     },
 
@@ -127,11 +132,11 @@ var coordinator = {
         var child = process.spawn(PHANTOMJS, ["src/reporter.js"]);
 
         child.stdout.on("data", function (data) {
-            logger.debug(JSON.stringify(data));
+            logger.debug("data : " + data);
         });
 
         child.stderr.on("data", function (data) {
-            logger.error(JSON.stringify(data));
+            logger.error("data : " + data);
         });
 
         return 'status reported to the server';
@@ -153,29 +158,43 @@ var coordinator = {
         var child = process.spawn(PHANTOMJS, ["src/server.js", port + "p"]);
 
         var processes = this.serverProcesses;
-        child.stdout.on("data", function (data) {
-            logger.debug(JSON.stringify(data));
-
-            if (data == 'terminate\r\n') {
-	    		for (var i = 0; i < processes.length; ++i) {
-					var process = processes[i];
-					if (process.port == port) {
-		                logger.info('terminate process : ' + JSON.stringify(process));
-						process.process.child.kill();
-						process.process = false;
-					}
-	    		}
+        child.stderr.on("data", function (data) {
+            if (data == 'terminate') {
+                for (var i = 0; i < processes.length; ++i) {
+                    var process = processes[i];
+                    if (process.port == port) {
+                        logger.info('terminate process : ' + JSON.stringify(process));
+                        process.process.child.kill('SIGKILL');
+                        process.process = false;
+                    }
+                }
+            }
+            else {
+                logger.error(JSON.stringify(data));
             }
         });
 
-        child.stderr.on("data", function (data) {
-            logger.error(JSON.stringify(data));
+        child.stdout.on("data", function (data) {
+            logger.info("data : " + data);
         });
 
         return {"port" : port, "process" : {"pid" : child.pid, "child" : child}, "status" : "running"};
     },
 
     start : function() {
+        if (this.status == 'started') {
+            return 'proxy servers is already running';
+        }
+
+    	coordinator.status = 'notready';
+
+        this.stopTimer();
+
+        // TODO : use file for IPC, which seems to be more stable, especially, if the coordinator crashes, 
+        // 
+        // eg : 
+	    // var serverProcesses = JSON.parse(fs.read(ServerProcessesFile));
+
         // 启动代理服务器
         for (var i = 0; i < this.config.proxyProcessCount; ++i) {
             var port = this.config.serverPortBase + i;
@@ -183,31 +202,57 @@ var coordinator = {
             this.serverProcesses.push(process);
         }
 
-        var message = ""; // "all proxy servers : " + JSON.stringify(this.serverProcesses);
+        var message = JSON.stringify(this.serverProcesses);
         logger.info(message);
+
+        this.startTimer();
+
+        return message;
+    },
+
+    startTimer : function() {
+    	if (this.timer) {
+    		return;
+    	}
 
         var tick = 0;
         var restartInterval = 20;
-        var reportInterval = 8; // report interval 8s, 16, 32, ...1024s
+        var reportInterval = 4; // report interval 4, 8, 16, 32, ...1024s
         var coordinator = this;
         var processes = this.serverProcesses;
-        this.startWorkerInterval = setInterval(function() {
+        this.timer = setInterval(function() {
             ++tick;
 
-            if (tick % (restartInterval / 2) == 0) {
-	    		for (var i = 0; i < processes.length; ++i) {
-					var process = processes[i];
+            if (coordinator.status == 'notready' && (tick % 10 == 0)) {
+            	coordinator.status = 'started';
+            }
 
-					if (process.process === false) {
-						// mark as dead and start the next round
-						process.status = 'dead';
-					}
+            if (coordinator.status == 'quit' && (tick % 10 == 0)) {
+            	coordinator.stopTimer();
+                phantom.exit();
+            }
 
-					if (process.status == 'dead') {
-		    			logger.info("start process : " + JSON.stringify(process));
-		    			processes[i] = coordinator.startProxyServer(process.port);
-					}
-	    		} // for
+            var restartCount = 0;
+            if (coordinator.status == 'started' && tick % (restartInterval / 2) == 0) {
+                for (var i = 0; i < processes.length; ++i) {
+                    var process = processes[i];
+
+                    if (process.process === false) {
+                        // mark as dead and start the next round
+                        process.status = 'dead';
+                    }
+
+                    if (process.status == 'dead') {
+                        logger.info("start process : " + JSON.stringify(process));
+                        processes[i] = coordinator.startProxyServer(process.port);
+                        ++restartCount;
+                    }
+
+                    // start one every time
+                    if (restartCount > 0) {
+                    	break;
+                    }
+                } // for
             } // if
 
             if (tick % reportInterval == 0) {
@@ -219,24 +264,36 @@ var coordinator = {
                 }
             } // if
         }, 1000);
+    },
 
-        return message;
+    stopTimer : function() {
+        if (this.timer) {
+        	clearInterval(this.timer);
+        	this.timer = false;
+        }
     },
 
     stop : function() {
         console.log('stop all processes');
 
+        if (this.status !== 'started') {
+            return 'proxy servers are not running';
+        }
+
+        this.status = 'stopped';
+
         // find pid files and send kill command
         for (var i = 0; i < this.serverProcesses.length; ++i) {
             var process = this.serverProcesses[i];
-        	if (process.process !== false) {
-        		process.process.child.kill();
+            if (process.process !== false) {
+                process.process.child.kill('SIGKILL');
+                process.process = false;
 
-                console.log('kill proxy process on port : ' + process.port);
-        	}
+                logger.info('kill proxy process on port : ' + process.port);
+            }
         }
 
-        console.log('all proxy servers are down');
+        logger.info('all proxy servers are down');
 
         return 'all proxy servers are down';
     },
@@ -254,7 +311,8 @@ var coordinator = {
 
     quit : function() {
         this.stop();
-        quit = true;
+
+        this.status = 'quit';
 
         return "quiting";
     },
@@ -268,9 +326,3 @@ var coordinator = {
 };
 
 coordinator.run();
-
-setInterval(function() {
-    if (quit) {
-        phantom.exit(0);
-    }
-}, 10 * 1000);

@@ -26,8 +26,6 @@ var tools = {
 
         utils.saveHtml(url, html);
 
-        fs.remove(utils.getFetcherLockFile());
-
         phantom.exit();
     },
 

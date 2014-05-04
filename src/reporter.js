@@ -28,7 +28,7 @@ reporter.run();
 
 var tick = 0;
 setInterval(function() {
-    if (reported || ++tick > 30) {
+    if (reported || ++tick > 2) {
     	phantom.exit(0);
     }
-}, 2000);
+}, 5000);

@@ -16,8 +16,6 @@ var httpServer = {
 
     servedPages : 0,
 
-    stopped : false,
-
     run : function() {
         var config = this.config = utils.loadConfig().server;
         if (system.args.length === 2) {
@@ -62,11 +60,10 @@ var httpServer = {
 
     stop : function() {
     	server.close();
-    	this.stopped = true;
     },
 
-    handleHttpRequest: function(request, response) {
-        console.log("handle http request");
+    handleHttpRequest : function(request, response) {
+        logger.debug("handle http request");
         // console.log(JSON.stringify(request, null, 4));
 
         var body = "";
@@ -251,13 +248,18 @@ var services = {
             responsed = true;
             response.close();
 
+            // TODO : check file system for a "stop" request
+
             if (httpServer.servedPages >= httpServer.config.maxServedPage) {
             	// it seems phantomjs can not recycle resource correctly
             	// give the process a chance to recycle resources
             	// the process will be restarted by coordinator
             	quit = true;
+
+            	// mongoose seems do not catch signals, which causes crash if exit the process before stop the server
             	httpServer.stop();
-            	console.log("terminate");
+
+            	system.stderr.write('terminate');
             }
         });
     },
