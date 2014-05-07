@@ -24,7 +24,7 @@
         "loadImages": false
     },
     "reporter" : {
-        "url" : "http://qiwur.com:19380/monitor/report"
+        "url" : "http://qiwur.com:8182/nutch/proxy/report"
     },
     "coordinator" : {
         "port" : 19180,
