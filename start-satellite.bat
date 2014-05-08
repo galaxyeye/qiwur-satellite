@@ -1,4 +1,9 @@
 @echo off
+
+echo detect your local ip address :
+
+ipconfig | find /i /n "ipv4"
+
 echo starting satellite system ...
 
 echo test phantomjs :  if you can see a file downloaded and saved uder output\wwwroot\{current-data}\ folder, it means the test is passed
@@ -23,7 +28,8 @@ echo ---------------------------------
 echo help : 
 echo 1) help - print this help message
 echo 2) pps - list all phatonjs processes
-echo 3) web - open web based controller
+echo 3) ip - detect your local ip address
+echo 4) web - open web based controller
 rem echo 3) start - start all proxy servers, the servers are started by default, so call this only if you called stop first
 rem echo 4) stop - stop all proxy servers, but the satellite system is still running
 rem echo 5) restart - restart all proxy servers
@@ -32,6 +38,7 @@ echo 4) exit - exit the satellite system
 set /P command=satellite:
 echo:
 if "%command%"=="help" goto Help
+if "%command%"=="ip" goto Ip
 if "%command%"=="pps" goto Pps
 if "%command%"=="web" goto Web
 if "%command%"=="start" goto Start
@@ -45,6 +52,9 @@ echo:
 echo total : 
 tasklist /fi "Imagename eq phantomjs.exe" | find /i /n /c "phantomjs.exe"
 echo processes
+goto Loop
+:Ip
+ipconfig | find /i /n "ipv4"
 goto Loop
 :Web
 start /B http://127.0.0.1:19180/
