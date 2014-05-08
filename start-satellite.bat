@@ -1,12 +1,15 @@
 @echo off
 
-echo detect your local ip address :
+rem kill previous running phantomjs programs ...
+taskkill /im phantomjs.exe /f /t 2> nul
+taskkill /im maintenance.bat /f /t 2> nul
 
+echo detect your local ip address :
 ipconfig | find /i /n "ipv4"
 
 echo starting satellite system ...
 
-echo test phantomjs :  if you can see a file downloaded and saved uder output\wwwroot\{current-data}\ folder, it means the test is passed
+rem test phantomjs :  if you can see a file downloaded and saved uder output\wwwroot\{current-data}\ folder, it means the test is passed
 
 start /B .\bin\phantomjs .\src\client.js http://www.baidu.com/ > nul
 
@@ -69,8 +72,8 @@ goto Loop
 start /B http://127.0.0.1:19180/restart
 goto Loop
 :Exit
-taskkill /im phantomjs.exe /f /t
-taskkill /im maintenance.bat /f /t
+taskkill /im phantomjs.exe /f /t 2> nul
+taskkill /im maintenance.bat /f /t 2> nul
 
 rem sleep for 5 seconds
 echo wait for 5 seconds ...

@@ -24,13 +24,13 @@
         "loadImages": false
     },
     "reporter" : {
-        "url" : "http://qiwur.com:8182/nutch/proxy/report"
+        "url" : "http://www.qiwur.com:8182/nutch/proxy/report"
     },
     "coordinator" : {
         "port" : 19180,
         "reportPeriod" : 120000,
         "serverPortBase" : 19080,
-        "proxyProcessCount" : 15
+        "proxyProcessCount" : 10
     },
     "logger" : {
         "logLevel" : "debug"
