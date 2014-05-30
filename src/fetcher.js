@@ -218,7 +218,32 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
     }
 
     page.evaluate(function() {
-    	document.body.setAttribute("source", document.URL);
+    	var ele = document.body.getElementsByTagName('div');
+    	ele = ele[0];
+    	ele.setAttribute("id", "QiwurScrapingMetaInformation");
+    	ele.setAttribute("data-domain", document.domain);
+    	ele.setAttribute("data-url", document.URL);
+    	ele.setAttribute("data-base-uri", document.baseURI);
+
+    	for (var i = 0; i < document.links.length; ++i) {
+    		// something to track?
+    	}
+
+    	// TODO : use configuration
+    	for (var i = 0; i < document.images.length; ++i) {
+    		var image = document.images[i];
+    		image.setAttribute('data-offset-height', image.offsetHeight);
+    		image.setAttribute('data-offset-width', image.offsetWidth);
+    		image.setAttribute('data-offset-left', image.offsetLeft);
+    		image.setAttribute('data-offset-top', image.offsetTop);
+
+    		image.setAttribute('data-scroll-height', image.scrollHeight);
+    		image.setAttribute('data-scroll-width', image.scrollLeft);
+    		image.setAttribute('data-scroll-left', image.scrollTop);
+    		image.setAttribute('data-scroll-parent', image.scrollWidth);
+    	}
+
+    	document.body.setAttribute("data-url", document.URL);
     });
 
     this.startScrollTimer();
