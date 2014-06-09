@@ -16,26 +16,11 @@ var httpClient = {
     	this.config = utils.loadConfig().fetcher;
     	this.config.url = system.args[1];
 
-//        system.args.forEach(function (arg, i) {
-//            console.log(i + ': ' + arg);
-//        });
-
-//    	console.log(JSON.stringify(this.config));
-
-    	// 创建文件锁
-    	fs.touch(utils.getFetcherLockFile());
-
     	fetcher.fetch(this.config.url, this.config, function(response, page) {
     		file = utils.getTemporaryFile(response.url);
-
-    		console.log("full page content has been saved in file : " + file);
-
-//    		console.log(page.content);
-
     		fs.write(file, page.content, 'w');
 
-    		fs.remove(utils.getFetcherLockFile());
-
+    		console.log("full page content has been saved in file : " + file);
         	phantom.exit();
     	});
     },

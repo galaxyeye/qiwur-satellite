@@ -1,5 +1,14 @@
 $(document).ready(function() {
-	
+	function simulateMouseOver(document, ele) {
+        if( document.createEvent ) {
+            var event = document.createEvent('MouseEvents');
+            event.initEvent('mouseover', true, false);
+            ele.dispatchEvent(event);
+        } else if (document.createEventObject) {
+        	ele.fireEvent('onmouseover');
+        }
+    }
+
 	function getRelativeUri(uri) {
 		var pos = uri.indexOf("http://");
 		if (pos !== -1) uri = uri.substring("http://".length);

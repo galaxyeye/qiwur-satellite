@@ -37,8 +37,17 @@ var tools = {
             }
             // window.document.body.scrollTop = document.body.scrollHeight / 1.1;
         });
-    }
+    },
 
+    simulateMouseOver: function (document, ele) {
+        if( document.createEvent ) {
+            var event = document.createEvent('MouseEvents');
+            event.initEvent('mouseover', true, false);
+            ele.dispatchEvent(event);
+        } else if (document.createEventObject) {
+        	ele.fireEvent('onmouseover');
+        }
+    }
 };
 
 function Fetcher() {
@@ -218,6 +227,17 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
     }
 
     page.evaluate(function() {
+    	// we can not use functions outside this sandbox, every function should defined inside
+        var simulateMouseOver = function (document, ele) {
+            if( document.createEvent ) {
+                var event = document.createEvent('MouseEvents');
+                event.initEvent('mouseover', true, false);
+                ele.dispatchEvent(event);
+            } else if (document.createEventObject) {
+            	ele.fireEvent('onmouseover');
+            }
+        };
+
     	var ele = document.body.getElementsByTagName('div');
     	ele = ele[0];
     	ele.setAttribute("id", "QiwurScrapingMetaInformation");
@@ -226,10 +246,11 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
     	ele.setAttribute("data-base-uri", document.baseURI);
 
     	for (var i = 0; i < document.links.length; ++i) {
-    		// something to track?
+    		simulateMouseOver(document, document.links[i]);
+
+    		// TODO : how to scrap big images for gallery?
     	}
 
-    	// TODO : use configuration
     	for (var i = 0; i < document.images.length; ++i) {
     		var image = document.images[i];
     		image.setAttribute('data-offset-height', image.offsetHeight);
@@ -244,6 +265,9 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
     	}
 
     	document.body.setAttribute("data-url", document.URL);
+
+    	// if any script error occurs, the flag can NOT be seen
+    	document.body.setAttribute("data-evaluate-error", 0);
     });
 
     this.startScrollTimer();
@@ -269,9 +293,9 @@ Fetcher.prototype.waitForContentComplete = function() {
     		return true;
     	}
 
-//            logger.debug(" scroll count : " + this.scrollCount
-//            + " ajax requests : " + this.ajaxRequests 
-//            + " ajax respounses : " + this.ajaxResponses);
+//            logger.debug(" scroll count : " + fetcher.scrollCount
+//            + " ajax requests : " + fetcher.ajaxRequests 
+//            + " ajax respounses : " + fetcher.ajaxResponses);
 
         // 情形1
         // 所有滚动事件都发出去了，所有的结果都收回来了，这种情形一般是一个滚动有一条响应

@@ -2,7 +2,7 @@
     "server" : {
         "port": "19080p",
         "keepAlive": true,
-        "maxServedPage": 50
+        "maxServedPage": 500
     },
     "fetcher" : {
         "userAgent": "chrome",
