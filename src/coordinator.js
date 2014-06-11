@@ -155,7 +155,7 @@ var coordinator = {
 
     startProxyServer: function(port) {
         // p为后缀表示启动代理服务器(proxy server)
-        var child = process.spawn(PHANTOMJS, ["src/server.js", port + "p"]);
+        var child = process.spawn(PHANTOMJS, ["--load-images=false", "src/server.js", port + "p"]);
 
         var processes = this.serverProcesses;
         child.stderr.on("data", function (data) {
