@@ -15,9 +15,9 @@ function __qiwur__setVisionInfo(ele) {
 	ele.setAttribute('data-offset-top', ele.offsetTop);
 
 	ele.setAttribute('data-scroll-height', ele.scrollHeight);
-	ele.setAttribute('data-scroll-width', ele.scrollLeft);
-	ele.setAttribute('data-scroll-left', ele.scrollTop);
-	ele.setAttribute('data-scroll-parent', ele.scrollWidth);
+	ele.setAttribute('data-scroll-width', ele.scrollWidth);
+	ele.setAttribute('data-scroll-left', ele.scrollLeft);
+	ele.setAttribute('data-scroll-top', ele.scrollTop);
 
 	// if any script error occurs, the flag can NOT be seen
 	ele.setAttribute('data-visualized', 1);
