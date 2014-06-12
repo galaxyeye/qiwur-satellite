@@ -93,11 +93,14 @@ function start_all() {
 
 function stop_all() {
     echo "running phantomjs programs : "
+    ps -ef | grep satellite
     ps -ef | grep phantomjs
     pkill phantomjs
+    pkill satellite
     echo "waiting..."
     sleep 3
     echo "running phantomjs programs : "
+    ps -ef | grep satellite
     ps -ef | grep phantomjs
 }
 

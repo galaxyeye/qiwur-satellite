@@ -226,51 +226,26 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
         return;
     }
 
-    page.evaluate(function() {
-    	// we can not use functions outside this sandbox, every function should defined inside
-        var simulateMouseOver = function (document, ele) {
-            if( document.createEvent ) {
-                var event = document.createEvent('MouseEvents');
-                event.initEvent('mouseover', true, false);
-                ele.dispatchEvent(event);
-            } else if (document.createEventObject) {
-            	ele.fireEvent('onmouseover');
-            }
-        };
+    this.startScrollTimer();
 
-    	var ele = document.body.getElementsByTagName('div');
-    	ele = ele[0];
+    page.injectJs('humanize.js');
+    page.injectJs('visualize.js');
+    page.evaluate(function() {
+    	document.body.setAttribute("data-url", document.URL);
+
+    	var debug = false;
+    	var ele = debug ? document.body : document.body.getElementsByTagName('div')[0];
     	ele.setAttribute("id", "QiwurScrapingMetaInformation");
     	ele.setAttribute("data-domain", document.domain);
     	ele.setAttribute("data-url", document.URL);
     	ele.setAttribute("data-base-uri", document.baseURI);
 
-    	for (var i = 0; i < document.links.length; ++i) {
-    		simulateMouseOver(document, document.links[i]);
-
-    		// TODO : how to scrap big images for gallery?
-    	}
-
-    	for (var i = 0; i < document.images.length; ++i) {
-    		var image = document.images[i];
-    		image.setAttribute('data-offset-height', image.offsetHeight);
-    		image.setAttribute('data-offset-width', image.offsetWidth);
-    		image.setAttribute('data-offset-left', image.offsetLeft);
-    		image.setAttribute('data-offset-top', image.offsetTop);
-
-    		image.setAttribute('data-scroll-height', image.scrollHeight);
-    		image.setAttribute('data-scroll-width', image.scrollLeft);
-    		image.setAttribute('data-scroll-left', image.scrollTop);
-    		image.setAttribute('data-scroll-parent', image.scrollWidth);
-    	}
-
-    	document.body.setAttribute("data-url", document.URL);
+    	__qiwur__visualize(document);
+    	__qiwur__humanize(document);
 
     	// if any script error occurs, the flag can NOT be seen
     	document.body.setAttribute("data-evaluate-error", 0);
     });
-
-    this.startScrollTimer();
 
     this.waitForContentComplete();
 };
