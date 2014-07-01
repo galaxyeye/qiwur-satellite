@@ -45,10 +45,12 @@ var functions = {
     	return fs.workingDirectory + fs.separator + "output";
     },
 
+    // @Deprecated
     getSysDir : function() {
     	return utils.getOutputDir() + fs.separator + "sys";
     },
 
+    // @Deprecated
     getProxyProcessInfoFile : function() {
     	return utils.getSysDir() + fs.separator + "proxy-processes.json";
     },
@@ -56,11 +58,11 @@ var functions = {
 	// get the web server's document root
 	// the remote access must be inside this directory
 	docRoot: function() {
-		return utils.getOutputDir() + fs.separator + "wwwroot";
+		return fs.workingDirectory + fs.separator + "wwwroot";
 	},
 
 	logDir: function() {
-		return utils.getOutputDir() + fs.separator + "logs";
+		return fs.workingDirectory + fs.separator + "logs";
 	},
 
 	// get the absolute path for a relative path
@@ -79,7 +81,7 @@ var functions = {
 
 	getTemporaryFile: function(url) {
 		var file = md5.hex_md5(url);
-		return utils.docRoot() + fs.separator + new Date().getDate() + fs.separator + file + ".html";
+		return utils.getOutputDir() + fs.separator + new Date().getDate() + fs.separator + file + ".html";
 	},
 
 	normalizeVirtualPath: function(virtualPath) {
@@ -126,10 +128,10 @@ var functions = {
     /**********************************************************/
     // web server
     /**********************************************************/
+    // @Deprecated	
 	getSafeCommand : function(c) {
 		return md5.hex_md5(c + md5.hex_md5(Salt + c));
 	},
-
 
 	//decode host and port info from header
 	decode_host : function(host) {
@@ -195,10 +197,12 @@ var functions = {
     /**********************************************************/
     // IPC
     /**********************************************************/
+    // @Deprecated	
     loadProxyProcessInfo : function() {
     	return JSON.parse(fs.read(utils.getProxyProcessInfoFile()));
     },
 
+    // @Deprecated
     saveProxyProcessInfo : function(info) {
     	fs.write(utils.getProxyProcessInfoFile(), info, 'w');
     },
@@ -286,7 +290,8 @@ var functions = {
         });
     },
 
-    getEncoding: function(str) {
+   // @Deprecated
+   getEncoding: function(str) {
     	var encoding = null;
 
     	var pos = str.indexOf('charset=');

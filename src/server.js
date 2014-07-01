@@ -245,6 +245,9 @@ var services = {
             		", content length : " + content.length +
             		", served pages : " + httpServer.servedPages);
 
+    		var file = utils.getTemporaryFile(request.url);
+    		fs.write(file, content, 'w');
+
             responsed = true;
             response.close();
 

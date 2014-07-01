@@ -45,7 +45,12 @@ fi
 ### 
 # 
 ###
-PHANTOMJS=./bin/phantomjs
+
+# some directories
+THIS_DIR=`dirname "$THIS"`
+SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
+
+PHANTOMJS=$SATELLITE_HOME/bin/phantomjs
 SATELLITE_OPTS=--load-images=false
 # since phantomjs built-in process bugs, we must restart the system periodically
 # restart every SATELLITE_RESTART_PERIOD minites
@@ -59,10 +64,6 @@ shift
 if [ "$COMMAND" = "" ] ; then
     COMMAND="start"
 fi
-
-# some directories
-THIS_DIR=`dirname "$THIS"`
-SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
 
 EXEC_CALL="$PHANTOMJS $SATELLITE_OPTS"
 
@@ -96,12 +97,12 @@ function stop_all() {
     ps -ef | grep satellite
     ps -ef | grep phantomjs
     pkill phantomjs
-    pkill satellite
     echo "waiting..."
     sleep 3
     echo "running phantomjs programs : "
     ps -ef | grep satellite
     ps -ef | grep phantomjs
+    pkill satellite
 }
 
 function pps() {

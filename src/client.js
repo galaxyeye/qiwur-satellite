@@ -16,6 +16,8 @@ var httpClient = {
     	this.config = utils.loadConfig().fetcher;
     	this.config.url = system.args[1];
 
+		console.log("load url : " + this.config.url);
+    	
     	fetcher.fetch(this.config.url, this.config, function(response, page) {
     		file = utils.getTemporaryFile(response.url);
     		fs.write(file, page.content, 'w');

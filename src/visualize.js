@@ -8,19 +8,43 @@
  * @param {String}
  *            eventName The name of the event without the "on" (e.g., "focus")
  */
-function __qiwur__setVisionInfo(ele) {
-	ele.setAttribute('data-offset-height', ele.offsetHeight);
-	ele.setAttribute('data-offset-width', ele.offsetWidth);
-	ele.setAttribute('data-offset-left', ele.offsetLeft);
-	ele.setAttribute('data-offset-top', ele.offsetTop);
 
-	ele.setAttribute('data-scroll-height', ele.scrollHeight);
-	ele.setAttribute('data-scroll-width', ele.scrollWidth);
-	ele.setAttribute('data-scroll-left', ele.scrollLeft);
-	ele.setAttribute('data-scroll-top', ele.scrollTop);
+function __qiwur__setAttribute(ele, key, value) {
+	if (value != "0" && value != "0px" && value != "auto") {
+		// value.match(/[1-9]d+px/g);
+		ele.setAttribute(key, value);
+	}
+}
+
+/**
+ * TODO : use data-style to compress
+ * data-style="width:100px; height:120px; ..."
+ * */
+function __qiwur__setVisionInfo(ele) {
+	if (window.getComputedStyle) {
+		var style = window.getComputedStyle(ele, null);
+		__qiwur__setAttribute(ele, 'data-top', style.getPropertyValue("top"));
+		__qiwur__setAttribute(ele, 'data-left', style.getPropertyValue("left"));
+		__qiwur__setAttribute(ele, 'data-width', style.getPropertyValue("width"));
+		__qiwur__setAttribute(ele, 'data-height', style.getPropertyValue("height"));
+	}
+	else {
+		__qiwur__setAttribute(ele, 'data-client-height', ele.clientHeight);
+		__qiwur__setAttribute(ele, 'data-client-width', ele.clientWidth);
+
+		__qiwur__setAttribute(ele, 'data-offset-height', ele.offsetHeight);
+		__qiwur__setAttribute(ele, 'data-offset-width', ele.offsetWidth);
+		__qiwur__setAttribute(ele, 'data-offset-left', ele.offsetLeft);
+		__qiwur__setAttribute(ele, 'data-offset-top', ele.offsetTop);
+
+		__qiwur__setAttribute(ele, 'data-scroll-height', ele.scrollHeight);
+		__qiwur__setAttribute(ele, 'data-scroll-width', ele.scrollWidth);
+		__qiwur__setAttribute(ele, 'data-scroll-left', ele.scrollLeft);
+		__qiwur__setAttribute(ele, 'data-scroll-top', ele.scrollTop);
+	}
 
 	// if any script error occurs, the flag can NOT be seen
-	ele.setAttribute('data-visualized', 1);
+	__qiwur__setAttribute(ele, 'data-visualized', 1);
 };
 
 function __qiwur__visualize(doc) {
