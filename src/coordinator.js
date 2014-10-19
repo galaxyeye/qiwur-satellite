@@ -2,6 +2,7 @@ var process = require("child_process");
 var system = require("system");
 var server = require('webserver').create();
 var fs = require("fs");
+var sysconf = require('./config');
 var utils = require('./utils');
 var logger = require('./logger');
 
@@ -60,8 +61,8 @@ var coordinator = {
     },
 
     run: function () {
-        var config = utils.loadConfig().coordinator;
-        this.config = config = utils.mergeConfig(this.config, config);
+        var config = sysconf.loadConfig().coordinator;
+        this.config = config = sysconf.mergeConfig(this.config, config);
 
         this.startWebServer();
 
@@ -190,7 +191,7 @@ var coordinator = {
 
         this.stopTimer();
 
-        // TODO : use file for IPC, which seems to be more stable, especially, if the coordinator crashes, 
+        // TODO : use file for IPC, which seems to be more stable, especially, if the coordinator crashes,
         // 
         // eg : 
 	    // var serverProcesses = JSON.parse(fs.read(ServerProcessesFile));

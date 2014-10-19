@@ -1,4 +1,8 @@
 {
+    "casperjs" : {
+        "autoLoad" : true,
+        "home" : "/home/vincent/workspace/casperjs"
+    },
     "server" : {
         "port": "19080p",
         "keepAlive": true,
@@ -23,8 +27,13 @@
         "consolePrefix": "#",
         "loadImages": false
     },
+    "fetchController" : {
+        "scheduleUrl" : "http://localhost:8183/fetch/schedule",
+        "scheduleCount" : 1,
+        "submitUrl" : "http://localhost:8183/fetch/submit"
+    },
     "reporter" : {
-        "url" : "http://www.qiwur.com:8182/nutch/proxy/report"
+        "url" : "http://www.qiwur.com:8182/proxy/report"
     },
     "coordinator" : {
         "port" : 19180,

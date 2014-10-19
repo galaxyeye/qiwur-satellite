@@ -78,7 +78,7 @@ var logger = {
 
 	log: function(msg, level) {
 		if (!this.config) {
-	        this.config = utils.loadConfig().logger;
+	        this.config = require('./config').loadConfig().logger;
 	        this.logLevel = this.config.logLevel;
 		}
 

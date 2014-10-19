@@ -1,9 +1,11 @@
+/**
+ * This is the backup of fetcher.js
+ * */
 var fs = require("fs");
 var system = require("system");
 var md5 = require("./md5");
 var utils = require('./utils');
 var logger = require('./logger');
-var sysconf = require('./config');
 
 var DefaultConfig = {
     "userAgent": "chrome",
@@ -19,6 +21,28 @@ var DefaultConfig = {
 };
 
 var DefaultScrollInterval = 500; // ms
+
+var tools = {
+
+    saveAndExit: function(url, html) {
+        logger.debug("save file");
+
+        utils.saveHtml(url, html);
+
+        phantom.exit();
+    },
+
+    simulateHumanBehavior: function(page) {
+        page.evaluate(function() {
+            var links = document.getElementsByTag("a");
+            for (var link in links) {
+                // create hover event, etc
+            }
+            // window.document.body.scrollTop = document.body.scrollHeight / 1.1;
+        });
+    },
+
+};
 
 function Fetcher() {
 	this.config = DefaultConfig;
@@ -38,7 +62,7 @@ function Fetcher() {
 
 Fetcher.prototype.fetch = function(url, config, onContentComplete) {
     if (config) {
-        this.config = sysconf.mergeConfig(this.config, config);
+        this.config = require('./config').mergeConfig(this.config, config);
     }
     this.config.url = url;
 
@@ -104,7 +128,7 @@ Fetcher.prototype.load = function () {
             };
         }
     });
-
+    
     page.viewportSize = { width: config.viewportWidth, height: config.viewportHeight };
     // logger.debug(JSON.stringify(page.viewportSize));
 
@@ -119,7 +143,7 @@ Fetcher.prototype.load = function () {
         page.open(config.url);
 
         // don't leave this url, all redirection will be handled by the client
-        // page.navigationLocked = true;
+        page.navigationLocked = true;
     }
     else {
     	logger.error('bad page status. ' + this.pageStatus());

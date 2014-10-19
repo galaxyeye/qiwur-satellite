@@ -16,29 +16,6 @@ if (Salt == null) {
 
 var functions = {
     /**********************************************************/
-    // config
-    /**********************************************************/
-	loadConfig : function (configFile) {
-		var fs = require('fs');
-
-	    if (!fs.exists(configFile)) {
-	       configFile = "conf/config.json";
-	    }
-
-	    var result = JSON.parse(fs.read(configFile));
-
-	    return result;
-	},
-
-	mergeConfig: function (config, config2) {
-	    for (var key in config2) {
-    		config[key] = config2[key];
-	    }
-
-	    return config;
-	},
-
-    /**********************************************************/
     // directories
     /**********************************************************/
     getOutputDir : function() {

@@ -1,9 +1,14 @@
+/**
+ * TODO : buggy
+ * */
+
+var sysconf = require('./config');
+var casper = require("casper").create();
 var fs = require("fs");
 var system = require("system");
 var md5 = require("./md5");
 var utils = require('./utils');
 var logger = require('./logger');
-var sysconf = require('./config');
 
 var DefaultConfig = {
     "userAgent": "chrome",
@@ -22,7 +27,6 @@ var DefaultScrollInterval = 500; // ms
 
 function Fetcher() {
 	this.config = DefaultConfig;
-	this.page = false;
 
 	this.pageRequested = false;
 	this.pageLoaded = false;
@@ -37,14 +41,62 @@ function Fetcher() {
 };
 
 Fetcher.prototype.fetch = function(url, config, onContentComplete) {
+	// TODO : why need this merge? should we just use the config file or just use the passed by
+	// config?
     if (config) {
-        this.config = sysconf.mergeConfig(this.config, config);
+        this.config = require('./config').mergeConfig(this.config, config);
     }
     this.config.url = url;
 
-    if (onContentComplete) {
-    	fetcher = this;
+    // set user agent
+    if (config.userAgentAliases[config.userAgent]) {
+        config.userAgent = config.userAgentAliases[config.userAgent];
+    }
 
+    casper.options = {
+       viewportSize : {
+    	   width: config.viewportWidth,
+    	   height: config.viewportHeight
+       },
+       clientScripts : ["humanize.js", "visualize.js"],
+       pageSettings : {
+    	   loadPlugins : false,
+    	   loadImages : true
+       },
+       userAgent : config.userAgent,
+       logLevel : "debug",
+       verbose : true
+    };
+
+//    // 注册WebPage回调函数
+//    // @see https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#callbacks-list
+//    // 在tasks注册事件处理器，tasks中注册的事件处理器同原生的WebPage处理器函数原型多了两个参数：page和config
+//    var fetcher = this;
+//    var events = [
+//        'onError',
+//        'onPageInitialized',
+//        'onResourceRequested',
+//        'onResourceReceived',
+//        'onResourceTimeout'
+//    ];
+//
+//    events.forEach(function (event) {
+//        if (!fetcher[event]) return;
+//
+//        // register events
+//    	casper.options[event] = function () {
+//            var args = [casper, config];
+//            for (var i = 0; i < arguments.length; i++) {
+//                args.push(arguments[i]);
+//            }
+//
+//            // 在WebPage函数参数的基础上，增加了casper和config两个输入参数
+//            fetcher[event].apply(fetcher, args);
+//        };
+//    });
+
+    // 注册Fetcher回调函数
+    if (onContentComplete) {
         this.onContentComplete = function(response, page) {
             // logger.debug("call user defined complete handler");
 
@@ -60,70 +112,38 @@ Fetcher.prototype.fetch = function(url, config, onContentComplete) {
         };
     }
 
-    // 加载网页
-    this.load();
-};
-
-Fetcher.prototype.load = function () {
-    var page = this.page = require('webpage').create();
-    var config = this.config;
-
-    // set user agent
-    if (config.userAgentAliases[config.userAgent]) {
-        config.userAgent = config.userAgentAliases[config.userAgent];
-    }
-
-    page.settings.userAgent = config.userAgent;
-
-    // logger.debug(page.settings.userAgent);
-
-    // 注册WebPage回调函数
-    // @see https://github.com/ariya/phantomjs/wiki/API-Reference-WebPage#callbacks-list
-    // 在tasks注册事件处理器，tasks中注册的事件处理器同原生的WebPage处理器函数原型多了两个参数：page和config
-    var events = [
-        'onError',
-        'onInitialized',
-        'onLoadStarted',
-        'onLoadFinished',
-        'onResourceRequested',
-        'onResourceReceived',
-        'onResourceTimeout'
-    ];
-
-    var fetcher = this;
-    events.forEach(function (event) {
-        if (fetcher[event]) {
-            page[event] = function () {
-                var args = [page, config];
-                for (var a = 0; a < arguments.length; a++) {
-                    args.push(arguments[a]);
-                }
-
-                // 在WebPage函数参数的基础上，增加了page和config两个输入参数
-                fetcher[event].apply(fetcher, args);
-            };
-        }
+    casper.start(config.url, function() {
+        // TODO : is it correct? should we permit the redirection?
+        // casper.options.page.navigationLocked = true;
     });
 
-    page.viewportSize = { width: config.viewportWidth, height: config.viewportHeight };
-    // logger.debug(JSON.stringify(page.viewportSize));
+    casper.then(function() {
+    	// TODO : should we scroll step by step?
+    	this.scrollToBottom();
+    });
 
-	// logger.debug('page status : ' + this.pageRequested + ', ' + this.pageLoaded + ', ' + this.pageClosed);
+    casper.waitFor(function check() {
+    	return true;
+    }, function then() {
+    	this.evaluate(function() {
+        	document.body.setAttribute("data-url", document.URL);
 
-    // 所有的回调函数都已经注册完毕，启动网络请求
-    if (!this.pageRequested && !this.pageLoaded && !this.pageClosed) {
-        logger.debug("fetch url : " + config.url);
+        	var debug = false;
+        	var ele = debug ? document.body : document.body.getElementsByTagName('div')[0];
+        	ele.setAttribute("id", "QiwurScrapingMetaInformation");
+        	ele.setAttribute("data-domain", document.domain);
+        	ele.setAttribute("data-url", document.URL);
+        	ele.setAttribute("data-base-uri", document.baseURI);
 
-        this.pageRequested = true;
+        	__qiwur__visualize(document);
+        	__qiwur__humanize(document);
 
-        page.open(config.url);
+        	// if any script error occurs, the flag can NOT be seen
+        	document.body.setAttribute("data-evaluate-error", 0);    		
+    	});
+    });
 
-        // don't leave this url, all redirection will be handled by the client
-        // page.navigationLocked = true;
-    }
-    else {
-    	logger.error('bad page status. ' + this.pageStatus());
-    }
+    casper.run();
 };
 
 Fetcher.prototype.onError = function(msg, trace) {
@@ -137,10 +157,7 @@ Fetcher.prototype.onError = function(msg, trace) {
 	logger.error(msgStack.join('\n'));
 };
 
-Fetcher.prototype.onLoadStarted = function (page, config) {
-};
-
-Fetcher.prototype.onResourceRequested = function (page, config, requestData, request) {
+Fetcher.prototype.onResourceRequested = function (casper, config, requestData, request) {
     // logger.debug('Request (#' + requestData.id + ')');
     // logger.debug('Request (#' + requestData.id + '): ' + JSON.stringify(requestData));
 
@@ -149,7 +166,7 @@ Fetcher.prototype.onResourceRequested = function (page, config, requestData, req
     }
 };
 
-Fetcher.prototype.onResourceReceived = function (page, config, response) {
+Fetcher.prototype.onResourceReceived = function (casper, config, response) {
     if (!this.mainResponse) {
         // logger.debug("main response : " + JSON.stringify(response));
         this.mainResponse = response;
@@ -165,11 +182,11 @@ Fetcher.prototype.onResourceReceived = function (page, config, response) {
     }
 };
 
-Fetcher.prototype.onResourceTimeout = function(page, config, request) {
+Fetcher.prototype.onResourceTimeout = function(casper, config, request) {
 	logger.error("#" + request.id + " timeout");
 };
 
-Fetcher.prototype.onLoadFinished = function (page, config, status) {
+Fetcher.prototype.onLoadFinished = function (casper, config, status) {
     // enter here twice due to a phantomjs bug
     // http://stackoverflow.com/questions/11597990/phantomjs-ensuring-that-the-response-object-stays-alive-in-server-listen
 	// or there is a redirect request
@@ -182,7 +199,7 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 
 	// redirect response. NOTICE : status is fail here
 	if (this.mainResponse && this.mainResponse.status >= 300 && this.mainResponse.status < 400) {
-		fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
+		fetcher.onContentComplete(fetcher.mainResponse, casper.page);
 		return;
 	}
 
@@ -192,14 +209,12 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 
     if (status != 'success') {
         logger.error('FAILED TO LOAD ');
-		fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
+		fetcher.onContentComplete(fetcher.mainResponse, casper.page);
         return;
     }
 
     this.startScrollTimer();
 
-    page.injectJs('humanize.js');
-    page.injectJs('visualize.js');
     page.evaluate(function() {
     	document.body.setAttribute("data-url", document.URL);
 

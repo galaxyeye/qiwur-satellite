@@ -1,19 +1,15 @@
 var fs = require("fs");
+var utils = require('./utils');
 
-var arrayUnique = function(a) {
-    return a.reduce(function(p, c) {
-        if (p.indexOf(c) < 0) p.push(c);
-        return p;
-    }, []);
-};
+var url = "http://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.1.Hwdc5o&id=25060344207&areaId=310100&cat_id=50099663&rn=ab52bd835fbb26f2842fe67a4d780ce6&user_id=844537169&is_b=1#detail";
+var file = utils.getTemporaryFile(url);
+// var content = fs.read(file);
 
-var result = JSON.parse(fs.read("/home/vincent/workspace/t/batchid.json"));
+content = "<meta charset='gbk'><meta charset='gbk><meta charset=gbk'><meta charset=gbk>";
+//s = s.replace(/gbk/i, 'utf-8');
+// content = s.replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
+content = content.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
 
-var ids = [];
-for (var i = 0; i < result.length; ++i) {
-	ids.push(result[i].batchId);
-}
-
-console.log(JSON.stringify(arrayUnique(ids)));
+console.log(content);
 
 phantom.exit();

@@ -73,7 +73,7 @@ var tagger = {
 
     run: function () {
         var config = utils.loadConfig().tagger;
-        this.config = config = utils.mergeConfig(this.config, config);
+        this.config = config = require('./config').mergeConfig(this.config, config);
 
         this.startWebServer();
 

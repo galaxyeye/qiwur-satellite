@@ -17,7 +17,7 @@ var httpServer = {
     servedPages : 0,
 
     run : function() {
-        var config = this.config = utils.loadConfig().server;
+        var config = this.config = require('./config').loadConfig().server;
         if (system.args.length === 2) {
         	this.config.port = system.args[1];
         }
@@ -188,7 +188,7 @@ var services = {
             }
 
             var content = page.content;
-            content = content.replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
+        	content = content.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
 
             // logger.debug("forward for response : " + JSON.stringify(proxyResponse));
         	// logger.debug("page length : " + page.content.length);
@@ -213,7 +213,7 @@ var services = {
                 	value = value.replace(/\n\t*/g, "\n\t");
                 	if (name == 'Content-Type') {
                 		// the content encoding is utf-8 now for all pages
-                		value = value.replace(/charset\s*=[\s"']*([^\s"'/>]*)/, 'charset=utf-8');
+                		value = value.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
                 	}
 
                     response.setHeader(name, value);

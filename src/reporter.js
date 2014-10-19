@@ -6,12 +6,12 @@ var reported = false;
 var reporter = {
 
     run: function () {
-        var config = utils.loadConfig();
+        var config = require('./config').loadConfig();
         var data = JSON.stringify(config);
 
         var page = new require('webpage').create();
-        page.customHeaders = { 
-            'Content-Type': 'application/json' 
+        page.customHeaders = {
+            'Content-Type': 'application/json'
         };
         page.open(config.reporter.url, 'POST', data, function (status) {
             if (status !== 'success') {
