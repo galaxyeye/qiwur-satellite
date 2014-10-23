@@ -234,7 +234,9 @@ var services = {
 //            msg += "response : " + JSON.stringify(response) + "\n";
 //            logger.debug(msg);
 
+            // TODO : consider redirect algorithm again
             response.statusCode = proxyResponse.status;
+            // response.statusCode = 200;
             response.writeHead(response.statusCode, response.headers);
             response.write(content);
 

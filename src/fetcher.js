@@ -119,7 +119,9 @@ Fetcher.prototype.load = function () {
         page.open(config.url);
 
         // don't leave this url, all redirection will be handled by the client
-        // page.navigationLocked = true;
+        // RESEARCH : if we do not lock the navigation, the page seems to be rebuilt and lost
+        // customer annotations, and if we lock the navigation, tmail seems return a redirection
+        page.navigationLocked = true;
     }
     else {
     	logger.error('bad page status. ' + this.pageStatus());
