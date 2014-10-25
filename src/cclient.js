@@ -69,6 +69,7 @@ casper.on('resource.received', function(requestData, request) {
 	++pageInfo.ajaxResponses;
 });
 
+// TODO : lock the navigation
 casper.start(config.url, function() {
 	this.scrollToBottom();
 });
