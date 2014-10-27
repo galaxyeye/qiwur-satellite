@@ -20,7 +20,7 @@ var httpClient = {
 		console.log("load url : " + this.config.url);
 
     	fetcher.fetch(this.config.url, this.config, function(response, page) {
-    		file = utils.getTemporaryFile(response.url);
+    		var file = utils.getTemporaryFile(response.url);
     		fs.write(file, page.content, 'w');
 
     		console.log("full page content has been saved in file : " + file);
