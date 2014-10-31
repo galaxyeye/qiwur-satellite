@@ -50,7 +50,7 @@ var satellite = {
                     phantom.exit(0);
                 }
                 else if (satellite.exitTick % 5) {
-                    console.log("waiting for exit...");
+                	logger.info("waiting for exit...");
                 }
             }
 
@@ -72,7 +72,7 @@ var satellite = {
 
         page.open(scheduleUrl, function (status) {
             if (status !== 'success') {
-                console.log("round " + satellite.round + ", no tasks");
+                logger.info("round " + satellite.round + ", no task");
 
                 satellite.__adjustSchedulePeriod(true);
 
@@ -83,7 +83,7 @@ var satellite = {
 
             satellite.status = "scheduled";
 
-            console.log("round " + satellite.round + ", tasks : " + page.plainText);
+            logger.debug("round " + satellite.round + ", tasks : " + page.plainText);
 
             var fetchItems = JSON.parse(page.plainText);
 
@@ -171,12 +171,6 @@ var satellite = {
      * */
     submit: function (fetchStatus, content) {
         var page = require('webpage').create();
-        page.onError = function (msg, trace) {
-            console.log(msg);
-            trace.forEach(function(item) {
-                console.log('  ', item.file, ':', item.line);
-            });
-        };
         var data = JSON.stringify(fetchStatus) + SUBMIT_CONTENT_SEPERATOR + content;
         var settings = {
             operation : "PUT",

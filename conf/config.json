@@ -41,7 +41,7 @@
         "port" : 19180,
         "reportPeriod" : 120000,
         "serverPortBase" : 19080,
-        "childProcessCount" : 15,
+        "monitoredProcessCount" : 15,
         "fetchMode" : "crowdsourcing"
     },
     "logger" : {

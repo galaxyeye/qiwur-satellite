@@ -1,3 +1,5 @@
+var MAX_EVENT_COUNT = 30;
+
 /**
  * Fire an event handler to the specified node. Event handlers can detect that
  * the event was fired programatically by testing for a 'synthetic=true'
@@ -69,7 +71,8 @@ function __qiwur__humanize(doc) {
 	// mouse over and click each link, notice that the navigation is locked, so it's OK to click the link
 	// notice : do not use document.links since it ignores <a> tag without href attribute
 	var links = doc.getElementsByTagName("a");
-	for (var i = 0; i < links.length; ++i) {
+	var eventCount = 0;
+	for (var i = 0; i < links.length && eventCount < MAX_EVENT_COUNT; ++i) {
 		var link = links[i];
 
 		var noTarget = !link.href;
@@ -84,10 +87,13 @@ function __qiwur__humanize(doc) {
 		hasEvent |= link.hasAttribute('onclick');
 
 		if (noTarget || hasEvent) {
-			__qiwur__fireEvent(link, 'mousedown');
-			__qiwur__fireEvent(link, 'mouseup');
-			__qiwur__fireEvent(link, 'mouseover');
+//			__qiwur__fireEvent(link, 'mousedown');
+//			__qiwur__fireEvent(link, 'mouseup');
+//			__qiwur__fireEvent(link, 'mouseover');
+
+			// TODO : research : a click event contains mousedown, mouseup and mouseover
 			__qiwur__fireEvent(link, 'click');
+			++eventCount;
 
 	    	// if any script error occurs, the flag can NOT be seen
 			link.setAttribute('data-event-fired', 1);

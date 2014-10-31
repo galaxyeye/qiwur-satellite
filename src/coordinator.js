@@ -13,8 +13,7 @@ var coordinator = {
     config : {
         "port" : 19180,
         "serverPortBase" : 19080,
-        "childProcessCount" : 10,
-        "satelliteProcessCount" : 10,
+        "monitoredProcessCount" : 10,
         "fetchMode" : "crowdsourcing"
     },
 
@@ -156,7 +155,13 @@ var coordinator = {
         return 'updated....';
     },
 
-    startFetchClient: function() {
+    /**
+     * Start fetcher client, the fetcher client asks the fetch server for tasks, 
+     * download the web page and then upload it back to the fetch server.
+     * 
+     * @param port a dummy number to indicate the process
+     * */
+    startFetcherClient: function(clientId) {
         var child = process.spawn(PHANTOMJS, ["--load-images=false", "src/satellite.js"]);
 
         var processes = this.monitoredProcesses;
@@ -164,7 +169,7 @@ var coordinator = {
             if (data == 'terminate') {
                 for (var i = 0; i < processes.length; ++i) {
                     var process = processes[i];
-                    if (process.port == port) {
+                    if (process.port == clientId) {
                         logger.info('terminate process : ' + JSON.stringify(process));
                         process.process.child.kill('SIGKILL');
                         process.process = false;
@@ -180,7 +185,7 @@ var coordinator = {
             logger.info("data : " + data);
         });
 
-        return {"port" : port, "process" : {"pid" : child.pid, "child" : child}, "status" : "running"};
+        return {"port" : clientId, "process" : {"pid" : child.pid, "child" : child}, "status" : "running"};
     },
 
     startProxyServer: function(port) {
@@ -226,17 +231,19 @@ var coordinator = {
 	    // var monitoredProcesses = JSON.parse(fs.read(ServerProcessesFile));
 
         // 启动代理服务器或卫星客户端
-        for (var i = 0; i < this.config.childProcessCount; ++i) {
+        for (var i = 0; i < this.config.monitoredProcessCount; ++i) {
         	var process = null;
 
         	if (this.config.fetchMode == 'proxy') {
                 process = this.startProxyServer(this.config.serverPortBase + i);
         	}
         	else {
-                process = this.startFetchClient();
+                process = this.startFetcherClient(i);
         	}
 
-            this.monitoredProcesses.push(process);
+        	if (process) {
+        		this.monitoredProcesses.push(process);
+        	}
         }
 
         var message = JSON.stringify(this.monitoredProcesses);

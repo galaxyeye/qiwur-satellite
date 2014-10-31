@@ -28,7 +28,7 @@ var loggerImpl = {
 	},
 
 	write : function(file, msg, level) {
-		msg = this.getTime() + "[" + level + "] " + system.pid + " " + msg + "\n";
+		msg = this.getTime() + " [" + level + "] " + system.pid + " " + msg + "\n";
 		this.cache.push({"file" : file, "msg" : msg});
 	},
 
@@ -72,7 +72,6 @@ var logger = {
 	},
 
 	error : function(msg) {
-		console.log(msg);
 		this.info(msg);
 		this.log(msg, "error");
 	},
