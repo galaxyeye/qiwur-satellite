@@ -147,7 +147,7 @@ casper.thenOpen(url, function() {
 	var path = utils.getTemporaryFile(url);
 	fs.write(path, this.getHTML(), 'w');
 
-	this.echo("ToDoFile saved in " + path);
+	this.echo("ToReadFile saved in " + path);
 });
 
 casper.thenEvaluate(function() {

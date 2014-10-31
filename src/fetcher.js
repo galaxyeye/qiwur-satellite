@@ -1,6 +1,5 @@
 var fs = require("fs");
 var system = require("system");
-var md5 = require("./md5");
 var utils = require('./utils');
 var logger = require('./logger');
 var sysconf = require('./config');
@@ -128,7 +127,10 @@ Fetcher.prototype.load = function () {
     }
 };
 
-Fetcher.prototype.onError = function(msg, trace) {
+/**
+ * Catch problems when evaluating a script in the web page context
+ * */
+Fetcher.prototype.onError = function(page, config, msg, trace) {
 	var msgStack = ['ERROR: ' + msg];
 	if (trace && trace.length) {
 	    msgStack.push('TRACE:');
@@ -136,7 +138,7 @@ Fetcher.prototype.onError = function(msg, trace) {
 	    	msgStack.push(' -> ' + t.file + ': ' + t.line);
 	    });
 	}
-	logger.error(msgStack.join('\n'));
+	logger.trace(msgStack.join('\n'));
 };
 
 Fetcher.prototype.onLoadStarted = function (page, config) {

@@ -27,8 +27,8 @@ var loggerImpl = {
 			+ "." + d.getUTCMilliseconds();
 	},
 
-	write : function(file, msg) {
-		msg = "[" + this.getTime() + "] " + system.pid + " " + msg + "\n";
+	write : function(file, msg, level) {
+		msg = this.getTime() + "[" + level + "] " + system.pid + " " + msg + "\n";
 		this.cache.push({"file" : file, "msg" : msg});
 	},
 
@@ -57,22 +57,28 @@ var logger = {
 	},
 
 	debug: function(msg) {
+		this.trace(msg);
 		this.log(msg, "debug");
 	},
 
 	warn : function(msg) {
+		this.debug(msg);
 		this.log(msg, "warn");
 	},
 
 	info : function(msg) {
+		this.warn(msg);
 		this.log(msg, "info");
 	},
 
 	error : function(msg) {
+		console.log(msg);
+		this.info(msg);
 		this.log(msg, "error");
 	},
 
 	fatal : function(msg) {
+		this.error(msg);
 		this.log(msg, "fatal");
 	},
 
@@ -93,7 +99,7 @@ var logger = {
 		file = utils.logDir() + fs.separator + new Date().getDate() + fs.separator + 
 			"satellite." + level + ".log";
 
-		loggerImpl.write(file, msg);
+		loggerImpl.write(file, msg, level);
 	},
 
 	close : function () {

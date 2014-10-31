@@ -13,12 +13,14 @@ var coordinator = {
     config : {
         "port" : 19180,
         "serverPortBase" : 19080,
-        "proxyProcessCount" : 10
+        "childProcessCount" : 10,
+        "satelliteProcessCount" : 10,
+        "fetchMode" : "crowdsourcing"
     },
 
     timer : false,
 
-    serverProcesses : [],
+    monitoredProcesses : [],
 
     status : 'notready',
 
@@ -120,7 +122,7 @@ var coordinator = {
     getStatus : function() {
     	var message = this.status;
     	if (this.status == 'started') {
-            message = JSON.stringify(this.serverProcesses);
+            message = JSON.stringify(this.monitoredProcesses);
     	}
 
         return message;
@@ -154,11 +156,38 @@ var coordinator = {
         return 'updated....';
     },
 
+    startFetchClient: function() {
+        var child = process.spawn(PHANTOMJS, ["--load-images=false", "src/satellite.js"]);
+
+        var processes = this.monitoredProcesses;
+        child.stderr.on("data", function (data) {
+            if (data == 'terminate') {
+                for (var i = 0; i < processes.length; ++i) {
+                    var process = processes[i];
+                    if (process.port == port) {
+                        logger.info('terminate process : ' + JSON.stringify(process));
+                        process.process.child.kill('SIGKILL');
+                        process.process = false;
+                    }
+                }
+            }
+            else {
+                logger.error(JSON.stringify(data));
+            }
+        });
+
+        child.stdout.on("data", function (data) {
+            logger.info("data : " + data);
+        });
+
+        return {"port" : port, "process" : {"pid" : child.pid, "child" : child}, "status" : "running"};
+    },
+
     startProxyServer: function(port) {
         // p为后缀表示启动代理服务器(proxy server)
         var child = process.spawn(PHANTOMJS, ["--load-images=false", "src/server.js", port + "p"]);
 
-        var processes = this.serverProcesses;
+        var processes = this.monitoredProcesses;
         child.stderr.on("data", function (data) {
             if (data == 'terminate') {
                 for (var i = 0; i < processes.length; ++i) {
@@ -194,16 +223,23 @@ var coordinator = {
         // TODO : use file for IPC, which seems to be more stable, especially, if the coordinator crashes,
         // 
         // eg : 
-	    // var serverProcesses = JSON.parse(fs.read(ServerProcessesFile));
+	    // var monitoredProcesses = JSON.parse(fs.read(ServerProcessesFile));
 
-        // 启动代理服务器
-        for (var i = 0; i < this.config.proxyProcessCount; ++i) {
-            var port = this.config.serverPortBase + i;
-            var process = this.startProxyServer(port);
-            this.serverProcesses.push(process);
+        // 启动代理服务器或卫星客户端
+        for (var i = 0; i < this.config.childProcessCount; ++i) {
+        	var process = null;
+
+        	if (this.config.fetchMode == 'proxy') {
+                process = this.startProxyServer(this.config.serverPortBase + i);
+        	}
+        	else {
+                process = this.startFetchClient();
+        	}
+
+            this.monitoredProcesses.push(process);
         }
 
-        var message = JSON.stringify(this.serverProcesses);
+        var message = JSON.stringify(this.monitoredProcesses);
         logger.info(message);
 
         this.startTimer();
@@ -220,7 +256,7 @@ var coordinator = {
         var restartInterval = 20;
         var reportInterval = 4; // report interval 4, 8, 16, 32, ...1024s
         var coordinator = this;
-        var processes = this.serverProcesses;
+        var processes = this.monitoredProcesses;
         this.timer = setInterval(function() {
             ++tick;
 
@@ -284,8 +320,8 @@ var coordinator = {
         this.status = 'stopped';
 
         // find pid files and send kill command
-        for (var i = 0; i < this.serverProcesses.length; ++i) {
-            var process = this.serverProcesses[i];
+        for (var i = 0; i < this.monitoredProcesses.length; ++i) {
+            var process = this.monitoredProcesses[i];
             if (process.process !== false) {
                 process.process.child.kill('SIGKILL');
                 process.process = false;

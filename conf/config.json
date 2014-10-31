@@ -30,7 +30,9 @@
     "fetchController" : {
         "scheduleUrl" : "http://localhost:8183/fetch/schedule",
         "scheduleCount" : 1,
-        "submitUrl" : "http://localhost:8183/fetch/submit"
+        "submitUrl" : "http://localhost:8183/fetch/submit",
+        "username" : "",
+        "password" : ""
     },
     "reporter" : {
         "url" : "http://www.qiwur.com:8182/proxy/report"
@@ -39,7 +41,8 @@
         "port" : 19180,
         "reportPeriod" : 120000,
         "serverPortBase" : 19080,
-        "proxyProcessCount" : 15
+        "childProcessCount" : 15,
+        "fetchMode" : "crowdsourcing"
     },
     "logger" : {
         "logLevel" : "debug"

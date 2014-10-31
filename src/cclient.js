@@ -17,20 +17,6 @@ var DefaultConfig = {
     "logLevel" : 'debug'
 };
 
-var CasperEvents = [
-  "onAlert",
-  "onDie",
-  "onError",
-  "onLoadError",
-  "onPageInitialized",
-  "onResourceReceived",
-  "onResourceRequested",
-  "onStepComplete",
-  "onStepTimeout",
-  "onTimeout",
-  "onWaitTimeout"
-];
-
 if (system.args.length < 2) {
 	console.log("usage : phantomjs [options] client.js url");
 	phantom.exit(0);
