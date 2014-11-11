@@ -60,7 +60,7 @@ var updater = {
 
     	page.open(this.config.url, function (status) {
     	    if (status !== 'success') {
-    	    	logger.error('FAIL to load the address');
+    	    	logger.error('update failed');
     	    }
     	    else {
     	    	var result = JSON.parse(page.content);

@@ -6,12 +6,12 @@ var DefaultLevel = 'info';
 var ConfigLevel = 'debug';
 
 var loggerLevel = {
-	'trace' : 0,
-	'debug' : 1,
-	'info' : 2,
-	'warn' : 3,
-	'error' : 4,
-	'fatal' : 5
+	'trace' : 1,
+	'debug' : 2,
+	'info' : 3,
+	'warn' : 4,
+	'error' : 5,
+	'fatal' : 6
 };
 
 var loggerImpl = {
@@ -57,7 +57,6 @@ var logger = {
 	},
 
 	debug: function(msg) {
-		this.trace(msg);
 		this.log(msg, "debug");
 	},
 

@@ -56,6 +56,8 @@ SATELLITE_OPTS=--load-images=false
 # restart every SATELLITE_RESTART_PERIOD minites
 SATELLITE_RESTART_PERIOD=15
 
+cd $SATELLITE_HOME
+
 # get arguments
 COMMAND=$1
 shift

@@ -56,6 +56,12 @@ var satellite = {
 
             // start the fetch cycle
             var schedule = (satellite.roundTick % satellite.schedulePeriod == 0);
+
+//            logger.debug('quit : ' + quit
+//            		+ ', status : ' + satellite.status
+//            		+ ', schedule : ' + schedule 
+//            		+ ', period' + satellite.schedulePeriod);
+
             if (!quit && satellite.status == "ready" && schedule) {
                 ++satellite.round;
 
@@ -83,15 +89,17 @@ var satellite = {
 
             satellite.status = "scheduled";
 
-            logger.debug("round " + satellite.round + ", tasks : " + page.plainText);
-
             var fetchItems = JSON.parse(page.plainText);
 
             // release resource
             page.close();
 
-            var adjust = (fetchItems.length != 0);
-            satellite.__adjustSchedulePeriod(adjust);
+            if (fetchItems.length == 0) {
+                satellite.__adjustSchedulePeriod(true);
+                satellite.status = "ready";
+            }
+
+            logger.debug("round " + satellite.round + ", tasks : " + page.plainText);
 
             // and then we fetch the desired web page
             // TODO : fix multiple items problem
@@ -110,7 +118,7 @@ var satellite = {
      * comments for a specified product might be very large and can be separated into pages
      * */
     fetch : function(fetchItem) {
-        console.log("fetch item id : " + fetchItem.itemID);
+    	// logger.debug("fetch item id : " + fetchItem.itemID + ", url : " + fetchItem.url);
 
         this.status = "fetching";
 
@@ -147,7 +155,7 @@ var satellite = {
             var username = config.username;
             var password = config.password;
             password = md5.hex_md5(password); // TODO : add a piece of salt
-            // TODO : compress content
+            // TODO : compress content and optimization
             var content = page.content.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
 
             var fetchStatus = {
@@ -171,6 +179,7 @@ var satellite = {
      * */
     submit: function (fetchStatus, content) {
         var page = require('webpage').create();
+        // TODO : optimization
         var data = JSON.stringify(fetchStatus) + SUBMIT_CONTENT_SEPERATOR + content;
         var settings = {
             operation : "PUT",
@@ -185,7 +194,7 @@ var satellite = {
                 logger.error('FAIL to submit the task');
             }
             else {
-                console.log('submit success\r\n');
+            	logger.debug('submit success, url : ' + fetchStatus.url);
             }
 
             satellite.status = "ready";

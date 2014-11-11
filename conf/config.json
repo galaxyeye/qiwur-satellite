@@ -28,9 +28,9 @@
         "loadImages": false
     },
     "fetchController" : {
-        "scheduleUrl" : "http://localhost:8183/fetch/schedule",
+        "scheduleUrl" : "http://www.qiwur.com:8183/fetch/schedule",
         "scheduleCount" : 1,
-        "submitUrl" : "http://localhost:8183/fetch/submit",
+        "submitUrl" : "http://www.qiwur.com:8183/fetch/submit",
         "username" : "",
         "password" : ""
     },

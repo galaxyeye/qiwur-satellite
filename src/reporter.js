@@ -15,7 +15,7 @@ var reporter = {
         };
         page.open(config.reporter.url, 'POST', data, function (status) {
             if (status !== 'success') {
-                logger.error('FAIL to load the address');
+                logger.error('report failed');
             }
             else {
                 logger.info('satellite status reported');
