@@ -120,6 +120,7 @@ var satellite = {
     fetch : function(fetchItem) {
     	// logger.debug("fetch item id : " + fetchItem.itemID + ", url : " + fetchItem.url);
 
+        var start = new Date().getTime();
         this.status = "fetching";
 
         require('./fetcher').create().fetch(fetchItem.url, config, function(response, page) {
@@ -131,10 +132,13 @@ var satellite = {
                 return;
             }
 
+            var elapsed = new Date().getTime() - start; // in milliseconds
             satellite.status = "fetched";
 
             // build headers to forward to the server
             var headers = [];
+            headers.push(['ResponseTime', elapsed]);
+
             for (var i = 0; i < response.headers.length; ++i) {
                 var name = response.headers[i].name;
                 var value = response.headers[i].value;

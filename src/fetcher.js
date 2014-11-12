@@ -111,7 +111,7 @@ Fetcher.prototype.load = function () {
 
     // 所有的回调函数都已经注册完毕，启动网络请求
     if (!this.pageRequested && !this.pageLoaded && !this.pageClosed) {
-        logger.debug("fetch url : " + config.url);
+        // logger.debug("fetch url : " + config.url);
 
         this.pageRequested = true;
 
