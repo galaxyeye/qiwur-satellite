@@ -7,6 +7,12 @@ var reporter = {
 
     run: function () {
         var config = require('./config').loadConfig();
+
+        if (!config.report) {
+        	logger.info('report disabled');
+        	return;
+        }
+
         var data = JSON.stringify(config);
 
         var page = new require('webpage').create();

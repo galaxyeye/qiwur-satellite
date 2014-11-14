@@ -51,7 +51,11 @@ Fetcher.prototype.fetch = function(url, config, onContentComplete) {
             	fetcher.pageClosed = true;
 
                 onContentComplete(response, page);
-            	page.close();
+
+            	if (page) {
+            		page.close();
+            		page = null;
+            	}
             }
             else {
                 logger.error("page is closed");
@@ -123,7 +127,7 @@ Fetcher.prototype.load = function () {
         page.navigationLocked = true;
     }
     else {
-    	logger.error('bad page status. ' + this.pageStatus());
+    	logger.error('bad page status : ' + this.pageStatus());
     }
 };
 
@@ -195,7 +199,7 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 	// 2. redirect using javascript:location
 
     if (status != 'success') {
-        logger.error('FAILED TO LOAD ');
+        logger.error('FAILED to load ' + page.url);
 		fetcher.onContentComplete(fetcher.mainResponse, fetcher.page);
         return;
     }
@@ -330,8 +334,8 @@ Fetcher.prototype.stopScrollTimer = function() {
 };
 
 Fetcher.prototype.pageStatus = function() {
-	return 'page status : { requested : ' + this.pageRequested + ', loaded : ' 
-		+ this.pageLoaded + ', closed : ' + this.pageClosed + '}';
+	return 'requested : ' + this.pageRequested + ', loaded : ' 
+		+ this.pageLoaded + ', closed : ' + this.pageClosed;
 };
 
 exports.create = function() {

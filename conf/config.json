@@ -28,14 +28,15 @@
         "loadImages": false
     },
     "fetchController" : {
-        "scheduleUrl" : "http://www.qiwur.com:8183/fetch/schedule",
+        "scheduleUrl" : "http://master:8183/fetch/schedule",
         "scheduleCount" : 1,
-        "submitUrl" : "http://www.qiwur.com:8183/fetch/submit",
+        "submitUrl" : "http://master:8183/fetch/submit",
         "username" : "",
         "password" : ""
     },
     "reporter" : {
-        "url" : "http://www.qiwur.com:8182/proxy/report"
+        "url" : "http://www.qiwur.com:8182/proxy/report",
+        "report" : false
     },
     "coordinator" : {
         "port" : 19180,

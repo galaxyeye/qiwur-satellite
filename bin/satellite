@@ -51,10 +51,12 @@ THIS_DIR=`dirname "$THIS"`
 SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
 
 PHANTOMJS=$SATELLITE_HOME/bin/phantomjs
+SATELLITE_LOG=$SATELLITE_HOME/logs
+SATELLITE_OUTPUT=$SATELLITE_HOME/output
 SATELLITE_OPTS=--load-images=false
 # since phantomjs built-in process bugs, we must restart the system periodically
 # restart every SATELLITE_RESTART_PERIOD minites
-SATELLITE_RESTART_PERIOD=15
+SATELLITE_RESTART_PERIOD=30
 
 cd $SATELLITE_HOME
 
@@ -91,6 +93,9 @@ function start_all() {
         echo "stop all..."
         pkill phantomjs
 #  > /dev/null &
+
+# delete old log files
+        find $SATELLITE_LOG $SATELLITE_OUTPUT -mtime +2 -a -type f -print -delete
     done
 }
 

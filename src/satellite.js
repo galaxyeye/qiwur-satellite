@@ -16,7 +16,15 @@ var SUBMIT_CONTENT_SEPERATOR = "\r\n\r\n";
 
 var ExitWait = 20;
 
-var MaxServedPage = 100;
+/**
+ * The process exit when served page number exceed this number
+ * */
+var MaxServedPage = 200;
+
+/**
+ * The max wait time to ask for tasks
+ * */
+var MaxSchedulePeriod = 60;
 
 var quit = false;
 
@@ -78,7 +86,7 @@ var satellite = {
 
         page.open(scheduleUrl, function (status) {
             if (status !== 'success') {
-                logger.info("round " + satellite.round + ", no task");
+                logger.info("failed to ask tasks");
 
                 satellite.__adjustSchedulePeriod(true);
 
@@ -98,8 +106,12 @@ var satellite = {
                 satellite.__adjustSchedulePeriod(true);
                 satellite.status = "ready";
             }
+            else {
+                satellite.__adjustSchedulePeriod(false);
 
-            logger.debug("round " + satellite.round + ", tasks : " + page.plainText);
+                logger.debug("round " + satellite.round + ", task " + fetchItems[0].itemID
+                		+ ", " + fetchItems[0].url);
+            }
 
             // and then we fetch the desired web page
             // TODO : fix multiple items problem
@@ -123,7 +135,8 @@ var satellite = {
         var start = new Date().getTime();
         this.status = "fetching";
 
-        require('./fetcher').create().fetch(fetchItem.url, config, function(response, page) {
+        var fetcher = require('./fetcher').create();
+        fetcher.fetch(fetchItem.url, config, function(response, page) {
             if (!page) {
                 logger.error("page is closed, skip...");
 
@@ -174,6 +187,11 @@ var satellite = {
                 'url' : fetchItem.url,
             };
 
+            if (page) {
+            	page.close();
+            	page = null;
+            }
+
             satellite.submit(fetchStatus, content);
         });
     },
@@ -195,10 +213,10 @@ var satellite = {
         };
         page.open(config.submitUrl, settings, function (status) {
             if (status !== 'success') {
-                logger.error('FAIL to submit the task');
+                logger.error('FAIL to submit, status ' + status);
             }
             else {
-            	logger.debug('submit success, url : ' + fetchStatus.url);
+            	logger.debug('submitted ' + fetchStatus.url);
             }
 
             satellite.status = "ready";
@@ -238,8 +256,8 @@ var satellite = {
     __adjustSchedulePeriod : function(adjust) {
         if (adjust) {
             this.schedulePeriod *= 2;
-            if (this.schedulePeriod > 30) {
-                this.schedulePeriod = 30;
+            if (this.schedulePeriod > MaxSchedulePeriod) {
+                this.schedulePeriod = MaxSchedulePeriod;
             }
         }
         else {
