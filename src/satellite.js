@@ -12,8 +12,6 @@ var ForwardHeaders = ['Server', 'Content-Type', 'Content-Language', 'X-Powered-B
                       'X-Cache', 'X-Cache-Lookup',
                       'Cache-Control', 'Last-Modified', 'Expires'];
 
-var SUBMIT_CONTENT_SEPERATOR = "\r\n\r\n";
-
 var ExitWait = 20;
 
 /**
@@ -111,12 +109,9 @@ var satellite = {
 
                 logger.debug("round " + satellite.round + ", task " + fetchItems[0].itemID
                 		+ ", " + fetchItems[0].url);
-            }
 
-            // and then we fetch the desired web page
-            // TODO : fix multiple items problem
-            for (var i = 0; i < fetchItems.length; ++i) {
-                satellite.fetch(fetchItems[i]);
+                // fetch the desired web page
+                satellite.fetch(fetchItems[0]);
             }
         });
     },
@@ -145,13 +140,31 @@ var satellite = {
                 return;
             }
 
-            var elapsed = new Date().getTime() - start; // in milliseconds
             satellite.status = "fetched";
 
-            // build headers to forward to the server
-            var headers = [];
-            headers.push(['ResponseTime', elapsed]);
+            var elapsed = new Date().getTime() - start; // in milliseconds
 
+            // satellite information
+            var username = config.username;
+            var password = config.password;
+            password = md5.hex_md5(password); // TODO : add a piece of salt
+            // TODO : compress content and optimization
+            var content = page.content.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
+
+            var customHeaders = {
+                'Q-Version' : 0.80,
+                'Q-Username' : username,
+                'Q-Password' : password,
+                'Q-Queue-ID' : fetchItem.queueID,
+                'Q-Item-ID' : fetchItem.itemID,
+                'Q-Status-Code' : response.status,
+                'Q-Checksum' : md5.hex_md5(content),
+                'Q-Url' : fetchItem.url,
+                'Q-Response-Time' : elapsed
+            };
+
+            // forwarded information
+            // for every forwarded header, add a F- prefix
             for (var i = 0; i < response.headers.length; ++i) {
                 var name = response.headers[i].name;
                 var value = response.headers[i].value;
@@ -165,65 +178,49 @@ var satellite = {
                         value = value.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
                     }
 
-                    headers.push([name, value]);
+                    customHeaders["F-" + name] = value;
                 }
             }
-
-            var username = config.username;
-            var password = config.password;
-            password = md5.hex_md5(password); // TODO : add a piece of salt
-            // TODO : compress content and optimization
-            var content = page.content.replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
-
-            var fetchStatus = {
-                'version' : 0.80,
-                'username' : username,
-                'password' : password,
-                'queueID' : fetchItem.queueID,
-                'itemID' : fetchItem.itemID,
-                'statusCode' : response.status,
-                'headers' : headers,
-                'checksum' : md5.hex_md5(content),
-                'url' : fetchItem.url,
-            };
 
             if (page) {
             	page.close();
             	page = null;
             }
 
-            satellite.submit(fetchStatus, content);
+            satellite.submit(customHeaders, content);
         });
     },
 
     /**
      * Upload the fetch result to the fetch server
      * */
-    submit: function (fetchStatus, content) {
+    submit: function (customHeaders, content) {
         var page = require('webpage').create();
-        // TODO : optimization
-        var data = JSON.stringify(fetchStatus) + SUBMIT_CONTENT_SEPERATOR + content;
+        page.customHeaders = customHeaders;
         var settings = {
             operation : "PUT",
-            encoding : "utf-8",
-            headers : {
-                "Content-Type" : "text/plain"
-            },
-            data : data
+            encoding : "utf8",
+        	headers : {
+        		"Content-Type" : "text/html; charset=utf-8"
+        	},
+            data : content
         };
+		page.onResourceRequested = function(requestData, networkRequest) {
+        	// logger.debug(JSON.stringify(requestData));
+		};
         page.open(config.submitUrl, settings, function (status) {
             if (status !== 'success') {
-                logger.error('FAIL to submit, status ' + status);
+                logger.error('FAIL to submit, status : ' + status + ', result : ' + page.content);
             }
             else {
-            	logger.debug('submitted ' + fetchStatus.url);
+            	logger.debug('submitted ' + customHeaders['Q-Url']);
             }
 
-            satellite.status = "ready";
-
             // for debug
-            var file = utils.getTemporaryFile(fetchStatus.url);
-            fs.write(file, data, 'w');
+            var file = utils.getTemporaryFile(customHeaders['Q-Url']);
+            fs.write(file, page.content, 'w');
+
+            satellite.status = "ready";
 
             // stop satellite periodically to ensure all resource released correctly
             // the coordinator will restart the satellite
