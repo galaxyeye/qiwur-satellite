@@ -3,6 +3,9 @@ var logger = require('./logger');
 
 var reported = false;
 
+/**
+ * @deprecated
+ * */
 var reporter = {
 
     run: function () {

@@ -121,10 +121,17 @@ Fetcher.prototype.load = function () {
 
         page.open(config.url);
 
-        // don't leave this url, all redirection will be handled by the client
+        // don't leave this url, all redirection will be handled by the server
         // RESEARCH : if we do not lock the navigation, the page seems to be rebuilt and lost
         // customer annotations, and if we lock the navigation, tmail seems return a redirection
-        page.navigationLocked = true;
+        if (config.url.indexOf("tmall") != -1 || config.url.indexOf("taobao") != -1) {
+        	// tmail/taobao Temporarily Moved to login page, and then redirect back
+        	// TODO : find a general solution to handle redirect
+            page.navigationLocked = false;
+        }
+        else {
+            page.navigationLocked = true;
+        }
     }
     else {
     	logger.error('bad page status : ' + this.pageStatus());
@@ -164,8 +171,8 @@ Fetcher.prototype.onResourceReceived = function (page, config, response) {
     }
 
     if (response.stage == 'end') {
-         // logger.debug("#" + response.id + " loaded");
-         // logger.debug("#" + response.id + " loaded \n" + JSON.stringify(response));
+        // logger.debug("#" + response.id + " loaded");
+        // logger.debug("#" + response.id + " loaded \n" + JSON.stringify(response));
     }
 
     if (this.pageLoaded && response.stage == 'end') {
@@ -211,12 +218,19 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
     page.evaluate(function() {
     	document.body.setAttribute("data-url", document.URL);
 
-    	var debug = false;
-    	var ele = debug ? document.body : document.body.getElementsByTagName('div')[0];
+    	var ele = document.createElement("input");
+    	ele.setAttribute("type", "hidden");
     	ele.setAttribute("id", "QiwurScrapingMetaInformation");
     	ele.setAttribute("data-domain", document.domain);
+    	/**
+    	 * QiwurScrapingMetaInformation versoin : 
+    	 * No version : as the same as 0.1.0, the first div was selected as the holder
+    	 * 0.2.0 : add a input element at the end of body element
+    	 * */
+    	ele.setAttribute("data-version", "0.2.0");
     	ele.setAttribute("data-url", document.URL);
     	ele.setAttribute("data-base-uri", document.baseURI);
+    	document.body.appendChild(ele);
 
     	__qiwur__visualize(document);
     	__qiwur__humanize(document);

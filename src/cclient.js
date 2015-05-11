@@ -65,12 +65,13 @@ casper.wait(5000, function() {
 	this.evaluate(function() {
     	document.body.setAttribute("data-url", document.URL);
 
-    	var debug = false;
-    	var ele = debug ? document.body : document.body.getElementsByTagName('div')[0];
+    	var ele = document.createElement("input");
+    	ele.setAttribute("type", "hidden");
     	ele.setAttribute("id", "QiwurScrapingMetaInformation");
     	ele.setAttribute("data-domain", document.domain);
     	ele.setAttribute("data-url", document.URL);
     	ele.setAttribute("data-base-uri", document.baseURI);
+    	document.body.appendChild(ele);
 
     	__qiwur__visualize(document);
     	__qiwur__humanize(document);

@@ -60,14 +60,13 @@ var logger = {
 		this.log(msg, "debug");
 	},
 
-	warn : function(msg) {
-		this.debug(msg);
-		this.log(msg, "warn");
+	info : function(msg) {
+		this.log(msg, "info");
 	},
 
-	info : function(msg) {
-		this.warn(msg);
-		this.log(msg, "info");
+	warn : function(msg) {
+		this.info(msg);
+		this.log(msg, "warn");
 	},
 
 	error : function(msg) {
@@ -76,7 +75,7 @@ var logger = {
 	},
 
 	fatal : function(msg) {
-		this.error(msg);
+		this.info(msg);
 		this.log(msg, "fatal");
 	},
 

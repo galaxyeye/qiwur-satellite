@@ -194,6 +194,14 @@ var functions = {
         });
     },
 
+    getUrl : function (host, port, path) {
+    	if (port == 0 || port == 80) {
+            return "http://" + host + path;
+    	}
+
+        return "http://" + host + ":" + port + path;
+    },
+
     getResourceUrls: function (page) {
         return page.evaluate(function () {
             var

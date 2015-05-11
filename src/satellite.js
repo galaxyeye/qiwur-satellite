@@ -4,7 +4,9 @@ var utils = require('./utils');
 var md5 = require("./md5");
 var logger = require('./logger');
 var config = require('./config').loadConfig().fetchController;
-var scheduleUrl = config.scheduleUrl + "/" + config.scheduleCount;
+
+var loginUrl = config.nutchServer + "/service/login";
+var fetcherUpdateUrl = config.nutchServer + "/service?type=FetcherServer";
 
 var ForwardHeaders = ['Server', 'Content-Type', 'Content-Language', 'X-Powered-By',
                       'Location',
@@ -24,9 +26,24 @@ var MaxServedPage = 200;
  * */
 var MaxSchedulePeriod = 60;
 
+/**
+ * The max wait time to ask for tasks
+ * */
+var MaxupdateFetcherServerPoolPeriod = 60;
+
 var quit = false;
 
+var authorized = false;
+
+var browserInstance = {
+    id : null,
+    username : config.username,
+    password : config.password
+};
+
 var satellite = {
+
+    fetcherServerPool : [],
 
     status : "ready",
 
@@ -40,15 +57,31 @@ var satellite = {
 
     schedulePeriod : 1, // in seconds
 
+    updateFetcherServerPoolPeriod : 5, // in seconds
+
     servedPages : 0,
 
     /**
      * Start the satellite client system
      * */
     run : function() {
+        satellite.login();
+
         // tick every second
         this.roundInterval = setInterval(function() {
             ++satellite.roundTick;
+
+            if (!authorized) {
+            	logger.info("not authorized");
+            	// check for one minute
+                if (satellite.roundTick < 60) {
+                  return;
+                }
+                else {
+                  // timed out, quit
+                  quit = true;
+                }
+            }
 
             // exit the satellite fetcher system
             if (quit) {
@@ -56,36 +89,124 @@ var satellite = {
                     phantom.exit(0);
                 }
                 else if (satellite.exitTick % 5) {
-                	logger.info("waiting for exit...");
+                    logger.info("waiting for exit...");
                 }
             }
 
+            // update fetch server pool
+            var shouldUpdate = (satellite.roundTick % satellite.updateFetcherServerPoolPeriod == 0);
+            if (!quit && shouldUpdate) {
+              satellite.updateFetcherServerPool(fetcherUpdateUrl);
+            }
+
             // start the fetch cycle
+            var serverCount = satellite.fetcherServerPool.length;
             var schedule = (satellite.roundTick % satellite.schedulePeriod == 0);
+            schedule = schedule && (serverCount > 0);
 
 //            logger.debug('quit : ' + quit
-//            		+ ', status : ' + satellite.status
-//            		+ ', schedule : ' + schedule 
-//            		+ ', period' + satellite.schedulePeriod);
+//                    + ', status : ' + satellite.status
+//                    + ', schedule : ' + schedule
+//                    + ', serverCount : ' + serverCount
+//                    + ', updateFetcherServerPoolPeriod : ' + satellite.updateFetcherServerPoolPeriod
+//                    + ', schedulePeriod : ' + satellite.schedulePeriod);
 
             if (!quit && satellite.status == "ready" && schedule) {
                 ++satellite.round;
 
-                satellite.schedule(scheduleUrl);
+                var randomIndex = Math.floor(Math.random() * serverCount);
+                var fetcherServer = satellite.fetcherServerPool[randomIndex];
+
+                if (fetcherServer != undefined) {
+                  satellite.schedule(fetcherServer);
+                }
             }
         }, 1000);
+    },
+
+    login : function(loginUrl) {
+    	authorized = true;
+    	return true;
+
+        var page = require('webpage').create();
+
+        var settings = {
+            operation : "PUT",
+            encoding : "utf8",
+            headers : {
+                "Content-Type" : "text/html; charset=utf-8"
+            },
+            data : browserInstance
+        };
+        page.onResourceRequested = function(requestData, networkRequest) {
+        // logger.debug(JSON.stringify(requestData));
+        };
+
+        page.open(loginUrl, settings, function (status) {
+            if (status !== 'success') {
+                logger.warn("failed to login");
+
+                page.close();
+
+                authorized = false;
+
+                return;
+            }
+
+            logger.debug(page.plainText);
+
+            // TODO : is it safe? I wonder if the callback is running in another thread
+            browserInstance = JSON.parse(page.plainText);
+
+            authorized = true;
+
+            page.close();
+        });
+    },
+
+    updateFetcherServerPool : function (updateUrl) {
+        var page = require('webpage').create();
+
+        logger.info(updateUrl);
+
+        page.open(updateUrl, function (status) {
+            if (status !== 'success') {
+                logger.warn("failed to update fetcher server list, status : " + status);
+
+                // The nutch server seems NOT OK, slow down updating
+                satellite.__adjustUpdateFetcherServerPoolPeriod(true);
+
+                page.close();
+
+                return;
+            }
+
+            logger.debug(page.plainText);
+
+            // TODO : is it safe? I wonder if the callback is running in another thread
+            satellite.fetcherServerPool = JSON.parse(page.plainText);
+
+            page.close();
+        });
     },
 
     /**
      * ask for tasks and fetch the target web page
      * */
-    schedule : function (scheduleUrl) {
+    schedule : function (fetcherServer) {
         var page = require('webpage').create();
+
+        var scheduleUrl = utils.getUrl(fetcherServer.ip, fetcherServer.port, "/fetch/schedule/1");
+
+        logger.debug("scheduleUrl : " + scheduleUrl);
 
         page.open(scheduleUrl, function (status) {
             if (status !== 'success') {
                 logger.info("failed to ask tasks");
 
+                // The fetch server seems NOT OK, speed up updating
+                satellite.__adjustUpdateFetcherServerPoolPeriod(false);
+                // And slow down scheduling
                 satellite.__adjustSchedulePeriod(true);
 
                 page.close();
@@ -95,10 +216,15 @@ var satellite = {
 
             satellite.status = "scheduled";
 
+            logger.debug(page.plainText);
+
             var fetchItems = JSON.parse(page.plainText);
 
             // release resource
             page.close();
+
+            // The fetch server seems be OK, slow down updating
+            satellite.__adjustUpdateFetcherServerPoolPeriod(true);
 
             if (fetchItems.length == 0) {
                 satellite.__adjustSchedulePeriod(true);
@@ -107,11 +233,11 @@ var satellite = {
             else {
                 satellite.__adjustSchedulePeriod(false);
 
-                logger.debug("round " + satellite.round + ", task " + fetchItems[0].itemID
-                		+ ", " + fetchItems[0].url);
+                logger.debug("round : " + satellite.round + ", task id : " + fetchItems[0].itemID
+                        + ", " + fetchItems[0].url);
 
                 // fetch the desired web page
-                satellite.fetch(fetchItems[0]);
+                satellite.fetch(fetcherServer, fetchItems[0]);
             }
         });
     },
@@ -124,8 +250,8 @@ var satellite = {
      * 2. Sniff nested page lists, for example, comments for a product
      * comments for a specified product might be very large and can be separated into pages
      * */
-    fetch : function(fetchItem) {
-    	// logger.debug("fetch item id : " + fetchItem.itemID + ", url : " + fetchItem.url);
+    fetch : function(fetcherServer, fetchItem) {
+        // logger.debug("fetch item id : " + fetchItem.itemID + ", url : " + fetchItem.url);
 
         var start = new Date().getTime();
         this.status = "fetching";
@@ -138,6 +264,10 @@ var satellite = {
                 satellite.status = "ready";
 
                 return;
+            }
+
+            if (page.content.length < 200) {
+                logger.debug('page content is too small, length : ' + page.content.length);
             }
 
             satellite.status = "fetched";
@@ -155,8 +285,9 @@ var satellite = {
                 'Q-Version' : 0.80,
                 'Q-Username' : username,
                 'Q-Password' : password,
-                'Q-Queue-ID' : fetchItem.queueID,
-                'Q-Item-ID' : fetchItem.itemID,
+                'Q-Job-Id' : fetchItem.jobID,
+                'Q-Queue-Id' : fetchItem.queueID,
+                'Q-Item-Id' : fetchItem.itemID,
                 'Q-Status-Code' : response.status,
                 'Q-Checksum' : md5.hex_md5(content),
                 'Q-Url' : fetchItem.url,
@@ -183,42 +314,48 @@ var satellite = {
             }
 
             if (page) {
-            	page.close();
-            	page = null;
+                page.close();
+                page = null;
             }
 
-            satellite.submit(customHeaders, content);
+            satellite.submit(fetcherServer, customHeaders, content);
         });
     },
 
     /**
      * Upload the fetch result to the fetch server
      * */
-    submit: function (customHeaders, content) {
+    submit: function (fetcherServer, customHeaders, content) {
         var page = require('webpage').create();
         page.customHeaders = customHeaders;
         var settings = {
             operation : "PUT",
             encoding : "utf8",
-        	headers : {
-        		"Content-Type" : "text/html; charset=utf-8"
-        	},
+            headers : {
+                "Content-Type" : "text/html; charset=utf-8"
+            },
             data : content
         };
-		page.onResourceRequested = function(requestData, networkRequest) {
-        	// logger.debug(JSON.stringify(requestData));
-		};
-        page.open(config.submitUrl, settings, function (status) {
+        page.onResourceRequested = function(requestData, networkRequest) {
+            // logger.debug(JSON.stringify(requestData));
+        };
+
+        var submitUrl = utils.getUrl(fetcherServer.ip, fetcherServer.port, "/fetch/submit");
+        page.open(submitUrl, settings, function (status) {
             if (status !== 'success') {
                 logger.error('FAIL to submit, status : ' + status + ', result : ' + page.content);
             }
             else {
-            	logger.debug('submitted ' + customHeaders['Q-Url']);
+                logger.debug('submitted ' + customHeaders['Q-Url']);
             }
 
             // for debug
-            var file = utils.getTemporaryFile(customHeaders['Q-Url']);
-            fs.write(file, page.content, 'w');
+            if (config.savePage) {
+                // TODO : remove old files
+
+                var file = utils.getTemporaryFile(customHeaders['Q-Url']);
+                fs.write(file, page.content, 'w');
+            }
 
             satellite.status = "ready";
 
@@ -250,8 +387,8 @@ var satellite = {
     /**
      * If no tasks, wait for a longer period, but no longer than 30 seconds
      * */
-    __adjustSchedulePeriod : function(adjust) {
-        if (adjust) {
+    __adjustSchedulePeriod : function(slowDown) {
+        if (slowDown) {
             this.schedulePeriod *= 2;
             if (this.schedulePeriod > MaxSchedulePeriod) {
                 this.schedulePeriod = MaxSchedulePeriod;
@@ -259,6 +396,21 @@ var satellite = {
         }
         else {
             this.schedulePeriod = 1;
+        }
+    },
+
+    /**
+     * If no tasks, wait for a longer period, but no longer than 30 seconds
+     * */
+    __adjustUpdateFetcherServerPoolPeriod : function(slowDown) {
+        if (slowDown) {
+            this.updateFetcherServerPoolPeriod *= 2;
+            if (this.updateFetcherServerPoolPeriod > MaxupdateFetcherServerPoolPeriod) {
+                this.updateFetcherServerPoolPeriod = MaxupdateFetcherServerPoolPeriod;
+            }
+        }
+        else {
+            this.updateFetcherServerPoolPeriod = 5;
         }
     }
 };
