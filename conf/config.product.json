@@ -28,14 +28,13 @@
         "loadImages": false
     },
     "fetchController" : {
-        "nutchServer" : "http://galaxyeye:8182",
+        "nutchServer" : "http://www.qiwur.com:8182",
         "scheduleCount" : 1,
         "username" : "vincent",
-        "password" : "vincent",
-        "comment" : "just change nutchServer to your running Nutch Server, in crowdsouring mode"
+        "password" : "vincent"
     },
     "reporter" : {
-        "url" : "http://galaxyeye:8182/proxy/report",
+        "url" : "http://www.qiwur.com:8182/proxy/report",
         "report" : false,
         "comment" : "deprecated"
     },

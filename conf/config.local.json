@@ -1,7 +1,7 @@
 {
     "casperjs" : {
         "autoLoad" : true,
-        "home" : "/home/hduser/workspace/casperjs"
+        "home" : "/home/vincent/workspace/casperjs"
     },
     "server" : {
         "port": "19080p",
@@ -28,22 +28,20 @@
         "loadImages": false
     },
     "fetchController" : {
-        "nutchServer" : "http://galaxyeye:8182",
+        "nutchServer" : "http://localhost:8182",
         "scheduleCount" : 1,
-        "username" : "vincent",
-        "password" : "vincent",
-        "comment" : "just change nutchServer to your running Nutch Server, in crowdsouring mode"
+        "username" : "",
+        "password" : ""
     },
     "reporter" : {
-        "url" : "http://galaxyeye:8182/proxy/report",
-        "report" : false,
-        "comment" : "deprecated"
+        "url" : "http://localhost:8182/proxy/report",
+        "report" : false
     },
     "coordinator" : {
         "port" : 19180,
         "reportPeriod" : 120000,
         "serverPortBase" : 19080,
-        "monitoredProcessCount" : 10,
+        "monitoredProcessCount" : 1,
         "fetchMode" : "crowdsourcing"
     },
     "logger" : {
