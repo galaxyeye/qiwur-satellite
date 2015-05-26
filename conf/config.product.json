@@ -1,7 +1,7 @@
 {
     "casperjs" : {
         "autoLoad" : true,
-        "home" : "/home/vincent/workspace/casperjs"
+        "home" : "/home/hduser/workspace/casperjs"
     },
     "server" : {
         "port": "19080p",
@@ -28,20 +28,21 @@
         "loadImages": false
     },
     "fetchController" : {
-        "nutchServer" : "http://localhost:8182",
+        "nutchServer" : "http://www.qiwur.com:8182",
         "scheduleCount" : 1,
-        "username" : "",
-        "password" : ""
+        "username" : "vincent",
+        "password" : "vincent"
     },
     "reporter" : {
-        "url" : "http://localhost:8182/proxy/report",
-        "report" : false
+        "url" : "http://www.qiwur.com:8182/proxy/report",
+        "report" : false,
+        "comment" : "deprecated"
     },
     "coordinator" : {
         "port" : 19180,
         "reportPeriod" : 120000,
         "serverPortBase" : 19080,
-        "monitoredProcessCount" : 1,
+        "monitoredProcessCount" : 10,
         "fetchMode" : "crowdsourcing"
     },
     "logger" : {
