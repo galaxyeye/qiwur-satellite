@@ -50,3 +50,54 @@
         "logLevel" : "debug"
     }
 }
+{
+    "casperjs" : {
+        "autoLoad" : true,
+        "home" : "/home/hduser/workspace/casperjs"
+    },
+    "server" : {
+        "port": "19080p",
+        "keepAlive": true,
+        "maxServedPage": 100
+    },
+    "fetcher" : {
+        "userAgent": "chrome",
+        "userAgentAliases": {
+            "iphone": "Mozilla/5.0 (iPhone; U; CPU iPhone OS 4_0 like Mac OS X; en-us) AppleWebKit/532.9 (KHTML, like Gecko) Version/4.0.5 Mobile/8A293 Safari/6531.22.7",
+            "android": "Mozilla/5.0 (Linux; U; Android 2.2; en-us; Nexus One Build/FRF91) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
+            "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11",
+            "Googlebot 2.1 - 1": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+            "Googlebot 2.1 - 2": "Googlebot/2.1 (+http://www.googlebot.com/bot.html)",
+            "Googlebot 2.1 - 3": "Googlebot/2.1 (+http://www.google.com/bot.html)",
+            "Baiduspider - 1": "Baiduspider+(+http://www.baidu.com/search/spider_jp.html)",
+            "Baiduspider - 2": "Baiduspider+(+http://www.baidu.com/search/spider.htm)",
+            "Baiduspider - 3": "BaiDuSpider"
+        },
+        "fetchTimeout" : 30000,
+        "scrollCount" : 10,
+        "scrollTimeout" : 5000,
+        "consolePrefix": "#",
+        "loadImages": false
+    },
+    "fetchController" : {
+        "nutchServer" : "http://www.qiwur.com:8182",
+        "scheduleCount" : 1,
+        "username" : "vincent",
+        "password" : "vincent"
+    },
+    "reporter" : {
+        "url" : "http://www.qiwur.com:8182/proxy/report",
+        "report" : false,
+        "comment" : "deprecated"
+    },
+    "coordinator" : {
+        "port" : 19180,
+        "reportPeriod" : 120000,
+        "serverPortBase" : 19080,
+        "monitoredProcessCount" : 10,
+        "fetchMode" : "crowdsourcing"
+    },
+    "logger" : {
+        "logLevel" : "debug"
+    }
+}

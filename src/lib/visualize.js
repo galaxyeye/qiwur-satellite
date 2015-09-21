@@ -107,7 +107,7 @@ function __qiwur__visualize(ele, schema) {
 	if (["BODY", "DIV", "A", "IMG", "TABLE", "UL", "DL", "H1", "H2"].indexOf(ele.tagName) != -1) {
 		var vision = __qiwur__getVisionInfo(ele, schema);
 		if (vision) {
-			//	__utils__.echo(vision);
+//			__utils__.echo(vision);
 			ele.setAttribute('vi', vision);
 		}
 		ele.setAttribute('vi', vision);

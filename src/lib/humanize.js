@@ -84,7 +84,7 @@ function __qiwur__humanize(doc) {
         var hasEvent = link.hasAttribute('onmousedown');
         hasEvent |= link.hasAttribute('onmouseup');
         hasEvent |= link.hasAttribute('onmouseover');
-//        hasEvent |= link.hasAttribute('onclick');
+//      hasEvent |= link.hasAttribute('onclick');
 
         if (noTarget || hasEvent) {
 //            __qiwur__fireEvent(link, 'mousedown');
