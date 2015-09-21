@@ -1,7 +1,7 @@
 var fs = require("fs");
 var system = require("system");
 var sysconf = require('./config');
-var utils = require('./utils');
+var utils = require('./lib/utils');
 var fetcher = require('./fetcher').create();
 var logger = require('./logger');
 

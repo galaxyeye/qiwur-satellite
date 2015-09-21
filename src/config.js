@@ -3,6 +3,7 @@ var config = {
     // config
     /**********************************************************/
 	loadConfig : function (configFile) {
+		
 		var fs = require('fs');
 
 	    if (!fs.exists(configFile)) {

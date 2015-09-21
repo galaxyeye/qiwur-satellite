@@ -24,12 +24,12 @@ var functions = {
 
     // @Deprecated
     getSysDir : function() {
-    	return utils.getOutputDir() + fs.separator + "sys";
+    	return this.getOutputDir() + fs.separator + "sys";
     },
 
     // @Deprecated
     getProxyProcessInfoFile : function() {
-    	return utils.getSysDir() + fs.separator + "proxy-processes.json";
+    	return this.getSysDir() + fs.separator + "proxy-processes.json";
     },
 
 	// get the web server's document root
@@ -44,7 +44,7 @@ var functions = {
 
 	// get the absolute path for a relative path
 	absolute: function(relativePath) {
-		if (relativePath.indexOf(utils.docRoot()) == 0) {
+		if (relativePath.indexOf(this.docRoot()) == 0) {
 			return relativePath;
 		}
 
@@ -53,12 +53,12 @@ var functions = {
 			separator = fs.separator;
 		}
 
-		return utils.docRoot() + separator + relativePath;
+		return this.docRoot() + separator + relativePath;
 	},
 
 	getTemporaryFile: function(url) {
 		var file = md5.hex_md5(url);
-		return utils.getOutputDir() + fs.separator + new Date().getDate() + fs.separator + file + ".html";
+		return this.getOutputDir() + fs.separator + new Date().getDate() + fs.separator + file + ".html";
 	},
 
 	normalizeVirtualPath: function(virtualPath) {
@@ -78,7 +78,7 @@ var functions = {
 	},
 
 	parentVirtualPath: function(virtualPath) {
-		virtualPath = utils.normalizeVirtualPath(virtualPath);
+		virtualPath = this.normalizeVirtualPath(virtualPath);
 
 		var last = virtualPath.lastIndexOf("/", 0);
 		if (last == 0) return "/";
@@ -87,15 +87,15 @@ var functions = {
 	},
 
 	virtualPath2LocalPath: function(virtualPath) {
-		return utils.absolute(virtualPath);
+		return this.absolute(virtualPath);
 	},
 
 	localPath2VirtualPath: function(localPath) {
-		if (localPath.indexOf(utils.docRoot()) === 0) {
-			localPath = localPath.substr(utils.docRoot().length);
+		if (localPath.indexOf(this.docRoot()) === 0) {
+			localPath = localPath.substr(this.docRoot().length);
 		}
 
-		return utils.normalizeVirtualPath(localPath);
+		return this.normalizeVirtualPath(localPath);
 	},
     /**********************************************************/
 	// end directories
@@ -125,7 +125,7 @@ var functions = {
 	},
 
 	// sdbm algorithm
-	hashString2Int: function(str) {
+	hashString2Int : function(str) {
 	    var hash = 0;
 
 		if (typeof(str) !== "string" || str.length == 0) return hash;
@@ -176,12 +176,12 @@ var functions = {
     /**********************************************************/
     // @Deprecated	
     loadProxyProcessInfo : function() {
-    	return JSON.parse(fs.read(utils.getProxyProcessInfoFile()));
+    	return JSON.parse(fs.read(this.getProxyProcessInfoFile()));
     },
 
     // @Deprecated
     saveProxyProcessInfo : function(info) {
-    	fs.write(utils.getProxyProcessInfoFile(), info, 'w');
+    	fs.write(this.getProxyProcessInfoFile(), info, 'w');
     },
 
     /**********************************************************/
@@ -320,9 +320,9 @@ var functions = {
 	pad: function (str, length) {
 	    var padded = str.toString();
 	    if (padded.length > length) {
-	        return utils.pad(padded, length * 2);
+	        return this.pad(padded, length * 2);
 	    }
-	    return utils.repeat(' ', length - padded.length) + padded;
+	    return this.repeat(' ', length - padded.length) + padded;
 	},
 
 	repeat: function (chr, length) {

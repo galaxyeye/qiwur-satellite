@@ -53,7 +53,7 @@ SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
 PHANTOMJS=$SATELLITE_HOME/bin/phantomjs
 SATELLITE_LOG=$SATELLITE_HOME/logs
 SATELLITE_OUTPUT=$SATELLITE_HOME/output
-SATELLITE_OPTS=--load-images=false
+SATELLITE_OPTS="--load-images=true --ssl-protocol=any"
 # since phantomjs built-in process bugs, we must restart the system periodically
 # restart every SATELLITE_RESTART_PERIOD minites
 SATELLITE_RESTART_PERIOD=30
@@ -75,7 +75,7 @@ function run() {
     local CMD="$1"
     shift
 
-    JS=$SATELLITE_HOME'/src/'$CMD
+    JS="$SATELLITE_HOME/$CMD"
     exec $EXEC_CALL $JS $@
 }
 

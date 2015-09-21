@@ -1,5 +1,6 @@
 var fs = require('fs');
 var system = require('system');
+var sateutils = require('./lib/utils');
 
 var FlushCachePeriod = 1000;
 var DefaultLevel = 'info';
@@ -28,6 +29,10 @@ var loggerImpl = {
 	},
 
 	write : function(file, msg, level) {
+		if (typeof(msg) !== 'string') {
+			msg = JSON.stringify(msg);
+		}
+
 		msg = this.getTime() + " [" + level + "] " + system.pid + " " + msg + "\n";
 		this.cache.push({"file" : file, "msg" : msg});
 	},
@@ -93,7 +98,7 @@ var logger = {
 			return;
 		}
 
-		file = utils.logDir() + fs.separator + new Date().getDate() + fs.separator + 
+		file = sateutils.logDir() + fs.separator + new Date().getDate() + fs.separator + 
 			"satellite." + level + ".log";
 
 		loggerImpl.write(file, msg, level);

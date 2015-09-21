@@ -3,7 +3,7 @@ var system = require("system");
 var server = require('webserver').create();
 var fs = require("fs");
 var sysconf = require('./config');
-var utils = require('./utils');
+var utils = require('./lib/utils');
 var logger = require('./logger');
 
 var PHANTOMJS = "bin" + fs.separator + "phantomjs";
@@ -162,7 +162,7 @@ var coordinator = {
      * @param port a dummy number to indicate the process
      * */
     startFetcherClient: function(clientId) {
-        var child = process.spawn(PHANTOMJS, ["--load-images=false", "src/satellite.js"]);
+        var child = process.spawn(PHANTOMJS, ["--load-images=false", "--ssl-protocol=any", "src/satellite.js"]);
 
         var processes = this.monitoredProcesses;
         child.stderr.on("data", function (data) {
@@ -190,7 +190,7 @@ var coordinator = {
 
     startProxyServer: function(port) {
         // p为后缀表示启动代理服务器(proxy server)
-        var child = process.spawn(PHANTOMJS, ["--load-images=false", "src/server.js", port + "p"]);
+        var child = process.spawn(PHANTOMJS, ["--load-images=false", "--ssl-protocol=any", "src/server.js", port + "p"]);
 
         var processes = this.monitoredProcesses;
         child.stderr.on("data", function (data) {

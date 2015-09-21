@@ -84,19 +84,19 @@ function __qiwur__humanize(doc) {
         var hasEvent = link.hasAttribute('onmousedown');
         hasEvent |= link.hasAttribute('onmouseup');
         hasEvent |= link.hasAttribute('onmouseover');
-        hasEvent |= link.hasAttribute('onclick');
+//        hasEvent |= link.hasAttribute('onclick');
 
         if (noTarget || hasEvent) {
 //            __qiwur__fireEvent(link, 'mousedown');
 //            __qiwur__fireEvent(link, 'mouseup');
-//            __qiwur__fireEvent(link, 'mouseover');
+            __qiwur__fireEvent(link, 'mouseover');
 
-            // TODO : research : a click event contains mousedown, mouseup and mouseover
-            __qiwur__fireEvent(link, 'click');
+            // TODO : research : a click event contains mousedown, mouseup and mouseover?
+//            __qiwur__fireEvent(link, 'click');
             ++eventCount;
 
             // if any script error occurs, the flag can NOT be seen
-            link.setAttribute('data-event-fired', 1);
+            link.setAttribute('data-event-fired', eventCount);
         }
     }
 

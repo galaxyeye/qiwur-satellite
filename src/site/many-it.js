@@ -13,7 +13,7 @@ casper.on('resource.requested', function(requestData, networkRequest) {
 //	networkRequest.setHeader("Accept-Language", "zh-CN");
 
 	if (requestData.url.indexOf(".js") !== -1) {
-//		this.log("requested : " + requestData.url, "debug");		
+//		this.log("requested : " + requestData.url, "debug");
 //		this.echo("request headers : " + JSON.stringify(request.headers));
 	}
 

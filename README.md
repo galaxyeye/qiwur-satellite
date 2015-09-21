@@ -8,7 +8,7 @@ https://github.com/galaxyeye/qiwur-nutch
 
 To run the project, 
 
-1. make sure you have a Nutch Server running in Crowdsourcing mode
+1. make sure you have a Nutch Server running in Crowdsourcing
 
 2. enter project home directory
 
@@ -16,5 +16,6 @@ To run the project,
 nutch server, in crowdsouring mode
 
 4. windows : start-satellite.bat
+
    linux : ./bin/satellite start
 

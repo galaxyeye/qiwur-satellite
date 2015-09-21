@@ -1,0 +1,58 @@
+[
+  {
+    "name" : "tuan.ctrip.com",
+    "seed" : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
+    "indexPageMainAreaSelector" : ".pic-list",
+    "paginatorSelector" : ".page-box",
+    "nextPageSelector" : ".page-box .page-next",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://tuan.ctrip.com/group/(.+)",
+    "maxIndexPageCount" : 3,
+    "maxDetailPageCount" : 300,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : ".detail-info .price-set .price"}
+    ]
+  },
+  {
+    "name" : "piao.tuan.qunar.com",
+    "seed" : "http://tuan.qunar.com/piao/product/list.htm?in_track=tuan_category_mp",
+    "indexPageMainAreaSelector" : ".pt-content",
+    "paginatorSelector" : "#product-pagination",
+    "nextPageSelector" : ".ptg-pager-next > a",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://tuan.qunar.com/piao/product/detail_(.+)",
+    "maxIndexPageCount" : 3,
+    "maxDetailPageCount" : 300,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : ".pt-majorinfo-lure"}
+    ]
+  },
+  {
+    "name" : "hotel.tuan.qunar.com",
+    "seed" : "http://tuan.qunar.com/#PAGE/L2JzbmVzL3R1YW5XZWIvbGlzdA__/category/aG90ZWw_/cityCode/YmVpamluZ19jaXR5/city/5YyX5Lqs/currentPage/NQ__/globalCity/YmVpamluZ19jaXR5/type/57uP5rWO5Z6L",
+    "indexPageMainAreaSelector" : "#result",
+    "paginatorSelector" : "#pager",
+    "nextPageSelector" : "#pager > a[data-pager-link='next']",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://tuan.qunar.com/deal/(.+)",
+    "maxIndexPageCount" : 3,
+    "maxDetailPageCount" : 300,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : ".price.cms_price"}
+    ]
+  },
+  {
+    "name" : "tuan.elong.com",
+    "seed" : "http://tuan.elong.com/beijing_0101_jiudian_tuangou/",
+    "indexPageMainAreaSelector" : "#productList",
+    "paginatorSelector" : ".loadingmore",
+    "nextPageSelector" : ".loadingmore",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://tuan.elong.com/(.+)_(.+)_tuangou-(.+)",
+    "maxIndexPageCount" : 3,
+    "maxDetailPageCount" : 300,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : "#hoverArea .h_ord_price"}
+    ]
+  }
+]

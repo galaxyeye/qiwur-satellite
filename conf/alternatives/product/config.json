@@ -28,13 +28,14 @@
         "loadImages": false
     },
     "fetchController" : {
-        "nutchServer" : "http://www.qiwur.com:8182",
+        "nutchServer" : "http://master:8182",
         "scheduleCount" : 1,
+        "savePage" : true,
         "username" : "vincent",
         "password" : "vincent"
     },
     "reporter" : {
-        "url" : "http://www.qiwur.com:8182/proxy/report",
+        "url" : "http://master:8182/proxy/report",
         "report" : false,
         "comment" : "deprecated"
     },

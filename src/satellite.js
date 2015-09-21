@@ -1,7 +1,7 @@
 var system = require("system");
 var fs = require("fs");
-var utils = require('./utils');
-var md5 = require("./md5");
+var sateutils = require('./lib/utils');
+var md5 = require("./lib/md5");
 var logger = require('./logger');
 var config = require('./config').loadConfig().fetchController;
 
@@ -196,7 +196,7 @@ var satellite = {
     schedule : function (fetcherServer) {
         var page = require('webpage').create();
 
-        var scheduleUrl = utils.getUrl(fetcherServer.ip, fetcherServer.port, "/fetch/schedule/1");
+        var scheduleUrl = sateutils.getUrl(fetcherServer.ip, fetcherServer.port, "/fetch/schedule/1");
 
         logger.debug("scheduleUrl : " + scheduleUrl);
 
@@ -340,7 +340,7 @@ var satellite = {
             // logger.debug(JSON.stringify(requestData));
         };
 
-        var submitUrl = utils.getUrl(fetcherServer.ip, fetcherServer.port, "/fetch/submit");
+        var submitUrl = sateutils.getUrl(fetcherServer.ip, fetcherServer.port, "/fetch/submit");
         page.open(submitUrl, settings, function (status) {
             if (status !== 'success') {
                 logger.error('FAIL to submit, status : ' + status + ', result : ' + page.content);
@@ -353,7 +353,7 @@ var satellite = {
             if (config.savePage) {
                 // TODO : remove old files
 
-                var file = utils.getTemporaryFile(customHeaders['Q-Url']);
+                var file = sateutils.getTemporaryFile(customHeaders['Q-Url']);
                 fs.write(file, page.content, 'w');
             }
 

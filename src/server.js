@@ -3,7 +3,7 @@ var server = require('webserver').create();
 var system = require('system');
 var fs = require('fs');
 
-var utils = require('./utils');
+var utils = require('./lib/utils');
 var logger = require('./logger');
 
 var quit = false;

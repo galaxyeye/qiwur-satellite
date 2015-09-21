@@ -1,6 +1,6 @@
 var fs = require("fs");
 var system = require("system");
-var utils = require('./utils');
+var utils = require('./lib/utils');
 var logger = require('./logger');
 var sysconf = require('./config');
 
@@ -213,30 +213,11 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 
     this.startScrollTimer();
 
-    page.injectJs('humanize.js');
-    page.injectJs('visualize.js');
+    page.injectJs('lib/humanize.js');
+    page.injectJs('lib/visualize.js');
+    page.injectJs('lib/clientutils.js');
     page.evaluate(function() {
-    	document.body.setAttribute("data-url", document.URL);
-
-    	var ele = document.createElement("input");
-    	ele.setAttribute("type", "hidden");
-    	ele.setAttribute("id", "QiwurScrapingMetaInformation");
-    	ele.setAttribute("data-domain", document.domain);
-    	/**
-    	 * QiwurScrapingMetaInformation versoin : 
-    	 * No version : as the same as 0.1.0, the first div was selected as the holder
-    	 * 0.2.0 : add a input element at the end of body element
-    	 * */
-    	ele.setAttribute("data-version", "0.2.0");
-    	ele.setAttribute("data-url", document.URL);
-    	ele.setAttribute("data-base-uri", document.baseURI);
-    	document.body.appendChild(ele);
-
-    	__qiwur__visualize(document);
-    	__qiwur__humanize(document);
-
-    	// if any script error occurs, the flag can NOT be seen
-    	document.body.setAttribute("data-evaluate-error", 0);
+    	__qiwur__visualizeHumanize();
     });
 
     this.waitForContentComplete();

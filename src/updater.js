@@ -1,5 +1,5 @@
 var fs = require("fs");
-var utils = require('./utils');
+var utils = require('./lib/utils');
 var fetcher = require('./fetcher');
 var logger = require('./logger');
 
