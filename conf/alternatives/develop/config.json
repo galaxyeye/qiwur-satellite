@@ -25,13 +25,23 @@
         "scrollCount" : 10,
         "scrollTimeout" : 5000,
         "consolePrefix": "#",
-        "loadImages": false
+        "loadImages": true,
+        "cacheDirectory" : "/tmp/satellite",
+        "forbiddenLinkPatterns" : [
+          "(.+)qq.com(.+)",
+          "(.+)weibo.com(.+)",
+          "(.*)about:blank(.*)",
+          "(.*)letv.com(.*)"
+        ]
     },
     "fetchController" : {
         "nutchServer" : "http://localhost:8182",
         "scheduleCount" : 1,
         "username" : "",
         "password" : ""
+    },
+    "extractService" : {
+        "url" : "http://localhost:8181/scent/extract"
     },
     "reporter" : {
         "url" : "http://localhost:8182/proxy/report",

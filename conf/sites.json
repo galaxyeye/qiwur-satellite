@@ -54,5 +54,19 @@
     "detailPageCaptureAreas" : [
       {"name" : "Price", "selector" : "#hoverArea .h_ord_price"}
     ]
+  },
+  {
+    "name" : "electronic.jd.com",
+    "seed" : "http://list.jd.com/list.html?cat=737%2C794%2C798&page=1&JL=6_0_0",
+    "indexPageMainAreaSelector" : "#plist ul",
+    "paginatorSelector" : "div.page",
+    "nextPageSelector" : "div.page a.pn-next",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://item.jd.com/(.+)",
+    "maxIndexPageCount" : 2,
+    "maxDetailPageCount" : 100,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : "#jd-price .p-price"}
+    ]
   }
 ]

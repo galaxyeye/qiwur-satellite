@@ -107,23 +107,6 @@ casper.run(function() {
 	this.exit();
 });
 
-/*******************************************************************************
- * free functions
- ******************************************************************************/
-function listSites(sites) {
-	return Array.prototype.map.call(sites, function(site) {
-		return site.name;
-	});
-}
-
-function findSiteConfig(sites, name) {
-	for (var i = 0; i < sites.length; ++i) {
-		if (sites[i].name == name) {
-			return sites[i];
-		}
-	}
-}
-
 function getDetailPageLocalFileName(siteName, url) {
 	var fileNumber = md5.hex_md5(url);
 
@@ -141,84 +124,6 @@ var terminate = function() {
 
 var ignore = function() {
 	this.echo("Ignore url " + this.getCurrentUrl());
-};
-
-var processIndexPages = function() {
-//	var file = "/tmp/satellite/index-" + indexPageCounter + ".png";
-//
-//	this.captureSelector(file, site.indexPageMainAreaSelector);
-
-	if (indexPageCounter >= site.startPage) {
-		collectDetailPageLinks.call(casper);
-	}
-
-	// don't go too far down the rabbit hole
-	if (indexPageCounter >= site.maxIndexPageCount || !this.exists(site.nextPageSelector)) {
-		this.then(function() {
-			processDetailPages.call(this);
-		});
-
-		return;
-	}
-
-	indexPageCounter++;
-	this.echo("requesting next page: " + indexPageCounter);
-	var url = this.getCurrentUrl();
-	this.thenClick(site.nextPageSelector).then(function() {
-		this.waitFor(function() {
-			return url !== this.getCurrentUrl();
-		}, // testFn
-		processIndexPages, // then
-		processDetailPages, // onTimeout
-		10 * 1000); // timeout
-	});
-};
-
-var collectDetailPageLinks = function() {
-	if (indexPageCounter < site.startPage) {
-		return;
-	}
-
-	var links = this.evaluate(function(selector, regex) {
-		return __qiwur__searchLinks(selector, regex);
-	}, site.indexPageMainAreaSelector, site.detailPageUrlRegex);
-
-	if (!links || links.length == 0) {
-		logger.warn("No any detail links");
-	}
-
-	if (links) {
-		detailPageLinks = detailPageLinks.concat(links);
-		this.echo(links.length + ' detail page links');
-
-//		for (var i = 0; i < links.length; ++i) {
-//			this.echo('Found detail page links : ' + links[i]);
-//		}
-	}
-};
-
-var processDetailPages = function() {
-//	 this.echo(detailPageCounter + ", " + detailPageLinks.length);
-//	 for (var i = 0; i < detailPageLinks.length; ++i) {
-//		 this.echo('Detail page : ' + detailPageLinks[i]);
-//	 }
-
-	// don't go too far down the rabbit hole
-	if (detailPageCounter > site.maxDetailPageCount
-			|| detailPageCounter > detailPageLinks.length) {
-		this.then(function() {
-			terminate.call(this);
-		});
-
-		return;
-	}
-
-	var url = detailPageLinks[detailPageCounter - 1];
-	this.echo(detailPageCounter + 'th detail page : ' + url);
-
-	detailPageCounter++;
-
-	processDetailPage.call(casper, url);
 };
 
 var processDetailPage = function(url) {
@@ -266,36 +171,21 @@ var processDetailPage = function(url) {
 		},
 		data : {
 			html : this.getHTML(),
-			format : 'All'
+			format : 'Wiki'
 		}
 	});
 
-	// .waitFor(function() {
-	// return url !== this.getCurrentUrl();
-	// })
+	this.waitFor(function() {
+	  return url !== this.getCurrentUrl();
+	});
 
 	this.then(function(response) {
 		this.echo('Extract Result : ' + this.getCurrentUrl() + ' - ' + this.getTitle());
-		// this.debugPage();
-		// utils.dump(response);
+		this.debugPage();
+		utils.dump(response);
 		// autoExtractDetailPage.call(this);
 	});
-
-	this.then(function() {
-		processDetailPages.call(this);
-	});
 };
-
-var saveIndexPage = function() {
-	var file = conf.cacheDirectory + "/web/detail/" + site.name + "/"
-		+ "index-" + indexPageCounter + ".html";
-
-	var content = this.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
-
-	fs.write(file, content, 'w');
-
-	this.echo("page saved in : " + file);
-}
 
 var saveDetailPage = function() {
 	var fileName = getDetailPageLocalFileName(siteName, this.getCurrentUrl());

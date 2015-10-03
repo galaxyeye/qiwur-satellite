@@ -62,8 +62,11 @@ function __qiwur__setVisionInfoFull(ele) {
 };
 
 /**
- * TODO : use data-style to compress
- * data-style="width:100px; height:120px; ..."
+ * Visual information. To minimize the document size,
+ * we write only the values according to the given schema.
+ * 
+ * For example : 
+ * <div class="product" vi="236 470 980 30">...</div>
  * */
 function __qiwur__getVisionInfo(ele, schema) {
 	var vision = "";
@@ -71,8 +74,12 @@ function __qiwur__getVisionInfo(ele, schema) {
 	var style = window.getComputedStyle(ele, null);
 	var offset = __qiwur__getOffset(ele);
 
-	var zero = true;
+	var allZero = true;
 	for (var i = 0; i < schema.length; ++i) {
+		if (i > 0) {
+			vision += " ";
+		}
+
 		var key = schema[i];
 		var value = "";
 
@@ -88,18 +95,13 @@ function __qiwur__getVisionInfo(ele, schema) {
 		}
 
 		if (value != 0 && !isNaN(value)) {
-			zero = false;
+			allZero = false;
 		}
 
 		vision += value;
-		vision += " ";
 	}
 
-	if (zero) {
-		return false;
-	}
-
-	return vision;
+	return allZero ? false : vision;
 };
 
 function __qiwur__visualize(ele, schema) {
@@ -110,7 +112,7 @@ function __qiwur__visualize(ele, schema) {
 //			__utils__.echo(vision);
 			ele.setAttribute('vi', vision);
 		}
-		ele.setAttribute('vi', vision);
+//		ele.setAttribute('vi', vision);
 	}
 
 	// 

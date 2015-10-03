@@ -51,6 +51,10 @@ function __qiwur__searchLinks(mainAreaSelector, urlRegex) {
 }
 
 function __qiwur__relativeToAbsolute(url) {
+	if (url.indexOf("//") == 0) {
+		url = "http:" + url;
+	}
+
     arr = url.split("/") // Cut the url up into a array
     while(!!~arr.indexOf("..")){ // If there still is a ".." in the array
         arr.splice(arr.indexOf("..") - 1, 2); // Remove the ".." and the element before it.
