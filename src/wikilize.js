@@ -1,8 +1,8 @@
 var sateutils = require('./lib/utils');
 var md5 = require('./lib/md5');
 var base64 = require('./lib/base64');
-var logger = require('./logger');
-var config = require('./config');
+var logger = require('./lib/logger');
+var config = require('./lib/config');
 
 var fs = require("fs");
 var system = require("system");

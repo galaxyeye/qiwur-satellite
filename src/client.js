@@ -1,9 +1,9 @@
 var fs = require("fs");
 var system = require("system");
-var sysconf = require('./config');
+var sysconfig = require('./lib/config');
 var utils = require('./lib/utils');
+var logger = require('./lib/logger');
 var fetcher = require('./fetcher').create();
-var logger = require('./logger');
 
 var httpClient = {
     config: false,
@@ -16,8 +16,6 @@ var httpClient = {
 
     	this.config = sysconf.loadConfig().fetcher;
     	this.config.url = system.args[1];
-
-		console.log("load url : " + this.config.url);
 
     	fetcher.fetch(this.config.url, this.config, function(response, page) {
     		var file = utils.getTemporaryFile(response.url);

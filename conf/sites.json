@@ -35,6 +35,7 @@
     "nextPageSelector" : "#pager > a[data-pager-link='next']",
     "startPage" : 1,
     "detailPageUrlRegex" : "http://tuan.qunar.com/deal/(.+)",
+    "comment" : "add more detail page url patterns",
     "maxIndexPageCount" : 3,
     "maxDetailPageCount" : 300,
     "detailPageCaptureAreas" : [
@@ -68,5 +69,29 @@
     "detailPageCaptureAreas" : [
       {"name" : "Price", "selector" : "#jd-price .p-price"}
     ]
+  },
+  {
+    "name" : "academic.microsoft.com",
+    "seed" : "http://academic.microsoft.com",
+    "indexPageMainAreaSelector" : ".news-content",
+    "paginatorSelector" : "#noNextPage",
+    "nextPageSelector" : "#noNextPage",
+    "startPage" : 1,
+    "detailPageUrlRegex" : ".+",
+    "maxIndexPageCount" : 1,
+    "maxDetailPageCount" : 100,
+    "detailPageCaptureAreas" : null
+  },
+  {
+    "name" : "twitter.com",
+    "seed" : "http://twitter.com/",
+    "indexPageMainAreaSelector" : "body",
+    "paginatorSelector" : "#noNextPage",
+    "nextPageSelector" : "#noNextPage",
+    "startPage" : 1,
+    "detailPageUrlRegex" : ".+",
+    "maxIndexPageCount" : 1,
+    "maxDetailPageCount" : 100,
+    "detailPageCaptureAreas" : null
   }
 ]

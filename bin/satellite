@@ -87,7 +87,7 @@ function start_all() {
     while [ 1 ]
     do
         echo "start all..."
-        run coordinator.js start > /dev/null &
+        run coordinator.js start > /dev/null 2>&1 &
         echo "waiting..."
         sleep `expr $SATELLITE_RESTART_PERIOD \* 60`
         echo "stop all..."

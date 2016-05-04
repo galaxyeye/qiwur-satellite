@@ -1,6 +1,10 @@
+/**
+ * @deprecated, use casper.log instead
+ * */
 var fs = require('fs');
 var system = require('system');
-var sateutils = require('./lib/utils');
+var sateutils = require('./utils');
+var config = require('./config');
 
 var FlushCachePeriod = 1000;
 var DefaultLevel = 'info';
@@ -86,7 +90,7 @@ var logger = {
 
 	log: function(msg, level) {
 		if (!this.config) {
-	        this.config = require('./config').loadConfig().logger;
+	        this.config = config.loadConfig().logger;
 	        this.logLevel = this.config.logLevel;
 		}
 

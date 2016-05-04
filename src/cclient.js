@@ -1,14 +1,13 @@
 var sateutils = require('./lib/utils');
 var md5 = require('./lib/md5');
-var logger = require('./logger');
-var config = require('./config');
+var logger = require('./lib/logger');
+var config = require('./lib/config');
 
 var fs = require("fs");
 var system = require("system");
-
 var utils = require('utils');
 
-var Defaultconf = {
+var DefaultConf = {
     "userAgent": "chrome",
     "userAgentAliases": {
         "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
@@ -25,7 +24,9 @@ var Defaultconf = {
     "extractJustInTime" : false
 };
 
-conf = config.mergeConfig(Defaultconf, config.loadConfig().fetcher);
+conf = config.mergeConfig(DefaultConf, config.loadConfig().fetcher);
+
+var status = 'OK';
 
 var casper = require('casper').create(
 	{
@@ -37,13 +38,25 @@ var casper = require('casper').create(
 		},
 		viewportSize : { width: conf.viewportWidth, height: conf.viewportHeight },
 		logLevel : "debug",
-		verbose : true
+		verbose : true,
+		stepTimeout : 5000,
+		timeout : 5000,
+		onTimeout : function(timeout) {
+			status = 'timeout';
+			this.echo("timeout " + timeout);
+		},
+		onStepTimeout : function(timeout, stepNum) {
+			this.echo("timeout " + timeout + ", stepNum " + stepNum);
+		},
+		onWaitTimeout : function(timeout) {
+			this.echo("wait timeout " + timeout);
+		}
 	});
 
 var sites = config.loadConfig("conf/sites.json");
 
 if (system.args.length < 2) {
-	console.log("usage : phantomjs [options] cclient.js <site-name>");
+	console.log("usage : satellite [options] cclient.js <site-name>");
 
 	console.log("site name is one of the following : " + JSON.stringify(listSites(sites)));
 
@@ -79,11 +92,17 @@ casper.on('resource.requested', function(requestData, networkRequest) {
 });
 
 casper.on('resource.received', function(response) {
-	// this.echo("received : " + response.url);
+	this.echo("received : " + response.url);
 
+	// check response status
+	
 	if (response.url.indexOf("extract") !== -1) {
 		// utils.dump(response);
 	}
+});
+
+casper.on('resource.error', function(resourceError) {
+	this.echo("resource.error : " + resourceError.errorString);
 });
 
 casper.on("http.status.404", function(resource) {
@@ -91,16 +110,70 @@ casper.on("http.status.404", function(resource) {
 });
 
 casper.on('url.changed', function(targetUrl) {
-	// console.log('New URL: ' + targetUrl);
+	this.echo('New URL: ' + targetUrl);
+});
+
+casper.on('complete.error', function(err) {
+	this.echo("Complete callback has failed: " + err);
+});
+
+casper.on('capture.saved', function(targetFile) {
+    this.echo("Capture saved : " + targetFile);
+});
+
+casper.on('click', function(selector) {
+    this.echo("Element clicked, selector : " + selector);
+});
+
+casper.on('die', function(message, status) {
+    this.die("Die : " + message + ", status : " + status);
+});
+
+casper.on('error', function(message, backtrace) {
+    this.echo("Error : " + message + ", backtrace : " + backtrace);
+});
+
+casper.on('exit', function(status) {
+    this.echo("Exit : " + status);
+});
+
+casper.on('fill', function(selector, vals, submit) {
+    this.echo("Form is filled : " + selector + ", " + vals + ", " + submit);
+});
+
+casper.on('load.started', function() {
+    this.echo("Load started");
+});
+
+casper.on('load.failed', function() {
+    this.echo("load.failed");
+});
+
+casper.on('load.finished', function() {
+    this.echo("load.finished");
+});
+
+casper.on('step.timeout', function() {
+    this.echo("step.timeout");
+});
+
+casper.on('timeout', function() {
+    this.echo("timeout");
 });
 
 /*******************************************************************************
  * start main logic
  ******************************************************************************/
 casper.start(site.seed).then(function() {
+	if (status == 'timeout') {
+		terminate.call(this);
+	}
+
 	this.scrollToBottom();
 }).then(function() {
-	this.waitForSelector(site.paginatorSelector, processIndexPages, terminate);
+	processSeedPage.call(this);
+}).then(function() {
+	this.waitForSelector(site.paginatorSelector, processIndexPages, noSuchSelectorHandler);
 });
 
 casper.run(function() {
@@ -135,6 +208,10 @@ function getDetailPageLocalFileName(siteName, url) {
 /*******************************************************************************
  * casper functions, casper object must be passed in
  ******************************************************************************/
+var noSuchSelectorHandler = function() {
+	this.echo("No such selector available in this page.").exit();
+};
+
 var terminate = function() {
 	this.echo("That's all, folks.").exit();
 };
@@ -142,6 +219,10 @@ var terminate = function() {
 var ignore = function() {
 	this.echo("Ignore url " + this.getCurrentUrl());
 };
+
+var processSeedPage = function() {
+	processIndexPages.call(this);
+}
 
 var processIndexPages = function() {
 //	var file = "/tmp/satellite/index-" + indexPageCounter + ".png";
@@ -198,10 +279,10 @@ var collectDetailPageLinks = function() {
 };
 
 var processDetailPages = function() {
-//	 this.echo(detailPageCounter + ", " + detailPageLinks.length);
-//	 for (var i = 0; i < detailPageLinks.length; ++i) {
-//		 this.echo('Detail page : ' + detailPageLinks[i]);
-//	 }
+	 this.echo(detailPageCounter + ", " + detailPageLinks.length);
+	 for (var i = 0; i < detailPageLinks.length; ++i) {
+		 this.echo('Detail page : ' + detailPageLinks[i]);
+	 }
 
 	// don't go too far down the rabbit hole
 	if (detailPageCounter > site.maxDetailPageCount
@@ -224,9 +305,9 @@ var processDetailPages = function() {
 var processDetailPage = function(url) {
 	// open detail page
 	this.thenOpen(url, function() {
-//		this.echo('Detail page title: ' + this.getTitle());
-//		var file = "/tmp/satellite/detail-" + detailPageCounter + ".png";
-//		this.capture(file);
+		this.echo('Detail page title: ' + this.getTitle());
+		var file = "/tmp/satellite/detail-" + detailPageCounter + ".png";
+		this.capture(file);
 	});
 
 	this.then(function() {
@@ -315,6 +396,10 @@ var saveDetailPage = function() {
 }
 
 var captureAreas = function() {
+	if (!site.detailPageCaptureAreas) {
+		return;
+	}
+
 	for (var i = 0; i < site.detailPageCaptureAreas.length; ++i) {
 		var captureArea = site.detailPageCaptureAreas[i];
 		if (this.exists(captureArea.selector)) {

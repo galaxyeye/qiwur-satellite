@@ -40,7 +40,8 @@ function __qiwur__searchLinks(mainAreaSelector, urlRegex) {
 	var filter = Array.prototype.filter;
 	var map = Array.prototype.map;
 
-	// __utils__.echo(mainAreaSelector + " a");
+	__utils__.echo('------------');
+	__utils__.echo(mainAreaSelector + " a");
 
 	var links = document.querySelectorAll(mainAreaSelector + " a");
 	return map.call(filter.call(links, function(link) {

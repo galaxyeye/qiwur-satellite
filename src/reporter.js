@@ -1,5 +1,5 @@
 var utils = require('./lib/utils');
-var logger = require('./logger');
+var logger = require('./lib/logger');
 
 var reported = false;
 
@@ -9,7 +9,7 @@ var reported = false;
 var reporter = {
 
     run: function () {
-        var config = require('./config').loadConfig();
+        var config = require('./lib/config').loadConfig();
 
         if (!config.report) {
         	logger.info('report disabled');

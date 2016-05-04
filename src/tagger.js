@@ -2,7 +2,7 @@ var system = require("system");
 var server = require('webserver').create();
 var fs = require("fs");
 var utils = require('./lib/utils');
-var logger = require('./logger');
+var logger = require('./lib/logger');
 
 var PHANTOMJS = "bin" + fs.separator + "phantomjs";
 

@@ -3,13 +3,14 @@ var config = {
     // config
     /**********************************************************/
 	loadConfig : function (configFile) {
-		
+
 		var fs = require('fs');
 
 	    if (!fs.exists(configFile)) {
-	       configFile = "conf/config.json";
+	        configFile = "conf/config.json";
 	    }
 
+	    // fs uses relative path based on fs.workingDirectory
 	    var result = JSON.parse(fs.read(configFile));
 
 	    return result;
