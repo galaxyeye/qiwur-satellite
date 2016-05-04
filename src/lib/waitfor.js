@@ -1,3 +1,6 @@
+/**
+ * @deprecated, use casper.waitfor instead
+ * */
 var logger = require('./logger');
 var DefaultTimerInterval = 250;
 

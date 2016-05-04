@@ -1,7 +1,7 @@
 var fs = require("fs");
 var utils = require('./lib/utils');
+var logger = require('./lib/logger');
 var fetcher = require('./fetcher');
-var logger = require('./logger');
 
 var DefaultUpdateTimeout = 5 * 60 * 1000; // 5 min
 var updated = false;
@@ -28,7 +28,7 @@ var updater = {
     		});
     	}
 
-        var waitfor = require('./waitfor').create(
+        var waitfor = require('./lib/waitfor').create(
         	function() {
         		return updatedResources >= resourceCount;
         	},

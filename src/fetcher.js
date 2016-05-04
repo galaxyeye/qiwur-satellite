@@ -1,13 +1,14 @@
 var fs = require("fs");
 var system = require("system");
 var utils = require('./lib/utils');
-var logger = require('./logger');
-var sysconf = require('./config');
+var logger = require('./lib/logger');
+var sysconf = require('./lib/config');
 
 var DefaultConfig = {
-    "userAgent": "chrome",
+    "userAgent": "firefox",
     "userAgentAliases": {
-        "chrome": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11"
+        "chrome" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.12 Safari/535.11",
+        "firefox" : "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0"
     },
     "fetchTimeout" : 30 * 1000,
     "scrollCount" : 10,

@@ -2,9 +2,9 @@ var process = require("child_process");
 var system = require("system");
 var server = require('webserver').create();
 var fs = require("fs");
-var sysconf = require('./config');
+var sysconf = require('./lib/config');
 var utils = require('./lib/utils');
-var logger = require('./logger');
+var logger = require('./lib/logger');
 
 var PHANTOMJS = "bin" + fs.separator + "phantomjs";
 
@@ -72,11 +72,14 @@ var coordinator = {
             cmd = system.args[1];
         }
 
+        logger.info('=============================');
+        logger.info('coordinator command : ' + cmd);
+
         if (cmd == 'start') this.start();
         else if (cmd == 'update') this.update();
         else if (cmd == 'report') this.report();
 
-        console.log("satellite started, open http://127.0.0.1:" + config.port + " for administration");
+        logger.info("satellite started, open http://127.0.0.1:" + config.port + " for administration");
     },
 
     execute: function(cmd) {
@@ -217,67 +220,73 @@ var coordinator = {
     },
 
     start : function() {
-        if (this.status == 'started') {
+        var THIS = coordinator;
+
+        if (THIS.status == 'started') {
             return 'proxy servers is already running';
         }
 
-    	coordinator.status = 'notready';
+    	THIS.status = 'notready';
 
-        this.stopTimer();
+        THIS.stopTimer();
 
         // TODO : use file for IPC, which seems to be more stable, especially, if the coordinator crashes,
         // 
         // eg : 
-	    // var monitoredProcesses = JSON.parse(fs.read(ServerProcessesFile));
-
+        // var monitoredProcesses = JSON.parse(fs.read(ServerProcessesFile));
         // 启动代理服务器或卫星客户端
-        for (var i = 0; i < this.config.monitoredProcessCount; ++i) {
+        for (var i = 0; i < THIS.config.monitoredProcessCount; ++i) {
         	var process = null;
 
-        	if (this.config.fetchMode == 'proxy') {
-                process = this.startProxyServer(this.config.serverPortBase + i);
+                logger.info("Fetch Mode : " + THIS.config.fetchMode);
+        	if (THIS.config.fetchMode == 'proxy') {
+                  logger.info("start proxy server");
+                  process = THIS.startProxyServer(THIS.config.serverPortBase + i);
         	}
         	else {
-                process = this.startFetcherClient(i);
+                  logger.info("start fetcher client");
+                  process = THIS.startFetcherClient(i);
         	}
 
         	if (process) {
-        		this.monitoredProcesses.push(process);
+                  THIS.monitoredProcesses.push(process);
         	}
         }
 
-        var message = JSON.stringify(this.monitoredProcesses);
+        var message = JSON.stringify(THIS.monitoredProcesses);
         logger.info(message);
 
-        this.startTimer();
+        THIS.startTimer();
 
         return message;
     },
 
     startTimer : function() {
-    	if (this.timer) {
+        var THIS = coordinator;
+
+    	if (THIS.timer) {
     		return;
     	}
 
         var tick = 0;
         var restartInterval = 20;
         var reportInterval = 4; // report interval 4, 8, 16, 32, ...1024s
-        var coordinator = this;
+        var THIS = this;
         var processes = this.monitoredProcesses;
         this.timer = setInterval(function() {
             ++tick;
 
-            if (coordinator.status == 'notready' && (tick % 10 == 0)) {
-            	coordinator.status = 'started';
+            if (THIS.status == 'notready' && (tick % 10 == 0)) {
+            	THIS.status = 'started';
             }
 
-            if (coordinator.status == 'quit' && (tick % 10 == 0)) {
-            	coordinator.stopTimer();
+            if (THIS.status == 'quit' && (tick % 10 == 0)) {
+            	THIS.stopTimer();
                 phantom.exit();
             }
 
             var restartCount = 0;
-            if (coordinator.status == 'started' && tick % (restartInterval / 2) == 0) {
+            if (THIS.status == 'started' && tick % (restartInterval / 2) == 0) {
                 for (var i = 0; i < processes.length; ++i) {
                     var process = processes[i];
 
@@ -288,7 +297,7 @@ var coordinator = {
 
                     if (process.status == 'dead') {
                         logger.info("start process : " + JSON.stringify(process));
-                        processes[i] = coordinator.startProxyServer(process.port);
+                        processes[i] = THIS.startProxyServer(process.port);
                         ++restartCount;
                     }
 
@@ -300,7 +309,7 @@ var coordinator = {
             } // if
 
             if (tick % reportInterval == 0) {
-                coordinator.report();
+                THIS.report();
                 reportInterval *= 2;
                 // about 20 minites
                 if (reportInterval >= 1024) {

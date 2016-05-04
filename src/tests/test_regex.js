@@ -1,4 +1,4 @@
-var config = require('./../config');
+var config = require('../lib/config');
 var casper = require('casper').create();
 var utils = require('utils');
 
