@@ -1,4 +1,4 @@
-var sateutils = require('./lib/utils');
+var sateutils = require('./lib/sutils');
 var md5 = require('./lib/md5');
 var logger = require('./lib/logger');
 var config = require('./lib/config');
@@ -30,7 +30,7 @@ var status = 'OK';
 
 var casper = require('casper').create(
 	{
-		clientScripts : ['lib/humanize.js', 'lib/visualize.js', 'lib/clientutils.js', 'lib/jquery-1.11.2.js'],
+		clientScripts : ['lib.old/humanize.js', 'lib.old/visualize.js', 'lib.old/clientutils.js', 'lib.old/jquery-1.11.2.js'],
 		pageSettings : {
 			loadImages : true,
 			loadPlugins : false,
@@ -53,7 +53,7 @@ var casper = require('casper').create(
 		}
 	});
 
-var sites = config.loadConfig("conf/sites.json");
+var sites = config.loadConfig("config/sites.json");
 
 if (system.args.length < 2) {
 	console.log("usage : satellite [options] cclient.js <site-name>");

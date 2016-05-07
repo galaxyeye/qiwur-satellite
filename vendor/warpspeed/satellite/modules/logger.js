@@ -1,10 +1,6 @@
-/**
- * @deprecated, use casper.log instead
- * */
 var fs = require('fs');
 var system = require('system');
-var sateutils = require('./utils');
-var config = require('./config');
+var sateutils = vendor('sutils');
 
 var FlushCachePeriod = 1000;
 var DefaultLevel = 'info';
@@ -56,6 +52,9 @@ var loggerImpl = {
 	},
 };
 
+/**
+ * @deprecated, use casper.log instead
+ * */
 var logger = {
 	config : null,
 
@@ -102,9 +101,11 @@ var logger = {
 			return;
 		}
 
-		file = sateutils.logDir() + fs.separator + new Date().getDate() + fs.separator + 
-			"satellite." + level + ".log";
+		// file = sateutils.logDir() + fs.separator + new Date().getDate() + fs.separator +
+		// 	"satellite." + level + ".log";
 
+		var file = fs.absolute(fs.workingDirectory + fs.separator + "output");
+		
 		loggerImpl.write(file, msg, level);
 	},
 

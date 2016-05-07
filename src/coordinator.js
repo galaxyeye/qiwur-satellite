@@ -2,9 +2,12 @@ var process = require("child_process");
 var system = require("system");
 var server = require('webserver').create();
 var fs = require("fs");
-var sysconf = require('./lib/config');
-var utils = require('./lib/utils');
-var logger = require('./lib/logger');
+
+require(fs.absolute("bootstrap"));
+
+var utils = vendor('sutils');
+var logger = vendor('logger');
+
 
 var PHANTOMJS = "bin" + fs.separator + "phantomjs";
 
@@ -62,8 +65,8 @@ var coordinator = {
     },
 
     run: function () {
-        var config = sysconf.loadConfig().coordinator;
-        this.config = config = sysconf.mergeConfig(this.config, config);
+        var config = window.config.loadConfig().coordinator;
+        this.config = config = window.config.mergeConfig(this.config, config);
 
         this.startWebServer();
 

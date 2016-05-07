@@ -1,5 +1,8 @@
-var utils = require('./lib/utils');
-var logger = require('./lib/logger');
+var fs = require("fs");
+require(fs.absolute("bootstrap"));
+
+var utils = vendor('sutils');
+var logger = vendor('logger');
 
 var reported = false;
 
@@ -9,7 +12,7 @@ var reported = false;
 var reporter = {
 
     run: function () {
-        var config = require('./lib/config').loadConfig();
+        var config = require('././config').loadConfig();
 
         if (!config.report) {
         	logger.info('report disabled');

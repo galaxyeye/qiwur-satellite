@@ -1,23 +1,14 @@
 /**
  * Entity crawler module
  * */
-// var require = patchRequire(require);
-
-var config = require('./config');
-var sateutils = require('./utils');
-var md5 = require('./md5');
-var logger = require('./logger');
-
-// must be load after casper is loaded
 var require = patchRequire(require);
-
-var fs = require("fs");
-var system = require("system");
 var utils = require('utils');
+var fs = require('fs');
+var system = require("system");
 
 exports.create = function create(options) {
-    "use strict";
-    return new EntityCrawler(options);
+	"use strict";
+	return new Crawler(options);
 };
 
 /**
@@ -33,32 +24,28 @@ var DefaultConf = {
     "consolePrefix": "#",
     "viewportWidth": 1920,
     "viewportHeight": 1080,
-    "logLevel" : 'debug',
-
-    "scentServer" : "http://localhost:8181",
-    "extractSerivce" : "http://localhost:8181/scent/extract",
-    "extractJustInTime" : false
+    "logLevel" : 'debug'
 };
 
-var EntityCrawler = function EntityCrawler(options) {
-    "use strict";
+var DefaultSiteOptions = {
+	extract : {
+		justInTime : false,
+		serivce : 'http://localhost:8082'
+	}
+};
+
+var Crawler = function Crawler(options) {
+    // "use strict";
     /*jshint maxstatements:40*/
     // init & checks
-    if (!(this instanceof EntityCrawler)) {
-        return new EntityCrawler(options);
+    if (!(this instanceof Crawler)) {
+        return new Crawler(options);
     }
 
-    // factories
-    // casper.cli = phantom.casperArgs;
-    // casper.options = utils.mergeObjects(this.defaults, options);
-
-    this.config = config.mergeConfig(DefaultConf, config.loadConfig().fetcher);
-
-    // merge?
-    // this.options = options;
+    this.config = utils.mergeObjects(DefaultConf, config.loadConfig().fetcher);
 
     this.casper = require("casper").create({
-    	clientScripts : ['../lib/humanize.js', '../lib/visualize.js', '../lib/clientutils.js', '../lib/jquery-1.11.2.js'],
+    	clientScripts : ['../lib.old/humanize.js', '../lib.old/visualize.js', '../lib.old/clientutils.js', '../lib.old/jquery-1.11.2.js'],
 	    pageSettings : {
 		    loadPlugins : false,
 		    loadImages : false
@@ -75,63 +62,10 @@ var EntityCrawler = function EntityCrawler(options) {
     // for exclusive functions
     this.casper.crawler = this;
 
-    // TODO : load from config file
-    this.entityOptions = {
-        "name" : "tuan.ctrip.com",
-        "seed" : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
-        "indexPageMainAreaSelector" : ".pic-list",
-        "paginatorSelector" : ".page-box",
-        "nextPageSelector" : ".page-box .page-next",
-        "startPage" : 1,
-        "detailPageUrlRegex" : "http://tuan.ctrip.com/group/(.+)",
-        "maxIndexPageCount" : 3,
-        "maxDetailPageCount" : 100,
-        "detailPageCaptureAreas" : [
-          {"name" : "Price", "selector" : ".detail-info .price-set .price"}
-        ]
-    };
+    // factories
+    this.casper.cli = phantom.casperArgs;
 
-    this.options = {
-    	entity : {
-    	    name : "tuan.ctrip.com",
-    	    seed : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
-    	    page : {
-        	    index : {
-        	    	main : '.pic-list',
-        	    	paginator : {
-        	    		'selector' : '.page-box',
-        	    		'next' : '.page-box .page-next'
-        	    	},
-        	    	start : 1,
-        	    	limit : 3
-        	    },
-        	    detail : {
-        	    	regex : 'http://tuan.ctrip.com/group/(.+)',
-        	    	start : 1,
-        	    	limit : 100,
-        	    	capture : {
-        	    		name : 'Price',
-        	    		selector : '.detail-info .price-set .price'
-        	    	}
-        	    }
-    	    },
-//    	    "indexPageMainAreaSelector" : ".pic-list",
-//    	    "paginatorSelector" : ".page-box",
-//    	    "nextPageSelector" : ".page-box .page-next",
-//    	    "startPage" : 1,
-//    	    "detailPageUrlRegex" : "http://tuan.ctrip.com/group/(.+)",
-//    	    "maxIndexPageCount" : 3,
-//    	    "maxDetailPageCount" : 100,
-//    	    "detailPageCaptureAreas" : [
-//    	        {"name" : "Price", "selector" : ".detail-info .price-set .price"}
-//    	    ]
-    	},
-
-    	extract : {
-    		justInTime : false,
-    		serivce : 'http://localhost:8082'
-    	}
-    };
+    this.options = utils.mergeObjects(DefaultSiteOptions, options);
 
     this.counter = {
        	indexPages : 0,
@@ -141,88 +75,77 @@ var EntityCrawler = function EntityCrawler(options) {
     this.data = {
    		detailPageLinks : []
     };
-
-//    this.indexPageCounter = 0,
-//    this.detailPageLinks = [],
-//    this.detailPageCounter = 0,
-//    this.extractJustInTime = false
-
-    // dispatching an event when instance has been constructed
-    // this.emit('init');
 };
 
-EntityCrawler.prototype.echo = function(text, style, pad) {
-	this.casper.echo(text, style, pad);
-	return this;
-}
-
-EntityCrawler.prototype.exit = function(status) {
-	this.casper.exit(status);
-};
-
-EntityCrawler.prototype.start = function(seed) {
+Crawler.prototype.start = function() {
     "use strict";
 
-    if (!this.options.entity) {
-    	logger.error('no entity specified');
-    	this.die('no entity specified');
+    if (!this.options.entity.name) {
+    	logger.error('no entity specified, exit...');
+    	this.die('no entity specified, exit...');
     }
 
     var seed = this.options.entity.seed;
     this.casper.start(seed).then(function() {
-//    	if (status == 'timeout') {
-//    		terminate.call(this);
-//    	}
-
     	this.echo("start");
 
     	this.scrollToBottom();
     });
 
     this.casper.then(function() {
-    	// _THIS.processSeedPage();
-    	this.crawler.processPage(seed);
+    	this.crawler.processSeedPage(seed);
     });
-
-//    var entityOptions = this.options.entity;
-//    var onSelectorNotExists = this.onSelectorNotExists;
-//
-//    this.casper.then(function() {
-//    	this.waitForSelector(entityOptions.paginatorSelector, entityOptions.processIndexPages, onSelectorNotExists);
-//    });
 
     this.casper.run(function() {
     	this.exit();
     });
 
 	return this;
-};
-
-EntityCrawler.prototype.onSelectorNotExists = function() {
-	this.echo("No such selector available in this page.").exit();
-};
-
-EntityCrawler.prototype.terminate = function() {
-	this.echo("That's all, folks.").exit();
-};
-
-EntityCrawler.prototype.ignore = function() {
-	this.echo("Ignore url " + this.casper.getCurrentUrl());
-};
-
-EntityCrawler.prototype.processPage = function() {
-	this.echo("processPage");
-
-	this.processIndexPages();
 }
 
-EntityCrawler.prototype.processSeedPage = function() {
+Crawler.prototype.onSelectorNotExists = function() {
+	this.echo("No such selector available in this page.").exit();
+}
+
+Crawler.prototype.echo = function(text, style, pad) {
+	this.casper.echo(text, style, pad);
+	return this;
+}
+
+Crawler.prototype.exit = function(status) {
+	this.casper.exit(status);
+}
+
+Crawler.prototype.terminate = function(message) {
+	message = message || "That's all";
+	this.casper.then(function() {
+		this.echo(message).exit();		
+	});
+}
+
+Crawler.prototype.ignore = function() {
+	this.echo("Ignore url " + this.casper.getCurrentUrl());
+}
+
+Crawler.prototype.optionChecker = function() {
+	var checker = require('./object_checker');
+	checker.require(this.options.entity.page.index.limit);
+	checker.require(this.options.entity.page.index.next);
+}
+
+/**
+ * Process seed page
+ * */
+Crawler.prototype.processSeedPage = function() {
 	this.echo("processSeedPage");
 
-	this.processIndexPages();
+	this.processIndexPage();
 }
 
-EntityCrawler.prototype.processIndexPages = function() {
+/**
+ * Process index page
+ * */
+Crawler.prototype.processIndexPage = function() {
 //	var file = "/tmp/satellite/index-" + indexPageCounter + ".png";
 
 //	this.captureSelector(file, entityOptions.indexPageMainAreaSelector);
@@ -233,21 +156,15 @@ EntityCrawler.prototype.processIndexPages = function() {
 	var $ = this.crawler || this;
 
 	var limit = $.options.entity.page.index.limit;
+	var next = $.options.entity.page.index.paginator.next;
+
 	if ($.counter.indexPages >= limit) {
 		$.collectDetailPageLinks();
 	}
 
 	// don't go too far down the rabbit hole
-	var limit = $.options.entity.page.index.limit;
-	var next = $.options.entity.page.index.paginator.next;
-
-//	this.echo('processIndexPages　' + limit + ' ' + next);
-//	utils.dump($.counter);
-
 	if ($.counter.indexPages >= limit || !$.casper.exists(next)) {
 		$.casper.then(function() {
-			this.echo("==========Start processing detail pages=================");
-
 			$.processDetailPages();
 		});
 
@@ -256,84 +173,91 @@ EntityCrawler.prototype.processIndexPages = function() {
 
 	$.counter.indexPages++;
 	$.echo("requesting next page: " + $.counter.indexPages);
+
+	// go to the next index page
 	var url = $.casper.getCurrentUrl();
 	$.casper.thenClick(next).then(function() {
 		this.waitFor(function() {
 			return url !== this.getCurrentUrl();
 		}, // testFn
-		$.processIndexPages, // then
+		$.processIndexPage, // then
 		$.processDetailPages, // onTimeout
 		10 * 1000); // timeout
 	});
-};
+}
 
-EntityCrawler.prototype.collectDetailPageLinks = function() {
-	this.echo('====collectDetailPageLinks　' + this.counter.indexPages + ' ' + this.options.entity.startPage);
-
-	if (this.counter.indexPages < this.options.entity.startPage) {
-		return;
-	}
-
+/**
+ * Collect detail page links
+ * */
+Crawler.prototype.collectDetailPageLinks = function() {
 	var links = this.casper.evaluate(function(selector, regex) {
 		return __qiwur__searchLinks(selector, regex);
 	}, this.options.entity.page.index.main, this.options.entity.page.detail.regex);
 
 	if (!links || links.length == 0) {
 		logger.warn("No any detail links");
-	}
-
-	if (links) {
-		this.data.detailPageLinks = this.data.detailPageLinks.concat(links);
-		this.echo(links.length + ' detail page links');
-
-//		for (var i = 0; i < links.length; ++i) {
-//			this.echo('Found detail page links : ' + links[i]);
-//		}
-	}
-	else {
-		this.echo('***NO*** detail page links');
-	}
-};
-
-EntityCrawler.prototype.processDetailPages = function() {
-	var $ = this.crawler || this;
-
-	$.echo($.counter.detailPages + ", " + $.data.detailPageLinks.length);
-	for (var i = 0; i < $.data.detailPageLinks.length; ++i) {
-		$.echo('Detail page : ' + $.data.detailPageLinks[i]);
-	}
-
-	// don't go too far down the rabbit hole
-	if ($.counter.detailPages > $.options.entity.page.detail.limit
-			|| $.counter.detailPages > $.data.detailPageLinks.length) {
-		$.casper.then(function() {
-			this.terminate();
-		});
-
 		return;
 	}
 
-	$.counter.detailPages++;
-	// var url = _.detailPageLinks.pop();
-	var url = $.data.detailPageLinks[$.counter.detailPages - 1];
-	$.echo($.counter.detailPages + 'th detail page : ' + url);
+	this.data.detailPageLinks = this.data.detailPageLinks.concat(links);
+	this.echo('Extracted ' + links.length + ' detail page links');
+}
 
-	if (url) {
-		$.processDetailPage(url);
-	}
-	else {
-		$.echo('invalid url');			
-	}
-};
+/**
+ * Report current status
+ * */
+Crawler.prototype.report = function() {
+	this.echo(this.counter.detailPages + ", " + this.data.detailPageLinks.length);
+	utils.dump(this.data.detailPageLinks);
+}
 
-EntityCrawler.prototype.processDetailPage = function(url) {
+/**
+ * Process all collected detail page links.
+ * 
+ * Browse every page and then 
+ * 1) save them in local disk
+ * 2) upload them onto a server
+ * 3) insert into a database
+ * 
+ * */
+Crawler.prototype.processDetailPages = function() {
+	// this can be crawler or casper
+	// TODO : avoid the confusion
+	var $ = this.crawler || this;
+
+	this.report();
+
+	// don't go too far down the rabbit hole
+	var limit = $.options.entity.page.detail.limit;
+	if ($.counter.detailPages > limit) {
+		return this.terminate("All done. " + $.counter.detailPages + " detail pages are fetched.");
+	}
+
+	// all detail pages are OK
+	if ($.counter.detailPages > $.data.detailPageLinks.length) {
+		return this.terminate("All done. " + $.data.detailPageLinks.length + " detail pages in fetch list are fetched.");
+	}
+
+	var links = $.data.detailPageLinks;
+	for (var i = 0; i < links.length; ++i) {
+		$.echo($.counter.detailPages + 'th detail page : ' + links[i]);
+		$.processDetailPage(links[i]);
+	}
+}
+
+/**
+ * Process detail page
+ * */
+Crawler.prototype.processDetailPage = function(url) {
 	var $ = this.crawler || this;
 	var casper = $.casper;
+
+	$.counter.detailPages++;
 
 	// open detail page
 	casper.thenOpen(url, function() {
 		this.echo('Detail page title: ' + this.getTitle());
-		var file = "/tmp/satellite/detail-" + $.detailPageCounter + ".png";
+		var file = "/tmp/satellite/detail-" + $.counter.detailPages + ".png";
 		this.capture(file);
 	});
 
@@ -390,13 +314,16 @@ EntityCrawler.prototype.processDetailPage = function(url) {
 		// autoExtractDetailPage.call(this);
 	});
 
-	casper.then(function() {
-		this.crawler.processDetailPages();
-	});
-};
+//	casper.then(function() {
+//		this.crawler.processDetailPages();
+//	});
+}
 
-EntityCrawler.prototype.saveIndexPage = function() {
-	var file = this.config.cacheDirectory + "/web/detail/" + this.options.entity.name + "/"
+/**
+ * Save index page
+ * */
+Crawler.prototype.saveIndexPage = function() {
+	var file = this.config.cacheDirectory + "/web/index/" + this.options.entity.name + "/"
 		+ "index-" + this.counter.indexPages + ".html";
 
 	var content = this.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
@@ -406,7 +333,10 @@ EntityCrawler.prototype.saveIndexPage = function() {
 	this.echo("page saved in : " + file);
 }
 
-EntityCrawler.prototype.saveDetailPage = function() {
+/**
+ * Save detail page
+ * */
+Crawler.prototype.saveDetailPage = function() {
 	var fileName = getDetailPageLocalFileName(this.options.entity.name, this.casper.getCurrentUrl());
 	var file = this.config.cacheDirectory + "/" + fileName;
 
@@ -423,7 +353,10 @@ EntityCrawler.prototype.saveDetailPage = function() {
 	this.echo("page saved in : " + file);
 }
 
-EntityCrawler.prototype.captureAreas = function() {
+/**
+ * Capture page area, save the picture into local disk
+ * */
+Crawler.prototype.captureAreas = function() {
 	var captureOptions = this.options.entity.page.detail.capture;
 
 	if (!captureOptions) {
@@ -456,7 +389,10 @@ EntityCrawler.prototype.captureAreas = function() {
 	} // for
 }
 
-EntityCrawler.prototype.autoExtractDetailPage = function() {
+/**
+ * Extract detail page using auto extraction API
+ * */
+Crawler.prototype.autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
 	this.casper.debugPage();
 
@@ -481,10 +417,10 @@ function findSiteConfig(entities, name) {
 	}
 }
 
-function getDetailPageLocalFileName(entityName, url) {
+function getDetailPageLocalFileName(name, url) {
 	var fileNumber = md5.hex_md5(url);
 
-	var fileName = "web/detail/" + entityName + "/" + "detail-" + fileNumber + ".html";
+	var fileName = "web/detail/" + name + "/" + "detail-" + fileNumber + ".html";
 
 	return fileName;
 }

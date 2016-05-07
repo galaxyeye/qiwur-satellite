@@ -1,0 +1,51 @@
+[
+		{
+			"name" : "tuan.ctrip.com",
+			"seed" : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
+
+			"page.index.main" : ".pic-list",
+			"page.index.paginator.selector" : ".page-box",
+			"page.index.paginator.next" : ".page-box .page-next",
+			"page.index.start" : 1,
+			"page.index.limit" : 3,
+
+			"page.detail.regex" : "http://tuan.ctrip.com/group/(.+)",
+			"page.detail.start" : 0,
+			"page.detail.limit" : 300,
+
+			"page.detail.capture.name.0" : "Price",
+			"page.detail.capture.selector.0" : ".detail-info .price-set .price",
+			"page.detail.capture.name.1" : "Price",
+			"page.detail.capture.selector.1" : ".detail-info .price-set .price"
+		},
+		{
+			"name" : "hotel.tuan.qunar.com",
+			"seed" : "http://tuan.qunar.com/#PAGE/L2JzbmVzL3R1YW5XZWIvbGlzdA__/category/aG90ZWw_/cityCode/YmVpamluZ19jaXR5/city/5YyX5Lqs/currentPage/NQ__/globalCity/YmVpamluZ19jaXR5/type/57uP5rWO5Z6L",
+
+			"page.index.main" : "#result",
+			"page.index.paginator.selector" : "#pager",
+			"page.index.paginator.next" : "#pager > a[data-pager-link='next']",
+			"page.index.start" : 1,
+			"page.index.limit" : 3,
+
+			"page.detail.regex" : "http://tuan.qunar.com/deal/(.+)",
+			"page.detail.start" : 0,
+			"page.detail.limit" : 300,
+
+			"page.detail.capture.name" : "Price",
+			"page.detail.capture.selector" : ".price.cms_price"
+		}, {
+			"name" : "academic.microsoft.com",
+			"seed" : "http://academic.microsoft.com",
+
+			"page.index.main" : ".news-content",
+			"page.index.paginator.selector" : "#noNextPage",
+			"page.index.paginator.next" : "#noNextPage",
+			"page.index.start" : 1,
+			"page.index.limit" : 3,
+
+			"page.detail.regex" : ".+",
+			"page.detail.start" : 1,
+			"page.detail.limit" : 300
+		} 
+]

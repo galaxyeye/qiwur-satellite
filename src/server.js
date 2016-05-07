@@ -3,8 +3,8 @@ var server = require('webserver').create();
 var system = require('system');
 var fs = require('fs');
 
-var utils = require('./lib/utils');
-var logger = require('./lib/logger');
+var utils = require('././utils');
+var logger = require('././logger');
 
 var quit = false;
 
@@ -17,7 +17,7 @@ var httpServer = {
     servedPages : 0,
 
     run : function() {
-        var config = this.config = require('./lib/config').loadConfig().server;
+        var config = this.config = require('././config').loadConfig().server;
         if (system.args.length === 2) {
         	this.config.port = system.args[1];
         }

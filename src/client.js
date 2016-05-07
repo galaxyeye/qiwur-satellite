@@ -1,8 +1,11 @@
 var fs = require("fs");
+require(fs.absolute("bootstrap"));
+
+var utils = vendor('sutils');
+var logger = vendor('logger');
+
+var fs = require("fs");
 var system = require("system");
-var sysconfig = require('./lib/config');
-var utils = require('./lib/utils');
-var logger = require('./lib/logger');
 var fetcher = require('./fetcher').create();
 
 var httpClient = {
@@ -14,7 +17,7 @@ var httpClient = {
     		phantom.exit(0);
     	}
 
-    	this.config = sysconf.loadConfig().fetcher;
+    	this.config = window.config.loadConfig().fetcher;
     	this.config.url = system.args[1];
 
     	fetcher.fetch(this.config.url, this.config, function(response, page) {

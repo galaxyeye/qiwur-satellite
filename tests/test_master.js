@@ -1,7 +1,8 @@
-var utils = require('./utils');
+require(fs.absolute("bootstrap"));
+
 var fs = require("fs");
-var logger = require('./logger');
 var page = require('webpage').create();
+var logger = vendor('logger');
 
 var data = "<html>" +
 		"<head><meta http-equiv='Content-Type' content='text/html; charset=utf-8' /></head>" +
@@ -10,7 +11,7 @@ var data = "<html>" +
 		"</body></html>";
 
 // var file = utils.getTemporaryFile("http://list.jd.com/list.html?cat=670%2C671%2C672&page=11&JL=6_0_0");
-data = fs.read("/home/vincent/workspace/satellite/output/1.html");
+data = fs.read("./output/1.html");
 
 var pageSettings = {
 	loadImages : false,
@@ -58,7 +59,7 @@ page.open("http://master:8182/proxy/echo", openOptions, function(status) {
 	}
 
     // for debug
-    // fs.write("output/20/1.html", page.content, 'w');
+    // fs.write("/tmp/satellite/output/20/1.html", page.content, 'w');
 	console.log(page.content);
 
     phantom.exit(0);

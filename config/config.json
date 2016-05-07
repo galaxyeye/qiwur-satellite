@@ -1,7 +1,7 @@
 {
     "casperjs" : {
         "autoLoad" : true,
-        "home" : "/home/vincent/workspace/casperjs"
+        "home" : "vendor/casperjs/casperjs"
     },
     "server" : {
         "port": "19080p",

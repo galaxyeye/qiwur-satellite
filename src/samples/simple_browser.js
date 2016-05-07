@@ -1,8 +1,9 @@
 var fs = require("fs");
-var system = require("system");
-var utils = require('./utils');
-var logger = require('./logger');
-var config = require('./config');
+var utils = require('utils');
+var system = require('system');
+
+require(fs.absolute("bootstrap"));
+var logger = vendor('logger');
 
 var DefaultConfig = {
     "userAgent": "chrome",
@@ -18,7 +19,7 @@ var DefaultConfig = {
 };
 
 if (system.args.length < 2) {
-	console.log("usage : phantomjs [options] client.js url");
+	console.log("usage : phantomjs [options] simple_browser.js url");
 	phantom.exit(0);
 }
 
@@ -26,7 +27,7 @@ config = config.mergeConfig(DefaultConfig, config.loadConfig().fetcher);
 config.url = system.args[1];
 
 var casper = require("casper").create({
-   clientScripts : ["humanize.js", "visualize.js"],
+   clientScripts : ["../lib.old/humanize.js", "../lib.old/visualize.js"],
    pageSettings : {
 	   loadPlugins : false,
 	   loadImages : false

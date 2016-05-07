@@ -1,5 +1,5 @@
-var sateutils = require('./lib/utils');
-var md5 = require('./lib/md5');
+var sateutils = require('./lib.old/utils');
+var md5 = require('./lib.old/md5');
 var logger = require('./logger');
 var config = require('./config');
 
@@ -29,7 +29,7 @@ conf = config.mergeConfig(Defaultconf, config.loadConfig().fetcher);
 
 var casper = require('casper').create(
 	{
-		clientScripts : ['lib/humanize.js', 'lib/visualize.js', 'lib/clientutils.js', 'lib/jquery-1.11.2.js'],
+		clientScripts : ['lib.old/humanize.js', 'lib.old/visualize.js', 'lib.old/clientutils.js', 'lib.old/jquery-1.11.2.js'],
 		pageSettings : {
 			loadImages : true,
 			loadPlugins : false,
@@ -40,7 +40,7 @@ var casper = require('casper').create(
 		verbose : true
 	});
 
-var sites = config.loadConfig("conf/sites.json");
+var sites = config.loadConfig("config/sites.json");
 
 if (system.args.length < 2) {
 	console.log("usage : phantomjs [options] cclient.js <site-name>");

@@ -1,13 +1,13 @@
-var sateutils = require('./lib/utils');
-var md5 = require('./lib/md5');
-var base64 = require('./lib/base64');
-var logger = require('./lib/logger');
-var config = require('./lib/config');
-
 var fs = require("fs");
 var system = require("system");
-
 var utils = require('utils');
+
+require(fs.absolute("bootstrap"));
+
+var sateutils = vendor('utils');
+var md5 = vendor('md5');
+var base64 = vendor('base64');
+var logger = vendor('logger');
 
 var Defaultconf = {
     "userAgent": "chrome",
@@ -31,7 +31,7 @@ conf.fetcher = config.mergeConfig(Defaultconf, conf.fetcher);
 
 var casper = require('casper').create(
 	{
-		clientScripts : ['lib/humanize.js', 'lib/visualize.js', 'lib/clientutils.js', 'lib/jquery-1.11.2.js'],
+		clientScripts : ['lib.old/humanize.js', 'lib.old/visualize.js', 'lib.old/clientutils.js', 'lib.old/jquery-1.11.2.js'],
 		pageSettings : {
 			loadImages : true,
 			loadPlugins : false,
@@ -96,11 +96,11 @@ casper.start(url).then(function() {
 });
 
 casper.thenBypassUnless(function() {
-	// return conf.extractJustInTime;
+	// return config.extractJustInTime;
 	return true;
 }, 1);
 
-// conf.extractService.url = "http://localhost:8181/scent/echo";
+// config.extractService.url = "http://localhost:8181/scent/echo";
 
 casper.then(function() {
 	extractDetailPage.call(this, conf.extractService.url);

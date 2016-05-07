@@ -1,9 +1,12 @@
 var system = require("system");
 var fs = require("fs");
-var sateutils = require('./lib/utils');
-var md5 = require("./lib/md5");
-var logger = require('./lib/logger');
-var config = require('./lib/config').loadConfig().fetchController;
+
+require(fs.absolute("bootstrap"));
+
+var sateutils = vendor('utils');
+var md5 = vendor("md5");
+var logger = vendor('logger');
+var config = window.config.loadConfig().fetchController;
 
 var loginUrl = config.nutchServer + "/service/login";
 var fetcherUpdateUrl = config.nutchServer + "/service?type=FetcherServer";

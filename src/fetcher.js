@@ -1,8 +1,9 @@
 var fs = require("fs");
 var system = require("system");
-var utils = require('./lib/utils');
-var logger = require('./lib/logger');
-var sysconf = require('./lib/config');
+
+require(fs.absolute("bootstrap"));
+var utils = vendor('sutils');
+var logger = vendor('logger');
 
 var DefaultConfig = {
     "userAgent": "firefox",
@@ -38,7 +39,7 @@ function Fetcher() {
 
 Fetcher.prototype.fetch = function(url, config, onContentComplete) {
     if (config) {
-        this.config = sysconf.mergeConfig(this.config, config);
+        this.config = window.config.mergeConfig(this.config, config);
     }
     this.config.url = url;
 
@@ -214,9 +215,9 @@ Fetcher.prototype.onLoadFinished = function (page, config, status) {
 
     this.startScrollTimer();
 
-    page.injectJs('lib/humanize.js');
-    page.injectJs('lib/visualize.js');
-    page.injectJs('lib/clientutils.js');
+    page.injectJs('lib.old/humanize.js');
+    page.injectJs('lib.old/visualize.js');
+    page.injectJs('lib.old/clientutils.js');
     page.evaluate(function() {
     	__qiwur__visualizeHumanize();
     });

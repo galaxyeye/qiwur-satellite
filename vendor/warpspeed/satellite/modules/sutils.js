@@ -1,6 +1,5 @@
 var fs = require("fs");
 var system = require("system");
-
 var md5 = require("./md5");
 
 var Salt = null;
@@ -14,7 +13,7 @@ if (Salt == null) {
 	Salt = md5.hex_md5(Salt);
 }
 
-var functions = {
+var utils_functions = {
     /**********************************************************/
     // directories
     /**********************************************************/
@@ -330,10 +329,9 @@ var functions = {
 	        str += chr;
 	    }
 	    return str;
-	},
-
+	}
 };
 
-for (var f in functions) {
-	exports[f] = functions[f];
+for (var f in utils_functions) {
+	exports[f] = utils_functions[f];
 }

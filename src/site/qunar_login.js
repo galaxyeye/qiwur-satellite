@@ -2,7 +2,7 @@ var system = require('system');
 var process = require('child_process');
 var spawn = process.spawn;
 var config = require('./../config');
-var sateutils = require('./../lib/utils');
+var sateutils = require('./.././utils');
 
 var Defaultconf = {
     "userAgent": "chrome",
@@ -25,8 +25,8 @@ conf = config.mergeConfig(Defaultconf, config.loadConfig().fetcher);
 
 var casper = require('casper').create(
 	{
-		clientScripts : ['../lib/humanize.js', '../lib/visualize.js',
-		                 '../lib/clientutils.js', '../lib/jquery-1.11.2.js'],
+		clientScripts : ['../lib.old/humanize.js', '../lib.old/visualize.js',
+		                 '../lib.old/clientutils.js', '../lib.old/jquery-1.11.2.js'],
 		pageSettings : {
 			loadImages : true,
 			loadPlugins : false,
