@@ -2,8 +2,8 @@ var fs = require("fs");
 var utils = require('utils');
 var system = require('system');
 
-require(fs.absolute("bootstrap"));
 var logger = vendor('logger');
+var sutils = vendor('sutils');
 
 var DefaultConfig = {
     "userAgent": "chrome",
@@ -18,16 +18,17 @@ var DefaultConfig = {
     "logLevel" : 'debug'
 };
 
-if (system.args.length < 2) {
-	console.log("usage : phantomjs [options] simple_browser.js url");
+var args = phantom.satelliteArgs;
+if (args.length < 1) {
+	console.log("usage : satellite [options] simple_browser.js url");
 	phantom.exit(0);
 }
 
 config = config.mergeConfig(DefaultConfig, config.loadConfig().fetcher);
-config.url = system.args[1];
+var url = config.url = args[0];
 
 var casper = require("casper").create({
-   clientScripts : ["../lib.old/humanize.js", "../lib.old/visualize.js"],
+   clientScripts : ["./src/lib/client/humanize.js", "./src/lib/client/visualize.js"],
    pageSettings : {
 	   loadPlugins : false,
 	   loadImages : false
@@ -51,8 +52,8 @@ casper.on('resource.requested', function(requestData, request) {
 	++pageInfo.ajaxRequests;
 });
 
-casper.on('resource.received', function(requestData, request) {
-	// this.echo(requestData.url);
+casper.on('resource.received', function(response) {
+	// this.echo(response.url);
 	++pageInfo.ajaxResponses;
 });
 
@@ -62,28 +63,30 @@ casper.start(config.url, function() {
 });
 
 // wait for a second
-casper.wait(5000, function() {
-	this.evaluate(function() {
-    	document.body.setAttribute("data-url", document.URL);
-
-    	var ele = document.createElement("input");
-    	ele.setAttribute("type", "hidden");
-    	ele.setAttribute("id", "QiwurScrapingMetaInformation");
-    	ele.setAttribute("data-domain", document.domain);
-    	ele.setAttribute("data-url", document.URL);
-    	ele.setAttribute("data-base-uri", document.baseURI);
-    	document.body.appendChild(ele);
-
-    	__qiwur__visualize(document);
-    	__qiwur__humanize(document);
-
-    	// if any script error occurs, the flag can NOT be seen
-    	document.body.setAttribute("data-evaluate-error", 0);
-	});
-});
+// casper.wait(5000, function() {
+//     __utils__.echo("start evaluate");
+//
+// 	this.evaluate(function() {
+//     	document.body.setAttribute("data-url", document.URL);
+//
+//     	var ele = document.createElement("input");
+//     	ele.setAttribute("type", "hidden");
+//     	ele.setAttribute("id", "QiwurScrapingMetaInformation");
+//     	ele.setAttribute("data-domain", document.domain);
+//     	ele.setAttribute("data-url", document.URL);
+//     	ele.setAttribute("data-base-uri", document.baseURI);
+//     	document.body.appendChild(ele);
+//
+//     	__qiwur__visualize(document);
+//     	__qiwur__humanize(document);
+//
+//     	// if any script error occurs, the flag can NOT be seen
+//     	document.body.setAttribute("data-evaluate-error", 0);
+// 	});
+// });
 
 casper.then(function () {
-	var file = utils.getTemporaryFile(config.url);
+	var file = sutils.getTemporaryFile(config.url);
 	var content = casper.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
 	fs.write(file, content, 'w');
 

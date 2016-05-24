@@ -1,4 +1,3 @@
-require(fs.absolute("bootstrap"));
 var md5 = vendor('md5');
 
 casper.test.begin('test merged md5', 1, function suite(test) {

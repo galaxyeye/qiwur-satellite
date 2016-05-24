@@ -30,7 +30,7 @@ var reporter = {
                 logger.error('report failed');
             }
             else {
-                logger.info('satellite status reported');
+                logger.info('monitor status reported');
                 // console.log(page.content);
                 // logger.info('response : ' + page.content);
             }

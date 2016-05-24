@@ -130,7 +130,7 @@ var processDetailPage = function(url) {
 	// open detail page
 	this.thenOpen(url, function() {
 //		this.echo('Detail page title: ' + this.getTitle());
-//		var file = "/tmp/satellite/detail-" + detailPageCounter + ".png";
+//		var file = "/tmp/monitor/detail-" + detailPageCounter + ".png";
 //		this.capture(file);
 	});
 
@@ -235,6 +235,6 @@ var autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
 	this.debugPage();
 
-	// var file = "/tmp/satellite/extract-" + detailPageCounter + ".png";
+	// var file = "/tmp/monitor/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
 }

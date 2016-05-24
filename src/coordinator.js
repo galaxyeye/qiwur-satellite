@@ -82,7 +82,7 @@ var coordinator = {
         else if (cmd == 'update') this.update();
         else if (cmd == 'report') this.report();
 
-        logger.info("satellite started, open http://127.0.0.1:" + config.port + " for administration");
+        logger.info("monitor started, open http://127.0.0.1:" + config.port + " for administration");
     },
 
     execute: function(cmd) {
@@ -168,7 +168,7 @@ var coordinator = {
      * @param port a dummy number to indicate the process
      * */
     startFetcherClient: function(clientId) {
-        var child = process.spawn(PHANTOMJS, ["--load-images=false", "--ssl-protocol=any", "src/satellite.js"]);
+        var child = process.spawn(PHANTOMJS, ["--load-images=false", "--ssl-protocol=any", "src/monitor.js"]);
 
         var processes = this.monitoredProcesses;
         child.stderr.on("data", function (data) {

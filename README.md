@@ -1,10 +1,8 @@
 Project satellite is a fetcher client based on phantomjs, which visits
 the target web site just like real human being.
 
-
 The project works together with an enhanced nutch version:
 https://github.com/galaxyeye/qiwur-nutch
-
 
 To run the project, 
 

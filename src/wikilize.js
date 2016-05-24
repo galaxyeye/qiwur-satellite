@@ -193,6 +193,6 @@ var autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
 	this.debugPage();
 
-	// var file = "/tmp/satellite/extract-" + detailPageCounter + ".png";
+	// var file = "/tmp/monitor/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
 }

@@ -1,5 +1,3 @@
-require(fs.absolute("bootstrap"));
-
 var sutils = vendor('sutils');
 var utils = require('utils');
 var fs = require('fs');

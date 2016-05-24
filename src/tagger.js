@@ -77,7 +77,7 @@ var tagger = {
 
         this.startWebServer();
 
-        console.log("satellite started, open http://127.0.0.1:" + config.port + " for administration");
+        console.log("monitor started, open http://127.0.0.1:" + config.port + " for administration");
     },
 
     execute: function(cmd) {

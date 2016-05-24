@@ -1,129 +1,150 @@
-#!/bin/bash
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# The Satellite command script
-#
+#!/usr/bin/env python
 
-# resolve links - $0 may be a softlink
-THIS="$0"
-while [ -h "$THIS" ]; do
-  ls=`ls -ld "$THIS"`
-  link=`expr "$ls" : '.*-> \(.*\)$'`
-  if expr "$link" : '.*/.*' > /dev/null; then
-    THIS="$link"
-  else
-    THIS=`dirname "$THIS"`/"$link"
-  fi
-done
+import os
+import shlex
+import sys
 
-# if no args specified, show usage
-if [ $# = 0 ]; then
-  echo "Usage: satellite COMMAND"
-  echo "where COMMAND is one of:"
-  echo "start"
-  echo "stop"
-  echo "pps"
-  echo " or"
-  echo "any script in src directory"
-  exit 1
-fi
+def resolve(path):
+    if os.path.islink(path):
+        path = os.path.join(os.path.dirname(path), os.readlink(path))
+        return resolve(path)
+    return path
 
-### 
-# 
-###
-
-# some directories
-THIS_DIR=`dirname "$THIS"`
-SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
-
-PHANTOMJS=$SATELLITE_HOME/bin/phantomjs
-SATELLITE_LOG=$SATELLITE_HOME/logs
-SATELLITE_OUTPUT=$SATELLITE_HOME/output
-SATELLITE_OPTS="--load-images=true --ssl-protocol=any"
-# since phantomjs built-in process bugs, we must restart the system periodically
-# restart every SATELLITE_RESTART_PERIOD minites
-SATELLITE_RESTART_PERIOD=30
-
-cd $SATELLITE_HOME
-
-# get arguments
-COMMAND=$1
-shift
-
-# default command
-if [ "$COMMAND" = "" ] ; then
-    COMMAND="start"
-fi
-
-EXEC_CALL="$PHANTOMJS $SATELLITE_OPTS"
-
-function run() {
-    local CMD="$1"
-    shift
-
-    JS="$SATELLITE_HOME/$CMD"
-    exec $EXEC_CALL $JS $@
+SUPPORTED_ENGINES = {
+    'phantomjs' : {
+        'native_args': [
+            'cookies-file',
+            'config',
+            'debug',
+            'disk-cache',
+            'disk-cache-path',
+            'ignore-ssl-errors',
+            'load-images',
+            'load-plugins',
+            'local-storage-path',
+            'local-storage-quota',
+            'local-to-remote-url-access',
+            'max-disk-cache-size',
+            'output-encoding',
+            'proxy',
+            'proxy-auth',
+            'proxy-type',
+            'remote-debugger-port',
+            'remote-debugger-autorun',
+            'script-encoding',
+            'ssl-protocol',
+            'ssl-certificates-path',
+            'web-security',
+            'webdriver',
+            'webdriver-logfile',
+            'webdriver-loglevel'
+            'webdriver-selenium-grid-hub',
+            'wd',
+            'w',
+        ],
+        'env_varname': 'PHANTOMJS_EXECUTABLE',
+        'default_exec' : 'phantomjs'
+    },
+    'slimerjs': {
+        'native_args': [
+            '-P',
+            '-jsconsole',
+            '-CreateProfile',
+            '-profile',
+            #phantomjs options
+            'cookies-file',
+            'config',
+            'debug',
+            'disk-cache',
+            'ignore-ssl-errors',
+            'load-images',
+            'load-plugins',
+            'local-storage-path',
+            'local-storage-quota',
+            'local-to-remote-url-access',
+            'max-disk-cache-size',
+            'output-encoding',
+            'proxy',
+            'proxy-auth',
+            'proxy-type',
+            'remote-debugger-port',
+            'remote-debugger-autorun',
+            'script-encoding',
+            'ssl-protocol',
+            'ssl-certificates-path',
+            'web-security',
+            'webdriver',
+            'webdriver-logfile',
+            'webdriver-loglevel'
+            'webdriver-selenium-grid-hub',
+            'wd',
+            'w',
+        ],
+        'env_varname': 'SLIMERJS_EXECUTABLE',
+        'default_exec' : 'slimerjs'
+    },
 }
 
-# sleep for 30 minites and restart all
-function start_all() {
-    # kill all
-    pkill phantomjs
+ENGINE = os.environ.get('CASPERJS_ENGINE', 'phantomjs')
+ENGINE_ARGS = shlex.split(os.environ.get('ENGINE_FLAGS', ''))
+ENGINE_NATIVE_ARGS = []
+ENGINE_EXECUTABLE = ''
 
-    while [ 1 ]
-    do
-        echo "start all..."
-        run coordinator.js start > /dev/null 2>&1 &
-        echo "waiting..."
-        sleep `expr $SATELLITE_RESTART_PERIOD \* 60`
-        echo "stop all..."
-        pkill phantomjs
-#  > /dev/null &
+SATELLITE_PATH = os.path.abspath(os.path.join(os.path.dirname(resolve(__file__)), '..'))
+VENDOR_BIN = os.path.join(SATELLITE_PATH, 'vendor/bin')
+CASPER_PATH = os.path.join(SATELLITE_PATH, 'vendor/casperjs/casperjs')
+# COOKIE_PATH = os.path.join(SATELLITE_PATH, 'output/satellite.cookie.txt')
 
-# delete old log files
-        find $SATELLITE_LOG $SATELLITE_OUTPUT -mtime +2 -a -type f -print -delete
-    done
-}
+# SATELLITE_OPTS="--load-images=true --ssl-protocol=any --cookies-file=" + COOKIE_PATH
+CASPER_ARGS = []
+SYS_ARGS = sys.argv[1:]
 
-function stop_all() {
-    echo "running phantomjs programs : "
-    ps -ef | grep satellite
-    ps -ef | grep phantomjs
-    pkill phantomjs
-    echo "waiting..."
-    sleep 3
-    echo "running phantomjs programs : "
-    ps -ef | grep satellite
-    ps -ef | grep phantomjs
-    pkill satellite
-}
+# retrieve the engine name
+for arg in SYS_ARGS:
+    if arg.startswith('--engine='):
+        ENGINE = arg[9:].lower()
+        break
 
-function pps() {
-    ps -ef | grep phantomjs
-}
+if not ENGINE in SUPPORTED_ENGINES:
+    print('Bad engine name. Only phantomjs and slimerjs are supported')
+    sys.exit(1)
 
-# figure out which class to run
-if [ "$COMMAND" = "start" ] ; then
-    start_all $@
-elif [ "$COMMAND" = "stop" ] ; then
-    stop_all
-elif [ "$COMMAND" = "pps" ] ; then
-    pps
-else
-    run $COMMAND $@
-fi
+ENGINE_NATIVE_ARGS = SUPPORTED_ENGINES[ENGINE]['native_args']
+ENGINE_EXECUTABLE = os.environ.get(SUPPORTED_ENGINES[ENGINE]['env_varname'],
+                                   os.environ.get('ENGINE_EXECUTABLE',
+                                       SUPPORTED_ENGINES[ENGINE]['default_exec']))
 
+ENGINE_EXECUTABLE = os.path.join(VENDOR_BIN, ENGINE_EXECUTABLE)
+
+def extract_arg_name(arg):
+    "parse out any option name"
+    try:
+        return arg.split('=', 1)[0].replace('--', '', 1)
+    except IndexError:
+        return arg
+
+for arg in SYS_ARGS:
+    arg_name = extract_arg_name(arg)
+    found = False
+    for native in ENGINE_NATIVE_ARGS:
+        if arg_name == native:
+            ENGINE_ARGS.append(arg)
+            found = True
+    if not found and arg_name != 'engine':
+        CASPER_ARGS.append(arg)
+
+CASPER_COMMAND = [ENGINE_EXECUTABLE]
+CASPER_COMMAND.extend(ENGINE_ARGS)
+CASPER_COMMAND.extend([
+    os.path.join(SATELLITE_PATH, 'bin', 'bootstrap.js'),
+    '--casper-path=%s' % CASPER_PATH,
+    '--cli'
+])
+CASPER_COMMAND.extend(CASPER_ARGS)
+
+try:
+    print(CASPER_COMMAND)
+    os.execvp(CASPER_COMMAND[0], CASPER_COMMAND)
+except OSError as err:
+    print('Fatal: %s; did you install %s?' % (err, ENGINE))
+    sys.exit(1)

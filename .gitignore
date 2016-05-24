@@ -218,3 +218,6 @@ pip-log.txt
 /examples_casper/
 /examples_phantomjs/
 /output/
+
+# idea IDE
+.idea

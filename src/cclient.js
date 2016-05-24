@@ -56,7 +56,7 @@ var casper = require('casper').create(
 var sites = config.loadConfig("config/sites.json");
 
 if (system.args.length < 2) {
-	console.log("usage : satellite [options] cclient.js <site-name>");
+	console.log("usage : monitor [options] cclient.js <site-name>");
 
 	console.log("site name is one of the following : " + JSON.stringify(listSites(sites)));
 
@@ -225,7 +225,7 @@ var processSeedPage = function() {
 }
 
 var processIndexPages = function() {
-//	var file = "/tmp/satellite/index-" + indexPageCounter + ".png";
+//	var file = "/tmp/monitor/index-" + indexPageCounter + ".png";
 //
 //	this.captureSelector(file, site.indexPageMainAreaSelector);
 
@@ -306,7 +306,7 @@ var processDetailPage = function(url) {
 	// open detail page
 	this.thenOpen(url, function() {
 		this.echo('Detail page title: ' + this.getTitle());
-		var file = "/tmp/satellite/detail-" + detailPageCounter + ".png";
+		var file = "/tmp/monitor/detail-" + detailPageCounter + ".png";
 		this.capture(file);
 	});
 
@@ -430,6 +430,6 @@ var autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
 	this.debugPage();
 
-	// var file = "/tmp/satellite/extract-" + detailPageCounter + ".png";
+	// var file = "/tmp/monitor/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
 }

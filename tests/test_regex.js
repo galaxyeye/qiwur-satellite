@@ -1,12 +1,15 @@
-require(fs.absolute("bootstrap"));
-
-casper.test.begin('js regex', 2, function suite(test) {
+/**
+ * This test shows the basic behavior of the standard js regex
+ * */
+casper.test.begin('js regex', 3, function suite(test) {
 	var regex = "http://tuan.ctrip.com/group/(.+)";
 	var pattern = new RegExp(regex);
 	var str = "http://tuan.ctrip.com/group/2084529.html#ctm_ref=grt_sr_pm_def_b";
 
     test.assertTrue(pattern.test(str));
-    test.assertEquals(1, 1);
+
+    test.assertMatch("#/detail/2108347737", /(.+)detail(.+)/);
+    test.assertMatch("年份 2003-09-Tu", /^(年份)(.+)/);
 
     test.done();
 });

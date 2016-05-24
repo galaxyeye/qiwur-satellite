@@ -1,12 +1,10 @@
-var sateutils = require('./lib.old/utils');
-var md5 = require('./lib.old/md5');
-var logger = require('./logger');
-var config = require('./config');
-
 var fs = require("fs");
 var system = require("system");
-
 var utils = require('utils');
+
+var md5 = vendor('md5');
+var logger = vendor('logger');
+var config = vendor('config');
 
 var Defaultconf = {
     "userAgent": "chrome",
@@ -130,7 +128,7 @@ var processDetailPage = function(url) {
 	// open detail page
 	this.thenOpen(url, function() {
 //		this.echo('Detail page title: ' + this.getTitle());
-//		var file = "/tmp/satellite/detail-" + detailPageCounter + ".png";
+//		var file = "/tmp/monitor/detail-" + detailPageCounter + ".png";
 //		this.capture(file);
 	});
 
@@ -235,6 +233,6 @@ var autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
 	this.debugPage();
 
-	// var file = "/tmp/satellite/extract-" + detailPageCounter + ".png";
+	// var file = "/tmp/monitor/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
 }

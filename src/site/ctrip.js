@@ -99,7 +99,7 @@ var terminate = function() {
 };
 
 var processIndexPages = function() {
-	var file = "/tmp/satellite/vacations.ctrip.com.whole-1B126-U-Beijing-"
+	var file = "/tmp/monitor/vacations.ctrip.com.whole-1B126-U-Beijing-"
 			+ indexPageCounter + ".png";
 
 	this.captureSelector(file, indexPageMainAreaSelector);
@@ -164,7 +164,7 @@ var processDetailPages = function() {
 var processDetailPage = function(url) {
 	this.thenOpen(url, function() {
 		this.echo('Detail page title: ' + this.getTitle());
-		var file = "/tmp/satellite/detail.ctrip.com-" + detailPageCounter + ".png";
+		var file = "/tmp/monitor/detail.ctrip.com-" + detailPageCounter + ".png";
 		this.capture(file);
 	}).thenEvaluate(function() {
     	document.body.setAttribute("data-url", document.URL);
@@ -216,7 +216,7 @@ var autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
 	this.debugPage();
 
-	// var file = "/tmp/satellite/extract-" + detailPageCounter + ".png";
+	// var file = "/tmp/monitor/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
 }
 

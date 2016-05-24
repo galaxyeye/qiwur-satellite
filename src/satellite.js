@@ -65,7 +65,7 @@ var satellite = {
     servedPages : 0,
 
     /**
-     * Start the satellite client system
+     * Start the monitor client system
      * */
     run : function() {
         satellite.login();
@@ -86,7 +86,7 @@ var satellite = {
                 }
             }
 
-            // exit the satellite fetcher system
+            // exit the monitor fetcher system
             if (quit) {
                 if (++satellite.exitTick > ExitWait) {
                     phantom.exit(0);
@@ -108,11 +108,11 @@ var satellite = {
             schedule = schedule && (serverCount > 0);
 
 //            logger.debug('quit : ' + quit
-//                    + ', status : ' + satellite.status
+//                    + ', status : ' + monitor.status
 //                    + ', schedule : ' + schedule
 //                    + ', serverCount : ' + serverCount
-//                    + ', updateFetcherServerPoolPeriod : ' + satellite.updateFetcherServerPoolPeriod
-//                    + ', schedulePeriod : ' + satellite.schedulePeriod);
+//                    + ', updateFetcherServerPoolPeriod : ' + monitor.updateFetcherServerPoolPeriod
+//                    + ', schedulePeriod : ' + monitor.schedulePeriod);
 
             if (!quit && satellite.status == "ready" && schedule) {
                 ++satellite.round;
@@ -277,7 +277,7 @@ var satellite = {
 
             var elapsed = new Date().getTime() - start; // in milliseconds
 
-            // satellite information
+            // monitor information
             var username = config.username;
             var password = config.password;
             password = md5.hex_md5(password); // TODO : add a piece of salt
@@ -362,8 +362,8 @@ var satellite = {
 
             satellite.status = "ready";
 
-            // stop satellite periodically to ensure all resource released correctly
-            // the coordinator will restart the satellite
+            // stop monitor periodically to ensure all resource released correctly
+            // the coordinator will restart the monitor
             if (++satellite.servedPages >= MaxServedPage) {
                 satellite.stop();
 
@@ -376,7 +376,7 @@ var satellite = {
     },
 
     /**
-     * Stop this satellite client process
+     * Stop this monitor client process
      * */
     stop : function() {
         // it seems phantomjs can not recycle resource correctly
