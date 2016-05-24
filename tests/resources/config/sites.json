@@ -1,0 +1,75 @@
+[
+  {
+    "name": "academic.microsoft.com",
+    "seed": "http://academic.microsoft.com/#/search?iq=%2540Semantic%2520Search%2540&q=Semantic%20Search&filters=&from=0&sort=0",
+    "page.index.main": ".xs_content_main",
+    "page.index.paginator.selector": null,
+    "page.index.paginator.next": null,
+    "page.index.start": 1,
+    "page.index.limit": 3,
+    "page.detail.regex": "(.+)detail(.+)",
+    "page.detail.start": 1,
+    "page.detail.limit": 300,
+    "page.detail.extractor.slim": [
+      "title",
+      ".xs_banner_title",
+      "entity-header",
+      ".entity-header",
+      "entity-base",
+      ".entity-base"
+    ],
+    "page.detail.extractor.regex": [
+      {
+        "regex" : "^(年份)(.+)"
+      }
+    ],
+    "page.detail.extractor.full": [
+      {
+        "name": "entity-source",
+        "cssPath": ".entity-source",
+        "xpath" : "",
+        "regex" : "^(年份)(.+)",
+        "vision" : {
+          "schema" : ["top", "left", "width", "height"],
+          "min" : [0, 0, 0, 0],
+          "max" : [1000, 1000, 1000, 1000]
+        },
+        "validator": {
+          "regex": ".+",
+          "xpath": null
+        },
+        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]"
+      },
+      {
+        "name": "entity-references",
+        "cssPath": ".entity-references",
+        "xpath" : "",
+        "regex" : "",
+        "vision" : {
+          "min" : [0, 0, 0, 0],
+          "max" : [1000, 1000, 1000, 1000]
+        },
+        "validator": {
+          "cssPath": null,
+          "regex": ".+",
+          "xpath": null
+        }
+      }
+    ],
+    "page.detail.extractor.nested.entity": [
+      {
+        "name": "publication",
+        "container": ".entity-section div",
+        "collection": " > div"
+      }
+    ],
+    "page.detail.extractor.kv": [
+      {
+        "name": "publication",
+        "container": ".entity-section div",
+        "key": " > span",
+        "value": " > p"
+      }
+    ]
+  }
+]
