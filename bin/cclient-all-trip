@@ -1,0 +1,6 @@
+#bin
+
+./bin/phantomjs src/cclient.js tuan.ctrip.com
+./bin/phantomjs src/cclient.js piao.tuan.qunar.com
+./bin/phantomjs src/cclient.js hotel.tuan.qunar.com
+./bin/phantomjs src/cclient.js electronic.jd.com
