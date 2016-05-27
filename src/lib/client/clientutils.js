@@ -1,5 +1,9 @@
 const META_INFORMATION_ID = "QiwurScrapingMetaInformation";
 
+/**
+ * TODO : move all free functions into a class
+ * */
+
 function __qiwur__visualizeHumanize() {
 	var metadata = document.querySelector("#" + META_INFORMATION_ID);
 	if (metadata) {
@@ -65,7 +69,7 @@ function __qiwur__relativeToAbsolute(url) {
 		url = "http:" + url;
 	}
 
-    arr = url.split("/") // Cut the url up into a array
+    var arr = url.split("/") // Cut the url up into a array
     while(!!~arr.indexOf("..")){ // If there still is a ".." in the array
         arr.splice(arr.indexOf("..") - 1, 2); // Remove the ".." and the element before it.
     }
@@ -127,4 +131,20 @@ function __qiwur_getAttributeAsInt(node, attrName, defaultValue) {
     }
 
     return parseInt(value);
+}
+
+/**
+ * Get attribute as an integer
+ * */
+function __qiwur_getReadableNodeName(node) {
+    var name = node.tagName
+    + (node.id ? ("#" + node.id) : "")
+    + (node.className ? ("#" + node.className) : "");
+
+    var seq = __qiwur_getAttributeAsInt(node, "_seq", -1);
+    if (seq >= 0) {
+        name += "-" + seq;
+    }
+
+    return name;
 }

@@ -5,16 +5,31 @@ var sutils = vendor('sutils');
 var entity = config.loadSiteObject("academic.microsoft.com", "tests/resources/config/sites.json");
 var options = {'extractor' : entity.page.detail.extractor};
 
-casper.options.clientScripts.push("./src/lib/client/extractor.js");
-casper.options.clientScripts.push("./src/lib/client/jquery-1.11.2.js");
+casper.options.clientScripts.push("./src/lib/client/thirdparty/jquery-1.11.2.js");
+casper.options.clientScripts.push("./src/lib/client/dist/satellite.full.js");
+
+casper.on('resource.requested', function(requestData, networkRequest) {
+    if ((/.+?\.(css|js|png)(\?)?/gi).test(requestData['url']) || requestData.headers['Content-Type'] == 'text/css') {
+        console.log('The url of the request is matching. Aborting: ' + requestData['url']);
+        networkRequest.abort();
+    }
+});
+
+casper.on('resource.error', function() {
+    return;
+});
 
 var resourceDir = "tests/resources";
 var testPage = resourceDir + "/web/detail/academic.microsoft.com/detail-0d50c3e58b5f9bbd33dba37a3c61100f.html";
 
 var events = vendor('events').create(casper);
 
-casper.test.begin('extractor tests', 5, function(test) {
+casper.test.begin('extractor basic tests', 6, function(test) {
     casper.start(testPage, function() {
+        this.evaluate(function() {
+            new ElementTraversor(new ElementVisitor()).traverse(document.body);
+        });
+
         // title extraction
         test.assertTitle("XSEarch: a semantic search engine for XML - 微软学术");
 
@@ -40,16 +55,50 @@ casper.test.begin('extractor tests', 5, function(test) {
             {cssSelector : cssSelector}
         );
 
-        // Extract using Satellite method
+        // Extract using satellite.Extractor.extractByRegex
         test.assertEvalEquals(
             function(extractor) {
                 var fields = new Extractor(extractor).extractByRegex(extractor.regex);
-                return fields.length;
+
+                return fields[0][1];
             },
-            1,
+            "2003-09-Tu",
             "Extract using satellite.Extractor.extractByRegex",
             {extractor : options.extractor}
         );
+
+        // Extract using satellite.Extractor.extractByVision
+        test.assertEvalEquals(
+            function(extractor) {
+                var fields = new Extractor(extractor).extractByVision(extractor.vision);
+
+                return fields[0][1];
+            },
+            "年份 2003-09-Tu",
+            "Extract using satellite.Extractor.extractByVision",
+            {extractor : options.extractor}
+        );
+
+        // Extract using Satellite method
+        test.assertEvalEquals(
+            function(extractor) {
+                var fields = new Extractor(extractor).extract();
+                return fields.length;
+            },
+            5,
+            "Extract using Satellite method",
+            {extractor : options.extractor}
+        );
+    }).run(function() {
+        test.done();
+    });
+});
+
+casper.test.begin('extractor advanced tests', 1, function(test) {
+    casper.start(testPage, function() {
+        this.evaluate(function () {
+            new ElementTraversor(new ElementVisitor()).traverse(document.body);
+        });
 
         // Extract using Satellite method
         test.assertEvalEquals(

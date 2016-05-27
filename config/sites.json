@@ -48,37 +48,20 @@
       "entity-base",
       ".entity-base"
     ],
-    "page.detail.extractor.full": [
+    "page.detail.extractor.regex": [
       {
-        "name": "title",
-        "css.path": ".h2",
-        "validator": {
-          "regex": ".+",
-          "xpath": null
-        },
-        "min-left": null,
-        "max-left": null,
-        "min-top": null,
-        "max-top": null,
-        "min-width": null,
-        "max-width": null,
-        "min-height": null,
-        "max-height": null
-      },
-      {
-        "name": "entity-type",
-        "css.path": ".entity-type"
-      },
-      {
-        "name": "entity-type",
-        "css.path": ".entity-type"
+        "name" : "年份",
+        "regex" : "^年份(.+)"
       }
     ],
-    "page.detail.extractor.nested.entity": [
+    "page.detail.extractor.vision": [
       {
-        "name": "publication",
-        "container": ".entity-section div",
-        "collection": " > div"
+        "name" : "年份",
+        "vision" : {
+          "schema" : ["top", "left", "width", "height"],
+          "min" : [130, 3310, 810, 15],
+          "max" : [135, 3320, 820, 20]
+        }
       }
     ],
     "page.detail.extractor.kv": [
@@ -87,6 +70,46 @@
         "container": ".entity-section div",
         "key": " > span",
         "value": " > p"
+      }
+    ],
+    "page.detail.extractor.full": [
+      {
+        "name": "entity-source",
+        "cssPath": ".entity-source",
+        "xpath" : "",
+        "regex" : "^(年份)(.+)",
+        "vision" : {
+          "schema" : ["top", "left", "width", "height"],
+          "min" : [0, 0, 0, 0],
+          "max" : [1000, 1000, 1000, 1000]
+        },
+        "validator": {
+          "regex": ".+",
+          "xpath": null
+        },
+        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]"
+      },
+      {
+        "name": "entity-references",
+        "cssPath": ".entity-references",
+        "xpath" : "",
+        "regex" : "",
+        "vision" : {
+          "min" : [0, 0, 0, 0],
+          "max" : [1000, 1000, 1000, 1000]
+        },
+        "validator": {
+          "cssPath": null,
+          "regex": ".+",
+          "xpath": null
+        }
+      }
+    ],
+    "page.detail.extractor.nested.entity": [
+      {
+        "name": "publication",
+        "container": ".entity-section div",
+        "collection": " > div"
       }
     ]
   }

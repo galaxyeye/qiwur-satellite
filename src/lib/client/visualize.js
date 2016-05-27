@@ -1,3 +1,8 @@
+
+/**
+ * TODO : move all free functions into a class
+ * */
+
 /**
  * Get element offset
  * @return [top, left]
@@ -136,4 +141,11 @@ function __qiwur__visualize(ele, schema) {
     for(var i = 0; i < ele.childNodes.length; i++) {
     	__qiwur__visualize(ele.childNodes[i], schema);
     }
+}
+
+/**
+ * Compute visualization information
+ * */
+function __qiwur__visualize2(ele, schema) {
+	new ElementTraversor(new ElementVisitor()).traverse(ele);
 }

@@ -20,7 +20,29 @@
     ],
     "page.detail.extractor.regex": [
       {
-        "regex" : "^(年份)(.+)"
+        "name" : "年份",
+        "regex" : "^(年份)(.+)",
+        "group" : 2,
+        "comment" : "Group means the group number of regex match result, which is used to extract the target string.",
+        "comment" : "By default, group is 0 which means the whole string. Invalid group number will set to be 0."
+      }
+    ],
+    "page.detail.extractor.vision": [
+      {
+        "name" : "年份",
+        "vision" : {
+          "schema" : ["top", "left", "width", "height"],
+          "min" : [130, 3310, 810, 15],
+          "max" : [135, 3320, 820, 20]
+        }
+      }
+    ],
+    "page.detail.extractor.kv": [
+      {
+        "name": "publication",
+        "container": ".entity-section div",
+        "key": " > span",
+        "value": " > p"
       }
     ],
     "page.detail.extractor.full": [
@@ -61,14 +83,6 @@
         "name": "publication",
         "container": ".entity-section div",
         "collection": " > div"
-      }
-    ],
-    "page.detail.extractor.kv": [
-      {
-        "name": "publication",
-        "container": ".entity-section div",
-        "key": " > span",
-        "value": " > p"
       }
     ]
   }

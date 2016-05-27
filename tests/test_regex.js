@@ -1,7 +1,7 @@
 /**
  * This test shows the basic behavior of the standard js regex
  * */
-casper.test.begin('js regex', 3, function suite(test) {
+casper.test.begin('js match group', 7, function suite(test) {
 	var regex = "http://tuan.ctrip.com/group/(.+)";
 	var pattern = new RegExp(regex);
 	var str = "http://tuan.ctrip.com/group/2084529.html#ctm_ref=grt_sr_pm_def_b";
@@ -9,7 +9,14 @@ casper.test.begin('js regex', 3, function suite(test) {
     test.assertTrue(pattern.test(str));
 
     test.assertMatch("#/detail/2108347737", /(.+)detail(.+)/);
-    test.assertMatch("年份 2003-09-Tu", /^(年份)(.+)/);
+    test.assertMatch(" 年份 2003-09-Tu".trim(), /^(年份)(.+)/);
+
+    str = " 年份 2003-09-Tu";
+    var groups = str.trim().match(/^(年份)(.+)/);
+    test.assertEquals(groups.length, 3);
+    test.assertEquals(groups[0], str.trim());
+    test.assertEquals(groups[1], "年份");
+    test.assertEquals(groups[2], " 2003-09-Tu");
 
     test.done();
 });

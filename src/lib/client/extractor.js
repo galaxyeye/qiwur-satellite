@@ -30,6 +30,9 @@ const RuleSchema = {
     }
 };
 
+// Note : seems can not come before constants
+"use strict";
+
 /**
  * Page extractor
  * @param  HTMLElement|null  options     extract rules
@@ -66,6 +69,7 @@ Extractor.prototype.extract = function(scope) {
     catch (e) {
         __utils__.log(e, "error");
     }
+    
     return this.results;
 };
 
@@ -93,39 +97,50 @@ Extractor.prototype.extractBySlimRules = function(scope) {
         var v = __utils__.findOne(selector, scope);
 
         if (v && v.textContent) {
-            this.results.push([k, v.textContent]);
+            this.results.push([k, v.textContent.trim()]);
         }
     }
+    
+    return this.results;
 };
 
 /**
  * Extract fields from an element using the given regex rule
  *
- * @param HTMLElement|null scope Element to search child elements within,
+ * @param {Array|null} extract rules
+ * @param {HTMLElement|null} scope Element to search child elements within,
  *  default scope is document
  * @return
  * */
-Extractor.prototype.extractByRegex = function(rule, scope) {
-    "use strict";
-    for (var i = 0; i < rule.length; ++i) {
-        this.extractByOneRegex(rule[i]);
+Extractor.prototype.extractByRegex = function(rules, scope) {
+    for (var i = 0; i < rules.length; ++i) {
+        this.extractByOneRegex(rules[i]);
     }
+
+    return this.results;
 };
 
 /**
- * Extract fields from an element using the given regex rule
+ * Extract fields from an element using the given regex rule.
+ * The target string is split into groups by rule.regex and the specified group is choosed to be the extract result value.
  *
- * @param HTMLElement|null scope Element to search child elements within,
+ * @param {Object|null} extract rule
+ *  rule.name : the field name
+ *  rule.regex : the regex to split the target string into groups
+ *  rule.group : the group number in regex match result, by default, group number is 0 which means the entire string,
+ *      if group number is not valid, for example, out of range, it's set to be 0.
+ * @param {HTMLElement|null} scope Element to search child elements within,
  *  default scope is document
- * @return
+ * @return {Array}
  * */
 Extractor.prototype.extractByOneRegex = function(rule, scope) {
     "use strict";
+
     if (!rule.regex) {
         throw new Error("Invalid rule");
         return;
     }
-    
+
     if (!scope) {
         scope = document;
     }
@@ -133,64 +148,175 @@ Extractor.prototype.extractByOneRegex = function(rule, scope) {
     var k = rule.name;
     var v = null;
     var regex = new RegExp(rule.regex);
-    
-    var nodeList = scope.querySelectorAll("*");
-    for (var i = 0; i < nodeList.length; ++i) {
-        var node = nodeList.item(i);
+    var groupNum = rule.group || 0; // regex group to extract as the result value, 0 means the entire string
 
-        if (["DIV", "A", "UI", "DL", "H1", "H2", "H3", "H4"].indexOf(node.tagName) == -1) {
+    var treeWalker = document.createTreeWalker(
+        scope,
+        NodeFilter.SHOW_ELEMENT,
+        {
+            acceptNode : function(node) { return NodeFilter.FILTER_ACCEPT; }
+        },
+        false
+    );
+
+    while(treeWalker.nextNode()) {
+        var node = treeWalker.currentNode;
+
+        if (["DIV", "IMG", "A", "UI", "DL", "H1", "H2", "H3", "H4"].indexOf(node.tagName) == -1) {
             continue;
         }
 
-        // if (node.textContent.indexOf("年份") !== -1) {
-        //     __utils__.echo(rule.regex);
-        //     __utils__.echo(regex);
-        //     __utils__.echo(node.textContent);
-        // }
-
-        if (node.textContent && node.textContent.match(regex)) {
-            v = node;
+        // ignore layout nodes
+        var descends = __qiwur_getAttributeAsInt(node, "data-descend", 0);
+        if (descends > 10) {
+            continue;
         }
+        
+        var content = this.getTextContent(node);
+        if (!content) {
+            continue;
+        }
+
+        if (content.indexOf("年份") !== -1) {
+            // this.debugContent(node);
+        }
+
+        var groups = content.match(regex);
+        if (!groups) {
+            continue;
+        }
+
+        if (groupNum < 0 || groupNum > groups.length) {
+            groupNum = 0;
+        }
+
+        v = node;
+        content = groups[groupNum];
+        this.results.push([k, content.trim()]);
     }
 
-    if (k && v) {
-        this.results.push([k, v.textContent]);
-    }
+    return this.results;
 };
 
 /**
  * Extract fields from an element using the given vision rule
  *
- * @param  HTMLElement|null  scope     Element to search child elements within,
+ * @param rules {Object|null} extract rules
+ * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return
+ * @return {Array}
  * */
-Extractor.prototype.extractByVision = function(rule, scope) {
+Extractor.prototype.extractByVision = function(rules, scope) {
+    for (var i = 0; i < rules.length; ++i) {
+        this.extractByOneVision(rules[i]);
+    }
+    
+    return this.results;
+};
+
+/**
+ * Extract fields from an element using the given vision rule
+ *
+ * @param rule {Object|null} extract rule
+ * @param scope {HTMLElement|null} Element to search child elements within,
+ *  default scope is document
+ * @return {Array}
+ * */
+Extractor.prototype.extractByOneVision = function(rule, scope) {
+    "use strict";
+
+    if (!rule || !rule.name || !rule.vision) {
+        throw new Error("Invalid rule");
+        return;
+    }
+
+    if (!scope) {
+        scope = document;
+    }
+
     var k = rule.name;
     var v = null;
 
-    var nodeList = scope.querySelectorAll("*");
-    for (var i = 0; i < nodeList; ++i) {
-        var v = nodeList[i];
-        if (v && v.textContent) {
-            var vision = v.getAttribute("vi");
-            var match = true;
-            for (var i = 0; i < 4; ++i) {
-                match = (vision[i] >= rule.vision.min[i]) && (vision[i] <= rule.vision.max[i]);
-                if (!match) break;
+    var treeWalker = document.createTreeWalker(
+        scope,
+        NodeFilter.SHOW_ELEMENT,
+        {
+            acceptNode : function(node) { return NodeFilter.FILTER_ACCEPT; }
+        },
+        false
+    );
+
+    while(treeWalker.nextNode()) {
+        var node = treeWalker.currentNode;
+
+        // Only block element is considered, this might be refined to add more tags
+        if (["DIV", "IMG", "A", "UI", "DL", "H1", "H2", "H3", "H4"].indexOf(node.tagName) == -1) {
+            continue;
+        }
+
+        // ignore layout nodes
+        var descends = __qiwur_getAttributeAsInt(node, "data-descend", 0);
+        if (descends > 10) {
+            continue;
+        }
+
+        var content = this.getTextContent(node);
+        if (!content) {
+            continue;
+        }
+
+        if (content.indexOf("年份") !== -1) {
+            // this.debugContent(node);
+        }
+
+        var vision = node.getAttribute("vi");
+        if (!vision) {
+            continue;
+        }
+
+        // convert string to array, for example, "100 100 100 100" => ["100", "100", "100", "100"]
+        vision = vision.split(" ");
+        if (vision.length !== 4) {
+            continue;
+        }
+
+        var match = true;
+        var visionRule = rule.vision;
+        for (var i = 0; i < 4; ++i) {
+            if (!vision[i] || !visionRule.min[i] || !visionRule.max[i]) {
+                match = false;
+                break;
             }
-            if (match) {
-                this.results.push([k, v.textContent]);
+
+            // explicitly convert string to integer before comparison
+            vision[i] = parseInt(vision[i]);
+
+            // var name = __qiwur_getReadableNodeName(node);
+            // __utils__.echo(name + " : " + vision[i] + ", "
+            //     + visionRule.min[i] + ", " + visionRule.max[i]);
+
+            match = (vision[i] >= visionRule.min[i]) && (vision[i] <= visionRule.max[i]);
+
+            // check the next node
+            if (!match) {
+                break;
             }
         }
-    }
+
+        if (match) {
+            v = node;
+            this.results.push([k, content]);
+        }
+    } // while
+
+    return this.results;
 };
 
 /**
  * Extract fields from an element using the given rule
  *
- * @param  Object  rule     Extract rule
- * @param  HTMLElement|null  scope     Element to search child elements within,
+ * @param  rule {Object} Extract rule
+ * @param  scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
  * @return
  * */
@@ -217,7 +343,8 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
         this.extractByVision(rule, scope);
     }
 
-    if (!v || !v.textContent) {
+    var content = this.getTextContent(v);
+    if (!content) {
         return;
     }
 
@@ -230,21 +357,23 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
     var valid = false;
     if (rule.validator.cssPath) {
         var v2 = __utils__.findOne(rule.validator.xpath, scope);
-        valid = (v.textContent == v2.textContent);
+        valid = (content == v2.textContent.trim());
     }
     if (rule.validator.xpath) {
         var v2 = __utils__.findOne(rule.validator.xpath, scope);
-        valid = (v.textContent == v2.textContent);
+        valid = (content == v2.textContent.trim());
     }
     if (rule.validator.regex) {
-        valid = v.textContent.match(new RegExp(rule.validator.regex));
+        valid = content.match(new RegExp(rule.validator.regex));
     }
     if (rule.validator.vision) {
     }
 
     if (valid) {
-        this.results.push([k, v.textContent]);
+        this.results.push([k, content]);
     }
+
+    return this.results;
 };
 
 /**
@@ -276,13 +405,11 @@ Extractor.prototype.extractByFullRules = function(scope) {
 /**
  * Extract fields from an element using the given rule
  *
- * @param  HTMLElement|null  scope     Element to search child elements within,
+ * @param  scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
  * @return
  * */
 Extractor.prototype.extractByKVRules = function(scope) {
-    "use strict";
-
     var rules = this.extractor.kv;
     if (!rules) {
         return;
@@ -298,4 +425,45 @@ Extractor.prototype.extractByKVRules = function(scope) {
     if (!Array.isArray(rules)) {
         throw new Error("Unsupported rules type: " + (typeof rules));
     }
+
+    return this.results;
 };
+
+/**
+ * Clean element's textContent
+ * @param textContent {String} the string to clean
+ * @return The clean string
+ * */
+Extractor.prototype.cleanTextContent = function(textContent) {
+    textContent = textContent.replace(/\s+/g, " "); // combine all blanks into one " " character
+    return textContent.trim();
+};
+
+/**
+ * Get cleared element's textContent
+ * @param content {String} the string to clean
+ * @return {String} The cleared string, "" if no element text content available.
+ * */
+Extractor.prototype.getTextContent = function(node) {
+    if (!node || !node.textContent) {
+        return "";
+    }
+
+    var content = this.cleanTextContent(node.textContent);
+
+    return content;
+};
+
+Extractor.prototype.debugContent = function(scope) {
+    var content = scope.textContent.trim();
+    // content = content.replace(/\n/g, "");
+
+    __utils__.echo("-------------debug content-----------------");
+    var s = "";
+    for (var i = 0; i < content.length; ++i) {
+        s += content.charAt(i) + content.charCodeAt(i) + ",";
+    }
+    __utils__.echo(s);
+    __utils__.echo("-------------debug content-----------------");
+};
+
