@@ -79,6 +79,26 @@ casper.test.begin('extractor basic tests', 6, function(test) {
             {extractor : options.extractor}
         );
 
+        // Extract using satellite.Extractor.extractByKVRules
+        test.assertEvalEquals(
+            function(extractor) {
+                var fields = new Extractor(extractor).extractByKVRules(extractor.kv);
+
+                // fields.forEach(function(item, i, array) {
+                //     __utils__.echo(item);
+                // });
+                
+                // for (var i = 0; i < fields.length; ++i) {
+                //     __utils__.echo(fields[i][0]);
+                // }
+                
+                return fields[0][1];
+            },
+            "年份 2003-09-Tu",
+            "Extract using satellite.Extractor.extractByKVRules",
+            {extractor : options.extractor}
+        );
+
         // Extract using Satellite method
         test.assertEvalEquals(
             function(extractor) {

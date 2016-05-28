@@ -148,3 +148,50 @@ function __qiwur_getReadableNodeName(node) {
 
     return name;
 }
+
+
+/**
+ * Clean node's textContent
+ * @param textContent {String} the string to clean
+ * @return {String} The clean string
+ * */
+function __qiwur_getCleanTextContent(textContent) {
+	textContent = textContent.replace(/\s+/g, " "); // combine all blanks into one " " character
+	return textContent.trim();
+}
+
+/**
+ * Get clean, merged textContent from node list
+ * @param nodeOrList {NodeList|Array|Node} the node from which we extract the content
+ * @return {String} The clean string, "" if no text content available.
+ * */
+function __qiwur_getMergedTextContent(nodeOrList) {
+	if (!nodeOrList) {
+		return "";
+	}
+
+	if (nodeOrList instanceof  Node) {
+		return __qiwur_getTextContent(nodeOrList);
+	}
+
+	var content = "";
+	for (var i = 0; i < nodeOrList.length; ++i) {
+		content += __qiwur_getTextContent(nodeOrList[i]);
+		content += " ";
+	}
+
+	return content;
+}
+
+/**
+ * Get clean node's textContent
+ * @param node {Node} the node from which we extract the content
+ * @return {String} The clean string, "" if no text content available.
+ * */
+function __qiwur_getTextContent(node) {
+	if (!node || !node.textContent) {
+		return "";
+	}
+
+	return __qiwur_getCleanTextContent(node.textContent);
+}

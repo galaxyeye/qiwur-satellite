@@ -51,7 +51,10 @@
     "page.detail.extractor.regex": [
       {
         "name" : "年份",
-        "regex" : "^年份(.+)"
+        "regex" : "^(年份)(.+)",
+        "group" : 2,
+        "comment" : "Group means the group number of regex match result, which is used to extract the target string.",
+        "comment" : "By default, group is 0 which means the whole string. Invalid group number will set to be 0."
       }
     ],
     "page.detail.extractor.vision": [

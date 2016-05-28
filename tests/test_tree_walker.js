@@ -4,6 +4,21 @@ var testPage = resourceDir + "/web/detail/academic.microsoft.com/detail-0d50c3e5
 var events = vendor('events').create(casper);
 casper.options.clientScripts.push("./src/lib/client/dist/satellite.full.js");
 
+casper.test.begin('tree walker basic feature', 1, function(test) {
+    casper.start(testPage, function() {
+
+        test.assertEval(
+            function() {
+                return NodeFilter.SHOW_ELEMENT === 1;
+            },
+            "Show treeWalker information"
+        );
+
+    }).run(function() {
+        test.done();
+    });
+});
+
 casper.test.begin('tree walker tests', 3, function(test) {
     casper.start(testPage, function() {
 

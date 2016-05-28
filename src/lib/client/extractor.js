@@ -1,33 +1,31 @@
-const RuleSchema = {
-    extractor : {
-        slim : ["k1", "v1", "k2", "v2", "k3", "v3"],
-        full : [
-            {
-                "name": "entity-source",
-                "cssPath": ".entity-source",
-                "validator": {
-                    "regex": ".+",
-                    "xpath": null
-                },
-                "min-left": null,
-                "max-left": null,
-                "min-top": null,
-                "max-top": null,
-                "min-width": null,
-                "max-width": null,
-                "min-height": null,
-                "max-height": null
-            }
-        ],
-        kv : [
-            {
-                "name": "publication",
-                "container": ".entity-section div",
-                "key": " > span",
-                "value": " > p"
-            }
-        ]
-    }
+const ExtractorRule = {
+    slim : ["k1", "v1", "k2", "v2", "k3", "v3"],
+    full : [
+        {
+            "name": "entity-source",
+            "cssPath": ".entity-source",
+            "validator": {
+                "regex": ".+",
+                "xpath": null
+            },
+            "min-left": null,
+            "max-left": null,
+            "min-top": null,
+            "max-top": null,
+            "min-width": null,
+            "max-width": null,
+            "min-height": null,
+            "max-height": null
+        }
+    ],
+    kv : [
+        {
+            "name": "publication",
+            "container": ".entity-section div",
+            "key": " > span",
+            "value": " > p"
+        }
+    ]
 };
 
 // Note : seems can not come before constants
@@ -35,11 +33,9 @@ const RuleSchema = {
 
 /**
  * Page extractor
- * @param  HTMLElement|null  options     extract rules
+ * @param extractor {HTMLElement|null} extract rules
  * */
 var Extractor = function Extractor(extractor) {
-    "use strict";
-    
     this.extractor = extractor;
     this.results = [];
 };
@@ -47,48 +43,46 @@ var Extractor = function Extractor(extractor) {
 /**
  * Extract fields from an element using the given rule
  *
- * @param  HTMLElement|null  scope     Element to search child elements within,
+ * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is window.document
  * @return
  * */
 Extractor.prototype.extract = function(scope) {
-    "use strict";
     var rules = this.extractor.slim;
     if (rules && rules.length % 2 !== 0) {
         throw new Error("Slim extractor rules length should be an even number");
-        return;
     }
 
     scope = scope || window.document;
-    
+
     try {
-        this.extractBySlimRules(scope);
-        this.extractByFullRules(scope);
-        this.extractByKVRules(scope);
+        this.extractBySlimRules(this.extractor.slim, scope);
+        this.extractByFullRules(this.extractor.full, scope);
+        // this.extractByKVRules(this.extractor.kv, scope);
     }
     catch (e) {
         __utils__.log(e, "error");
     }
-    
+
     return this.results;
 };
 
 /**
- * Extract fields from an element using the given rule
+ * Extract fields from an element using the given rules
  *
- * @param  HTMLElement|null  scope     Element to search child elements within, 
+ * @param rules {Array|null} extract rules
+ * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
  * @return
  * */
-Extractor.prototype.extractBySlimRules = function(scope) {
-    "use strict";
-    var rules = this.extractor.slim;
+Extractor.prototype.extractBySlimRules = function(rules, scope) {
     if (!rules) {
-        return;
+        return this.results;
     }
+
     if (rules.length % 2 !== 0) {
         __utils__.log('Slim extractor rules length must be even number', 'warn');
-        return;
+        return this.results;
     }
 
     for (var i = 0; i < rules.length - 1; i += 2) {
@@ -97,24 +91,24 @@ Extractor.prototype.extractBySlimRules = function(scope) {
         var v = __utils__.findOne(selector, scope);
 
         if (v && v.textContent) {
-            this.results.push([k, v.textContent.trim()]);
+            this.results.push([k, __qiwur_getMergedTextContent(v)]);
         }
     }
-    
+
     return this.results;
 };
 
 /**
  * Extract fields from an element using the given regex rule
  *
- * @param {Array|null} extract rules
- * @param {HTMLElement|null} scope Element to search child elements within,
+ * @param rules {Array|null} extract rules
+ * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
  * @return
  * */
 Extractor.prototype.extractByRegex = function(rules, scope) {
     for (var i = 0; i < rules.length; ++i) {
-        this.extractByOneRegex(rules[i]);
+        this.extractByOneRegex(rules[i], scope);
     }
 
     return this.results;
@@ -124,7 +118,7 @@ Extractor.prototype.extractByRegex = function(rules, scope) {
  * Extract fields from an element using the given regex rule.
  * The target string is split into groups by rule.regex and the specified group is choosed to be the extract result value.
  *
- * @param {Object|null} extract rule
+ * @param {Object|null} rule extract rule
  *  rule.name : the field name
  *  rule.regex : the regex to split the target string into groups
  *  rule.group : the group number in regex match result, by default, group number is 0 which means the entire string,
@@ -138,7 +132,6 @@ Extractor.prototype.extractByOneRegex = function(rule, scope) {
 
     if (!rule.regex) {
         throw new Error("Invalid rule");
-        return;
     }
 
     if (!scope) {
@@ -172,7 +165,7 @@ Extractor.prototype.extractByOneRegex = function(rule, scope) {
             continue;
         }
         
-        var content = this.getTextContent(node);
+        var content = __qiwur_getMergedTextContent(node);
         if (!content) {
             continue;
         }
@@ -199,16 +192,16 @@ Extractor.prototype.extractByOneRegex = function(rule, scope) {
 };
 
 /**
- * Extract fields from an element using the given vision rule
+ * Extract fields from an element using the given vision rules
  *
- * @param rules {Object|null} extract rules
+ * @param rules {Array} extract rules
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
  * @return {Array}
  * */
 Extractor.prototype.extractByVision = function(rules, scope) {
     for (var i = 0; i < rules.length; ++i) {
-        this.extractByOneVision(rules[i]);
+        this.extractByOneVision(rules[i], scope);
     }
     
     return this.results;
@@ -223,11 +216,8 @@ Extractor.prototype.extractByVision = function(rules, scope) {
  * @return {Array}
  * */
 Extractor.prototype.extractByOneVision = function(rule, scope) {
-    "use strict";
-
     if (!rule || !rule.name || !rule.vision) {
         throw new Error("Invalid rule");
-        return;
     }
 
     if (!scope) {
@@ -250,7 +240,12 @@ Extractor.prototype.extractByOneVision = function(rule, scope) {
         var node = treeWalker.currentNode;
 
         // Only block element is considered, this might be refined to add more tags
-        if (["DIV", "IMG", "A", "UI", "DL", "H1", "H2", "H3", "H4"].indexOf(node.tagName) == -1) {
+        const TAGS = ["DIV", "IMG", "A",
+            "UL", "OL", "LI",
+            "DL",
+            "TABLE", "TBODY", "TR",
+            "H1", "H2", "H3", "H4"];
+        if (TAGS.indexOf(node.tagName) == -1) {
             continue;
         }
 
@@ -260,7 +255,7 @@ Extractor.prototype.extractByOneVision = function(rule, scope) {
             continue;
         }
 
-        var content = this.getTextContent(node);
+        var content = __qiwur_getMergedTextContent(node);
         if (!content) {
             continue;
         }
@@ -313,6 +308,35 @@ Extractor.prototype.extractByOneVision = function(rule, scope) {
 };
 
 /**
+ * Extract fields from an element using the given rules
+ *
+ * @param rules {Array|null} extract rules
+ * @param scope {HTMLElement|null} Element to search child elements within,
+ *  default scope is document
+ * @return
+ * */
+Extractor.prototype.extractByFullRules = function(rules, scope) {
+    "use strict";
+
+    var rules = this.extractor.full;
+    if (!rules) {
+        return this.results;
+    }
+
+    if (!Array.isArray(rules)) {
+        var tmp = [].push(rules);
+        rules = tmp;
+    }
+
+    for (var i = 0; i < rules.length; ++i) {
+        var rule = rules[i];
+        this.extractByFullRule(rule, scope);
+    }
+
+    return this.results;
+};
+
+/**
  * Extract fields from an element using the given rule
  *
  * @param  rule {Object} Extract rule
@@ -325,7 +349,7 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
 
     if (!rule.name || !rule.cssPath) {
         __utils__.log('Full extract rule must have fields name and cssPath', 'warn');
-        return;
+        return this.results;
     }
 
     var k = rule.name;
@@ -345,13 +369,13 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
 
     var content = this.getTextContent(v);
     if (!content) {
-        return;
+        return this.results;
     }
 
     var validateRate = 0.1;
     if (1 < validateRate) {
         // TODO : use a mechanism to validate some of the samples
-        return;
+        return this.results;
     }
 
     var valid = false;
@@ -379,82 +403,62 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
 /**
  * Extract fields from an element using the given rules
  *
- * @param  HTMLElement|null  scope     Element to search child elements within,
- *  default scope is document
- * @return
- * */
-Extractor.prototype.extractByFullRules = function(scope) {
-    "use strict";
-
-    var rules = this.extractor.full;
-    if (!rules) {
-        return;
-    }
-
-    if (!Array.isArray(rules)) {
-        var tmp = [].push(rules);
-        rules = tmp;
-    }
-
-    for (var i = 0; i < rules.length; ++i) {
-        var rule = rules[i];
-        this.extractByFullRule(rule, scope);
-    }
-};
-
-/**
- * Extract fields from an element using the given rule
- *
+ * @param rules {Array|null} extract rules
  * @param  scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return
+ * @return {Array}
  * */
-Extractor.prototype.extractByKVRules = function(scope) {
-    var rules = this.extractor.kv;
-    if (!rules) {
-        return;
-    }
-
-    var type = typeof rules;
-
-    if (type === 'object') {
-        var tmp = [].push(rules);
-        rules = tmp;
-    }
-
-    if (!Array.isArray(rules)) {
-        throw new Error("Unsupported rules type: " + (typeof rules));
+Extractor.prototype.extractByKVRules = function(rules, scope) {
+    for (var i = 0; i < rules.length; ++i) {
+        this.extractByOneKVRule(rules[i], scope);
     }
 
     return this.results;
 };
 
 /**
- * Clean element's textContent
- * @param textContent {String} the string to clean
- * @return The clean string
+ * Extract fields from an element using the given rule
+ *
+ * @param rule {Object|null} extract rule
+ * @param  scope {HTMLElement|null} Element to search child elements within,
+ *  default scope is document
+ * @return {Array}
  * */
-Extractor.prototype.cleanTextContent = function(textContent) {
-    textContent = textContent.replace(/\s+/g, " "); // combine all blanks into one " " character
-    return textContent.trim();
-};
-
-/**
- * Get cleared element's textContent
- * @param content {String} the string to clean
- * @return {String} The cleared string, "" if no element text content available.
- * */
-Extractor.prototype.getTextContent = function(node) {
-    if (!node || !node.textContent) {
-        return "";
+Extractor.prototype.extractByOneKVRule = function(rule, scope) {
+    if (!rule || !rule.name || !rule.collection || !rule.key || !rule.value) {
+        throw new Error("Invalid rule");
     }
 
-    var content = this.cleanTextContent(node.textContent);
+    if (!scope) {
+        scope = document;
+    }
 
-    return content;
+    var nodeList = __utils__.findAll(rule.collection, scope);
+    for (var i = 0; i < nodeList.length; ++i) {
+        var node = nodeList[i];
+
+        var k = __utils__.findAll(rule.key, node);
+        var v = __utils__.findAll(rule.value, node);
+        // v = node.querySelector(rule.value);
+        // v = node;
+
+        __utils__.echo(i + " : " +
+            __qiwur_getReadableNodeName(node) +
+            ", " + rule.key +
+            ", " + rule.value +
+            ", " + (k ? __qiwur_getMergedTextContent(k) : "") +
+            " : " + (v ? __qiwur_getMergedTextContent(v) : "")
+        );
+
+        if (k && v) {
+            this.results.push([__qiwur_getMergedTextContent(k), __qiwur_getMergedTextContent(v)]);
+        }
+    }
+
+    return this.results;
 };
 
-Extractor.prototype.debugContent = function(scope) {
+Extractor.prototype.__debugContent = function(scope) {
     var content = scope.textContent.trim();
     // content = content.replace(/\n/g, "");
 
@@ -466,4 +470,3 @@ Extractor.prototype.debugContent = function(scope) {
     __utils__.echo(s);
     __utils__.echo("-------------debug content-----------------");
 };
-
