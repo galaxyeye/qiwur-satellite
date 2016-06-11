@@ -27,7 +27,7 @@
         "scrollTimeout" : 5000,
         "consolePrefix": "#",
         "loadImages": true,
-        "cacheDirectory" : "/tmp/satellite",
+        "cacheDirectory" : "/tmp/satellite/",
         "forbiddenLinkPatterns" : [
           "(.+)qq.com(.+)",
           "(.+)weibo.com(.+)",

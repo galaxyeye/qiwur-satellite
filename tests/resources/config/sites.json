@@ -41,15 +41,14 @@
       {
         "name": "publication",
         "collection": "#paper-detail #paper-main li",
-        "key": "span:nth-child(1)",
-        "value": "span"
+        "key": "div > *:nth-child(1)",
+        "value": "div > *:not(:nth-child(1))"
       }
     ],
     "page.detail.extractor.full": [
       {
         "name": "entity-source",
-        "cssPath": ".entity-source",
-        "xpath" : "",
+        "selector": ".entity-source",
         "regex" : "^(年份)(.+)",
         "vision" : {
           "schema" : ["top", "left", "width", "height"],
@@ -58,14 +57,14 @@
         },
         "validator": {
           "regex": ".+",
-          "xpath": null
+          "selector": null
         },
-        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]"
+        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]",
+        "comment2" : "selector can be either css path or xpath"
       },
       {
         "name": "entity-references",
-        "cssPath": ".entity-references",
-        "xpath" : "",
+        "selector": ".entity-references",
         "regex" : "",
         "vision" : {
           "min" : [0, 0, 0, 0],
@@ -75,6 +74,14 @@
           "cssPath": null,
           "regex": ".+",
           "xpath": null
+        }
+      },
+      {
+        "name": "paper-main",
+        "kv" : {
+          "collection": "#paper-main li",
+          "key": "div > *:nth-child(1)",
+          "value": "div > *:not(:nth-child(1))"
         }
       }
     ],

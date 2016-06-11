@@ -1,4 +1,3 @@
-
 /**
  * TODO : move all free functions into a class
  * */
@@ -27,7 +26,7 @@ function __qiwur__getOffset(ele) {
  * */
 function __qiwur__setAttribute(ele, key, value) {
     if (value != "0" && value != "0px" && value != "auto") {
-        // value.match(/[1-9]d+px/g);
+        // or use regex : value.match(/[1-9]d+px/g);
         ele.setAttribute(key, value);
     }
 }
@@ -99,7 +98,7 @@ function __qiwur__getVisionInfo(ele, schema) {
 			value = value.replace("px", "");
 		}
 
-		if (value != 0 && !isNaN(value)) {
+		if (!isNaN(parseInt(value)) && value != 0) {
 			allZero = false;
 		}
 
@@ -110,25 +109,8 @@ function __qiwur__getVisionInfo(ele, schema) {
 }
 
 /**
- * Compute descendents number
- * */
-function __qiwur__getDescendentsNumber(ele) {
-	//
-	for(var i = 0; i < ele.childNodes.length; i++) {
-		__qiwur__visualize(ele.childNodes[i], schema);
-	}
-}
-
-var nodeWorker = function(visitor) {
-	function walk(ele) {
-		visitor.head(ele);
-		visitor.visit(ele);
-		visitor.tail(ele);
-	}
-};
-
-/**
  * Compute visualization information
+ * @deprecated, use ElementTraversor/ElementVisitor instead
  * */
 function __qiwur__visualize(ele, schema) {
 	if (["BODY", "DIV", "A", "IMG", "TABLE", "UL", "DL", "H1", "H2"].indexOf(ele.tagName) != -1) {
@@ -141,11 +123,4 @@ function __qiwur__visualize(ele, schema) {
     for(var i = 0; i < ele.childNodes.length; i++) {
     	__qiwur__visualize(ele.childNodes[i], schema);
     }
-}
-
-/**
- * Compute visualization information
- * */
-function __qiwur__visualize2(ele, schema) {
-	new ElementTraversor(new ElementVisitor()).traverse(ele);
 }

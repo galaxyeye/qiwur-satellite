@@ -23,11 +23,23 @@
     "page.index.paginator.next": "#pager > a[data-pager-link='next']",
     "page.index.start": 1,
     "page.index.limit": 3,
-    "page.detail.regex": "http://tuan.qunar.com/deal/(.+)",
+    "page.detail.regex": "http://tuan.qunar.com/hotel/(.+)",
     "page.detail.start": 0,
     "page.detail.limit": 300,
     "page.detail.capture.name": "Price",
     "page.detail.capture.selector": ".price.cms_price"
+  },
+  {
+    "name": "mia.com",
+    "seed": "http://www.mia.com/s/cat91_tid854.html",
+    "page.index.main": ".reputation .content",
+    "page.index.paginator.selector": "div.page",
+    "page.index.paginator.next": "div.page a:last-child",
+    "page.index.start": 1,
+    "page.index.limit": 3,
+    "page.detail.regex": "http://www.mia.com/item-(.+).html",
+    "page.detail.start": 0,
+    "page.detail.limit": 300
   },
   {
     "name": "academic.microsoft.com",
@@ -54,7 +66,7 @@
         "regex" : "^(年份)(.+)",
         "group" : 2,
         "comment" : "Group means the group number of regex match result, which is used to extract the target string.",
-        "comment" : "By default, group is 0 which means the whole string. Invalid group number will set to be 0."
+        "comment2" : "By default, group is 0 which means the whole string. Invalid group number will set to be 0."
       }
     ],
     "page.detail.extractor.vision": [
@@ -70,16 +82,15 @@
     "page.detail.extractor.kv": [
       {
         "name": "publication",
-        "container": ".entity-section div",
-        "key": " > span",
-        "value": " > p"
+        "collection": "#paper-detail #paper-main li",
+        "key": "div > *:nth-child(1)",
+        "value": "div > *:not(:nth-child(1))"
       }
     ],
     "page.detail.extractor.full": [
       {
         "name": "entity-source",
-        "cssPath": ".entity-source",
-        "xpath" : "",
+        "selector": ".entity-source",
         "regex" : "^(年份)(.+)",
         "vision" : {
           "schema" : ["top", "left", "width", "height"],
@@ -88,14 +99,14 @@
         },
         "validator": {
           "regex": ".+",
-          "xpath": null
+          "selector": null
         },
-        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]"
+        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]",
+        "comment2" : "selector can be either css path or xpath"
       },
       {
         "name": "entity-references",
-        "cssPath": ".entity-references",
-        "xpath" : "",
+        "selector": ".entity-references",
         "regex" : "",
         "vision" : {
           "min" : [0, 0, 0, 0],
@@ -105,6 +116,14 @@
           "cssPath": null,
           "regex": ".+",
           "xpath": null
+        }
+      },
+      {
+        "name": "paper-main",
+        "kv" : {
+          "collection": "#paper-main li",
+          "key": "div > *:nth-child(1)",
+          "value": "div > *:not(:nth-child(1))"
         }
       }
     ],

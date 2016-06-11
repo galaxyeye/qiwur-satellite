@@ -33,6 +33,8 @@ var Crawler = function Crawler(options) {
 		return new Crawler(options);
 	}
 
+	this.startTime = new Date();
+
     this.options = utils.mergeObjects(DefaultSiteOptions, options);
 
 	this.config = options.config;
@@ -137,7 +139,7 @@ Crawler.prototype.processIndexPage = function() {
 	var $ = this.crawler || this;
 
     this.echo("Processing index page " + $.casper.getCurrentUrl());
-	this.saveIndexPage();
+	$.saveIndexPage();
 	$.counter.indexPages++;
 
     $.collectDetailPageLinks();
@@ -198,6 +200,12 @@ Crawler.prototype.collectDetailPageLinks = function() {
 	}
 
 	this.data.detailPageLinks = this.data.detailPageLinks.concat(links);
+
+	// make the array unique
+	this.data.detailPageLinks = this.data.detailPageLinks.sort().filter(function(el, i, arr) {
+		return (i == arr.indexOf(el));
+	});
+
 	this.echo('Extracted ' + links.length + ' detail page links');
 };
 
@@ -325,10 +333,14 @@ Crawler.prototype.processDetailPage = function(url) {
  * Save index page
  * */
 Crawler.prototype.saveIndexPage = function() {
-	var file = this.config.cacheDirectory + "/web/index/" + this.options.entity.name + "/"
-		+ "index-" + this.counter.indexPages + ".html";
+	var dir = this.config.cacheDirectory;
+	var domain = this.options.entity.name;
+	var date = (1 + this.startTime.getMonth()) + "_" + this.startTime.getDate();
+	var url = this.casper.getCurrentUrl();
 
-    var content = this.casper.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
+	var file = getIndexPageLocalPath(dir, domain, date, url);
+
+	var content = this.casper.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
 
 	fs.write(file, content, 'w');
 
@@ -339,8 +351,12 @@ Crawler.prototype.saveIndexPage = function() {
  * Save detail page
  * */
 Crawler.prototype.saveDetailPage = function() {
-	var fileName = getDetailPageLocalFileName(this.options.entity.name, this.casper.getCurrentUrl());
-	var file = this.config.cacheDirectory + "/" + fileName;
+	var dir = this.config.cacheDirectory;
+	var domain = this.options.entity.name;
+	var date = (1 + this.startTime.getMonth()) + "_" + this.startTime.getDate();
+	var url = this.casper.getCurrentUrl();
+
+	var file = getDetailPageLocalPath(dir, domain, date, url);
 
 	// Note : can we do this in DOM?
 	// Answer : probably NOT.
@@ -375,9 +391,14 @@ Crawler.prototype.captureAreas = function() {
 				__qiwur_createCaptureArea(captureAreaSelector);
 			}, captureArea.selector);
 
-			var fileName = getDetailPageLocalFileName(options.name, this.casper.getCurrentUrl());
-			var relativeImagePath = fileName + "." + captureArea.name + ".png";
-			var imagePath = this.config.cacheDirectory + "/" + relativeImagePath;
+			var dir = this.config.cacheDirectory;
+			var domain = this.options.entity.name;
+			var date = (1 + this.startTime.getMonth()) + "_" + this.startTime.getDate();
+			var url = this.casper.getCurrentUrl();
+			var fileName = getDetailPageLocalPath(dir, domain, date, url);
+
+			// var fileName = getDetailPageLocalPath(options.name, this.casper.getCurrentUrl());
+			var imagePath = fileName + "." + captureArea.name + ".png";
 			var selectorParts = captureArea.selector.split(/\s+/);
 			var captureTargetSelector = '.QiwurCaptureArea > div.holder ' + selectorParts[selectorParts.length - 1];
 			this.casper.captureSelector(imagePath, captureTargetSelector);
@@ -419,10 +440,18 @@ function findSiteConfig(entities, name) {
 	}
 }
 
-function getDetailPageLocalFileName(name, url) {
-	var fileNumber = md5.hex_md5(url);
+function getIndexPageLocalPath(dir, domain, date, url) {
+	var fileName = md5.hex_md5(url);
 
-	var fileName = "web/detail/" + name + "/" + "detail-" + fileNumber + ".html";
+	var path = "web/" + domain + "/" + date +  "/index/" + fileName + ".html";
 
-	return fileName;
+	return dir + path;
+}
+
+function getDetailPageLocalPath(dir, domain, date, url) {
+	var fileName = md5.hex_md5(url);
+
+	var path = "web/" + domain + "/" + date + "/detail/" + fileName + ".html";
+
+	return dir + path;
 }

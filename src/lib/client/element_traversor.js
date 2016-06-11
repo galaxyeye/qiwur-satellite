@@ -42,14 +42,14 @@ ElementTraversor.prototype.traverse = function(root) {
     var ele = root;
     var depth = 0;
     
-    while (ele) {
+    while (ele && !this.visitor.isStopped()) {
         this.visitor.head(ele, depth);
 
         if (ele.children.length > 0) {
             ele = ele.children[0];
             depth++;
         } else {
-            while (!ele.nextElementSibling && depth > 0) {
+            while (!ele.nextElementSibling && depth > 0 && !this.visitor.isStopped()) {
                 this.visitor.tail(ele, depth);
                 ele = ele.parentNode;
                 depth--;

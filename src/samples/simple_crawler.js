@@ -22,10 +22,7 @@ var configData = utils.mergeObjects(DefaultConf, config.loadConfig().fetcher);
 
 // TODO : change phantom.libraryPath
 var casper = require("casper").create({
-    clientScripts : ['../src/lib/client/humanize.js',
-        '../src/lib/client/visualize.js',
-        '../src/lib/client/clientutils.js',
-        '../src/lib/client/jquery-1.11.2.js'],
+    clientScripts : ['./src/lib/client/dist/satellite.full.js'],
     pageSettings : {
         userAgent : "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0",
         loadPlugins : false,
@@ -53,7 +50,7 @@ var casper = require("casper").create({
 });
 
 var events = vendor('events').create(casper);
-var entity = config.loadSiteObject("academic.microsoft.com");
+var entity = config.loadSiteObject("mia.com");
 var options = {'config' : configData, 'casper' : casper, 'entity' : entity};
 
 var crawler = vendor("crawler").create(options);

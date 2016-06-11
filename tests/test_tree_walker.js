@@ -1,7 +1,7 @@
 var resourceDir = "tests/resources";
 var testPage = resourceDir + "/web/detail/academic.microsoft.com/detail-0d50c3e58b5f9bbd33dba37a3c61100f.html";
 
-var events = vendor('events').create(casper);
+// var events = vendor('events').create(casper);
 casper.options.clientScripts.push("./src/lib/client/dist/satellite.full.js");
 
 casper.test.begin('tree walker basic feature', 1, function(test) {

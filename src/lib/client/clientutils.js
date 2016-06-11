@@ -3,38 +3,11 @@ const META_INFORMATION_ID = "QiwurScrapingMetaInformation";
 /**
  * TODO : move all free functions into a class
  * */
-
 function __qiwur__visualizeHumanize() {
-	var metadata = document.querySelector("#" + META_INFORMATION_ID);
-	if (metadata) {
-        // already exists
-        return;
-	}
+	// traverse the DOM and compute necessary data, we must compute data before we perform humanization
+	new ElementTraversor(new ElementVisitor()).traverse(document.body);
 
-	var visionSchema = ["top", "left", "width", "height"];
-    var visionSchemaString = "top-left-width-height";
-
-	document.body.setAttribute("data-url", document.URL);
-
-	var ele = document.createElement("input");
-	ele.setAttribute("type", "hidden");
-	ele.setAttribute("id", META_INFORMATION_ID);
-	ele.setAttribute("data-domain", document.domain);
-	/**
-	 * MetaInformation version :
-	 * No version : as the same as 0.1.0, the first div was selected as the holder
-	 * 0.2.0 : add a input element at the end of body element
-	 * 0.2.1 : add "vi" attribute for each (important) element, deprecate "data-" series 
-	 * 		to deduce file size
-	 * */
-	// ele.setAttribute("data-version", "0.2.0");
-	ele.setAttribute("data-version", "0.2.1");
-	ele.setAttribute("data-url", document.URL);
-	ele.setAttribute("data-base-uri", document.baseURI);
-	ele.setAttribute("data-vision-schema", visionSchemaString);
-	document.body.appendChild(ele);
-
-	__qiwur__visualize(document.body, visionSchema);
+	// do some action like a real user
 	__qiwur__humanize(document.body);
 
 	// if any script error occurs, the flag can NOT be seen
@@ -52,9 +25,6 @@ function __qiwur__visualizeHumanize() {
 function __qiwur__searchLinks(mainAreaSelector, urlRegex) {
 	var filter = Array.prototype.filter;
 	var map = Array.prototype.map;
-
-	// __utils__.echo('------------');
-	// __utils__.echo(mainAreaSelector + " a");
 
 	var links = document.querySelectorAll(mainAreaSelector + " a");
 	return map.call(filter.call(links, function(link) {
@@ -149,14 +119,20 @@ function __qiwur_getReadableNodeName(node) {
     return name;
 }
 
-
 /**
  * Clean node's textContent
  * @param textContent {String} the string to clean
  * @return {String} The clean string
  * */
 function __qiwur_getCleanTextContent(textContent) {
-	textContent = textContent.replace(/\s+/g, " "); // combine all blanks into one " " character
+
+	// all control characters
+	// @see http://www.asciima.com/
+	textContent = textContent.replace(/[\x00-\x1f]/g, " ");
+
+	// combine all blanks into one " " character
+	textContent = textContent.replace(/\s+/g, " ");
+
 	return textContent.trim();
 }
 
@@ -176,8 +152,10 @@ function __qiwur_getMergedTextContent(nodeOrList) {
 
 	var content = "";
 	for (var i = 0; i < nodeOrList.length; ++i) {
+		if (i > 0) {
+			content += " ";
+		}
 		content += __qiwur_getTextContent(nodeOrList[i]);
-		content += " ";
 	}
 
 	return content;

@@ -58,7 +58,7 @@ Extractor.prototype.extract = function(scope) {
     try {
         this.extractBySlimRules(this.extractor.slim, scope);
         this.extractByFullRules(this.extractor.full, scope);
-        // this.extractByKVRules(this.extractor.kv, scope);
+        this.extractByKVRules(this.extractor.kv, scope);
     }
     catch (e) {
         __utils__.log(e, "error");
@@ -186,6 +186,50 @@ Extractor.prototype.extractByOneRegex = function(rule, scope) {
         v = node;
         content = groups[groupNum];
         this.results.push([k, content.trim()]);
+    }
+
+    return this.results;
+};
+
+/**
+ * Extract fields from an element using css selector or xpath
+ *
+ * @param rules {Array|null} extract rules
+ * @param scope {HTMLElement|null} Element to search child elements within,
+ *  default scope is document
+ * @return {Array}
+ * */
+Extractor.prototype.extractBySelector = function(rules, scope) {
+    for (var i = 0; i < rules.length; ++i) {
+        this.extractByOneSelector(rules[i], scope);
+    }
+
+    return this.results;
+};
+
+/**
+ * Extract fields from an element using css selector or xpath
+ *
+ * @param rules {Array|null} extract rules
+ * @param scope {HTMLElement|null} Element to search child elements within,
+ *  default scope is document
+ * @return {Array}
+ * */
+Extractor.prototype.extractByOneSelector = function(rule, scope) {
+    if (!rule.name || !rule.selector) {
+        __utils__.log('Invalid rule', 'warn');
+        return this.results;
+    }
+
+    var k = rule.name;
+    var v = __utils__.findAll(rule.selector, scope);
+
+    if (rule.debug) {
+        this.__debugContent(rule.key, rule.value, node);
+    }
+
+    if (k && v) {
+        this.results.push([__qiwur_getMergedTextContent(k), __qiwur_getMergedTextContent(v)]);
     }
 
     return this.results;
@@ -347,29 +391,17 @@ Extractor.prototype.extractByFullRules = function(rules, scope) {
 Extractor.prototype.extractByFullRule = function(rule, scope) {
     "use strict";
 
-    if (!rule.name || !rule.cssPath) {
-        __utils__.log('Full extract rule must have fields name and cssPath', 'warn');
-        return this.results;
+    if (rule.selector) {
+        this.extractBySelector(rule, scope);
     }
-
-    var k = rule.name;
-    var v = null;
-    if (rule.cssPath) {
-        v = __utils__.findOne(rule.cssPath, scope);
-    }
-    if (!v && rule.xpath) {
-        v = __utils__.findOne(rule.xpath, scope);
-    }
-    if (!v && rule.regex) {
+    if (rule.regex) {
         this.extractByRegex(rule, scope);
     }
-    if (!v && rule.vision) {
+    if (rule.vision) {
         this.extractByVision(rule, scope);
     }
-
-    var content = this.getTextContent(v);
-    if (!content) {
-        return this.results;
+    if (rule.kv) {
+        this.extractByOneKVRule(rule, scope);
     }
 
     var validateRate = 0.1;
@@ -378,12 +410,11 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
         return this.results;
     }
 
+    var resultNotValidated = this.results;
+    this.results = [];
+
     var valid = false;
-    if (rule.validator.cssPath) {
-        var v2 = __utils__.findOne(rule.validator.xpath, scope);
-        valid = (content == v2.textContent.trim());
-    }
-    if (rule.validator.xpath) {
+    if (rule.validator.selector) {
         var v2 = __utils__.findOne(rule.validator.xpath, scope);
         valid = (content == v2.textContent.trim());
     }
@@ -398,6 +429,13 @@ Extractor.prototype.extractByFullRule = function(rule, scope) {
     }
 
     return this.results;
+};
+
+/**
+ * Validate
+ * */
+Extractor.prototype.validate = function() {
+
 };
 
 /**
@@ -425,7 +463,7 @@ Extractor.prototype.extractByKVRules = function(rules, scope) {
  * @return {Array}
  * */
 Extractor.prototype.extractByOneKVRule = function(rule, scope) {
-    if (!rule || !rule.name || !rule.collection || !rule.key || !rule.value) {
+    if (!rule || !rule.collection || !rule.key || !rule.value) {
         throw new Error("Invalid rule");
     }
 
@@ -439,16 +477,10 @@ Extractor.prototype.extractByOneKVRule = function(rule, scope) {
 
         var k = __utils__.findAll(rule.key, node);
         var v = __utils__.findAll(rule.value, node);
-        // v = node.querySelector(rule.value);
-        // v = node;
 
-        __utils__.echo(i + " : " +
-            __qiwur_getReadableNodeName(node) +
-            ", " + rule.key +
-            ", " + rule.value +
-            ", " + (k ? __qiwur_getMergedTextContent(k) : "") +
-            " : " + (v ? __qiwur_getMergedTextContent(v) : "")
-        );
+        if (rule.debug) {
+            this.__debugContent(rule.key, rule.value, node);
+        }
 
         if (k && v) {
             this.results.push([__qiwur_getMergedTextContent(k), __qiwur_getMergedTextContent(v)]);
@@ -458,15 +490,15 @@ Extractor.prototype.extractByOneKVRule = function(rule, scope) {
     return this.results;
 };
 
-Extractor.prototype.__debugContent = function(scope) {
-    var content = scope.textContent.trim();
-    // content = content.replace(/\n/g, "");
+Extractor.prototype.__debugContent = function(ruleKey, ruleValue, scope) {
+    var k = __utils__.findAll(ruleKey, scope);
+    var v = __utils__.findAll(ruleValue, scope);
 
-    __utils__.echo("-------------debug content-----------------");
-    var s = "";
-    for (var i = 0; i < content.length; ++i) {
-        s += content.charAt(i) + content.charCodeAt(i) + ",";
-    }
-    __utils__.echo(s);
-    __utils__.echo("-------------debug content-----------------");
+    __utils__.echo(i + " : " +
+        __qiwur_getReadableNodeName(scope) +
+        ", " + ruleKey +
+        ", " + ruleValue +
+        ", " + (k ? __qiwur_getMergedTextContent(k) : "") +
+        " : " + (v ? __qiwur_getMergedTextContent(v) : "")
+    );
 };
