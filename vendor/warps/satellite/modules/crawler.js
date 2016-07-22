@@ -1,3 +1,7 @@
+"use strict";
+
+/*global __utils__, CasperError, console, exports, phantom, patchRequire, require:true*/
+
 /**
  * Entity crawler module
  * */
@@ -276,7 +280,7 @@ Crawler.prototype.processDetailPage = function(url) {
 	casper.then(function() {
 		this.scrollToBottom();
 	});
-    
+
 	// Scroll to top again to calculate original element positions
 	casper.then(function() {
 		this.scrollTo(0, 0);
@@ -313,20 +317,12 @@ Crawler.prototype.processDetailPage = function(url) {
 		}
 	});
 
-	// .waitFor(function() {
-	// return url !== this.getCurrentUrl();
-	// })
-
 	casper.then(function(response) {
 		this.echo('Extract Result : ' + this.getCurrentUrl() + ' - ' + this.getTitle());
 		// this.debugPage();
 		// utils.dump(response);
 		// autoExtractDetailPage.call(this);
 	});
-
-//	casper.then(function() {
-//		this.crawler.processDetailPages();
-//	});
 };
 
 /**
@@ -335,7 +331,7 @@ Crawler.prototype.processDetailPage = function(url) {
 Crawler.prototype.saveIndexPage = function() {
 	var dir = this.config.cacheDirectory;
 	var domain = this.options.entity.name;
-	var date = (1 + this.startTime.getMonth()) + "_" + this.startTime.getDate();
+	var date = this.startTime.pattern("MM.dd");
 	var url = this.casper.getCurrentUrl();
 
 	var file = getIndexPageLocalPath(dir, domain, date, url);
@@ -353,7 +349,7 @@ Crawler.prototype.saveIndexPage = function() {
 Crawler.prototype.saveDetailPage = function() {
 	var dir = this.config.cacheDirectory;
 	var domain = this.options.entity.name;
-	var date = (1 + this.startTime.getMonth()) + "_" + this.startTime.getDate();
+	var date = this.startTime.pattern("MM.dd");
 	var url = this.casper.getCurrentUrl();
 
 	var file = getDetailPageLocalPath(dir, domain, date, url);

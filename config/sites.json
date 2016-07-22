@@ -30,6 +30,30 @@
     "page.detail.capture.selector": ".price.cms_price"
   },
   {
+    "name": "beibei.com",
+    "seed": "http://d.beibei.com/search/item/query.html?cat=341",
+    "page.index.main": "#content .view-ItemList",
+    "page.index.paginator.selector": "div.pagination",
+    "page.index.paginator.next": "div.pagination a:last-child",
+    "page.index.start": 1,
+    "page.index.limit": 3,
+    "page.detail.regex": "http://www.beibei.com/detail/(.+)",
+    "page.detail.start": 0,
+    "page.detail.limit": 300
+  },
+  {
+    "name": "meitun.com",
+    "seed": "http://search.meitun.com/searchnavipage?fiCatgid=343&itemName=%E8%A2%8B%E9%BC%A0%E5%A6%88%E5%A6%88",
+    "page.index.main": ".reputation .content",
+    "page.index.paginator.selector": "div.page",
+    "page.index.paginator.next": "div.page a:last-child",
+    "page.index.start": 1,
+    "page.index.limit": 3,
+    "page.detail.regex": "http://www.mia.com/item-(.+).html",
+    "page.detail.start": 0,
+    "page.detail.limit": 300
+  },
+  {
     "name": "mia.com",
     "seed": "http://www.mia.com/s/cat91_tid854.html",
     "page.index.main": ".reputation .content",

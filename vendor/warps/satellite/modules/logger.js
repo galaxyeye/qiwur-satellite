@@ -1,6 +1,7 @@
 var fs = require('fs');
 var system = require('system');
-var sateutils = vendor('sutils');
+var sutils = vendor('sutils');
+var configure = vendor('configure').create();
 
 var FlushCachePeriod = 1000;
 var DefaultLevel = 'info';
@@ -89,7 +90,7 @@ var logger = {
 
 	log: function(msg, level) {
 		if (!this.config) {
-	        this.config = config.loadConfig().logger;
+	        this.config = configure.loadConfig().logger;
 	        this.logLevel = this.config.logLevel;
 		}
 
@@ -101,17 +102,15 @@ var logger = {
 			return;
 		}
 
-		// file = sateutils.logDir() + fs.separator + new Date().getDate() + fs.separator +
-		// 	"monitor." + level + ".log";
+		var file = sutils.logDir() + fs.separator + new Date().getDate() + fs.separator +
+		 	"satellite." + level + ".log";
 
-		var file = fs.absolute(fs.workingDirectory + fs.separator + "output");
-		
 		loggerImpl.write(file, msg, level);
 	},
 
 	close : function () {
 		loggerImpl.close();
-	},
+	}
 };
 
 loggerImpl.run();

@@ -1,11 +1,10 @@
-var sateutils = require('./lib/sutils');
-var md5 = require('./lib/md5');
-var logger = require('./lib/logger');
-var config = require('./lib/config');
-
-var fs = require("fs");
 var system = require("system");
+var fs = require("fs");
 var utils = require('utils');
+var sutils = vendor('sutils');
+var md5 = vendor("md5");
+var logger = vendor('logger');
+var configure = vendor('configure').create();
 
 var DefaultConf = {
     "userAgent": "chrome",
@@ -24,13 +23,13 @@ var DefaultConf = {
     "extractJustInTime" : false
 };
 
-conf = config.mergeConfig(DefaultConf, config.loadConfig().fetcher);
+conf = configure.mergeConfig(DefaultConf, configure.loadConfig().fetcher);
 
 var status = 'OK';
 
 var casper = require('casper').create(
 	{
-		clientScripts : ['lib.old/humanize.js', 'lib.old/visualize.js', 'lib.old/clientutils.js', 'lib.old/jquery-1.11.2.js'],
+		clientScripts : ['src/lib/client/dist/satellite.min.js'],
 		pageSettings : {
 			loadImages : true,
 			loadPlugins : false,
@@ -53,7 +52,7 @@ var casper = require('casper').create(
 		}
 	});
 
-var sites = config.loadConfig("config/sites.json");
+var sites = configure.loadConfig("config/sites.json");
 
 if (system.args.length < 2) {
 	console.log("usage : monitor [options] cclient.js <site-name>");
@@ -222,7 +221,7 @@ var ignore = function() {
 
 var processSeedPage = function() {
 	processIndexPages.call(this);
-}
+};
 
 var processIndexPages = function() {
 //	var file = "/tmp/monitor/index-" + indexPageCounter + ".png";
@@ -393,7 +392,7 @@ var saveDetailPage = function() {
 	fs.write(file, content, 'w');
 
 	this.echo("page saved in : " + file);
-}
+};
 
 var captureAreas = function() {
 	if (!site.detailPageCaptureAreas) {
@@ -424,7 +423,7 @@ var captureAreas = function() {
 			}, captureArea.selector, captureArea.name, relativeImagePath);
 		} // if
 	} // for
-}
+};
 
 var autoExtractDetailPage = function() {
 	this.echo('Extract detail page : ' + this.getCurrentUrl());
@@ -432,4 +431,4 @@ var autoExtractDetailPage = function() {
 
 	// var file = "/tmp/monitor/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
-}
+};

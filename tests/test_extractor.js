@@ -1,8 +1,9 @@
 var utils = require('utils');
 var fs = require('fs');
 var sutils = vendor('sutils');
+var configure = vendor('configure').create();
 
-var entity = config.loadSiteObject("academic.microsoft.com", "tests/resources/config/sites.json");
+var entity = configure.loadSiteObject("academic.microsoft.com", "tests/resources/config/sites.json");
 var options = {'extractor' : entity.page.detail.extractor};
 
 casper.options.clientScripts.push("./src/lib/client/dist/satellite.full.js");

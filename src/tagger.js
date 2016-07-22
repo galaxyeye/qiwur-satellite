@@ -121,8 +121,9 @@ var tagger = {
 
     forward: function(url, response) {
         var responsed = false;
-        var fetcher = require('./fetcher').create();
-        fetcher.fetch(url, this.fetcherConfig, function(proxyResponse, page) {
+
+        var fetcher = vendor('fetcher').create({config : this.config});
+        fetcher.fetch(url, function(proxyResponse, page) {
             if (!page) {
                 logger.error("page is closed, quit...");
 

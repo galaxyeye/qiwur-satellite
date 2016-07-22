@@ -173,8 +173,8 @@ var services = {
         // logger.debug("forward to : " + request.url);
 
         var responsed = false;
-        var fetcher = require('./fetcher').create();
-        fetcher.fetch(request.url, httpServer.fetcherConfig, function(proxyResponse, page) {
+        var fetcher = vendor('fetcher').create({config : this.config});
+        fetcher.fetch(request.url, function(proxyResponse, page) {
             if (!page) {
                 logger.error("page is closed, quit...");
 

@@ -20,9 +20,9 @@ var DefaultConf = {
 
 var configData = utils.mergeObjects(DefaultConf, config.loadConfig().fetcher);
 
-// TODO : change phantom.libraryPath
+// TODO : phantom.libraryPath seems no use
 var casper = require("casper").create({
-    clientScripts : ['./src/lib/client/dist/satellite.full.js'],
+    clientScripts : ['./src/lib/client/dist/satellite.min.js'],
     pageSettings : {
         userAgent : "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0",
         loadPlugins : false,

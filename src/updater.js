@@ -1,7 +1,10 @@
+"use strict";
+
+/*global phantom, require:true*/
+
 var fs = require("fs");
-var utils = require('././utils');
-var logger = require('././logger');
-var fetcher = require('./fetcher');
+var logger = vendor("logger");
+var fetcher = vendor('fetcher').create();
 
 var DefaultUpdateTimeout = 5 * 60 * 1000; // 5 min
 var updated = false;
@@ -28,7 +31,7 @@ var updater = {
     		});
     	}
 
-        var waitfor = require('././waitfor').create(
+        var waitfor = vendor('waitfor').create(
         	function() {
         		return updatedResources >= resourceCount;
         	},

@@ -51,7 +51,7 @@ SATELLITE_OPTS="--load-images=true --ssl-protocol=any --cookies-file=output/sate
 SATELLITE_LOG=$SATELLITE_HOME/logs
 SATELLITE_OUTPUT=$SATELLITE_HOME/output
 
-# since phantomjs built-in process bugs, we must restart the system periodically
+# since phantomjs built-in process bugs, we must restart the system periodically.
 # restart every SATELLITE_RESTART_PERIOD minites
 SATELLITE_RESTART_PERIOD=30
 
@@ -86,7 +86,7 @@ function start_all() {
     while [ 1 ]
     do
         echo "start all..."
-        run coordinator.js start > /dev/null 2>&1 &
+        run src/coordinator.js start
         echo "waiting..."
         sleep `expr $SATELLITE_RESTART_PERIOD \* 60`
         echo "stop all..."

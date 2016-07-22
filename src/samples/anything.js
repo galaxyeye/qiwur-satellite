@@ -1,21 +1,20 @@
-var str = JSON.stringify({a : 1});
+var system = require("system");
+var fs = require("fs");
+var utils = require('utils');
+var sutils = vendor('sutils');
+var md5 = vendor("md5");
+var logger = vendor('logger');
+var configure = vendor('configure').create();
 
-console.log(str);
+utils.dump(configure);
+console.log(JSON.stringify(configure));
+configure.test();
+utils.dump(configure.loadConfig());
 
-console.log("\x1f");
-console.log("\n".charCodeAt(0));
-console.log(" ".charCodeAt(0));
+// var config = window.config.loadConfig().fetchController;
 
-var vi = {
-    Menu :          "161 640 870 46",
-    Categories :    "207 460 1000 50",
-    Title :         "277 480 650 26",
-    BigImage :      "344 480 447 447",
-    Gallery :       "791 480 447 100",
-    ProductShow :   "344 977 463 470",
-    SimilarEntity : "919 460 1000 221",
-    ProductSpec :   "1260 470 750 160",
-    ProductDetail : "1614 470 750 170"
-};
+var entity = configure.loadSiteObject("academic.microsoft.com", "tests/resources/config/sites.json");
+
+utils.dump(entity);
 
 phantom.exit(0);

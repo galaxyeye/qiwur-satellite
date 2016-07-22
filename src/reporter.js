@@ -1,8 +1,6 @@
 var fs = require("fs");
-require(fs.absolute("bootstrap"));
-
-var utils = vendor('sutils');
 var logger = vendor('logger');
+var configure = vendor('configure').create();
 
 var reported = false;
 
@@ -12,7 +10,7 @@ var reported = false;
 var reporter = {
 
     run: function () {
-        var config = require('././config').loadConfig();
+        var config = configure.loadConfig();
 
         if (!config.report) {
         	logger.info('report disabled');

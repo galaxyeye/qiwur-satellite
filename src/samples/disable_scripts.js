@@ -21,8 +21,8 @@ for(var i = 0; i < scripts.length; i++) {
 
         var html = fs.read(file);
         // html = html.replace(/script/gi, "script-removed");
-        html = html.replace(/script-removed/gi, "script");
-        html = html.replace(/<script(.+)>(.*)<\/script>/gi, "");
+        // html = html.replace(/script-removed/gi, "script");
+        html = html.replace(/init\.js\?v=20151102/i, "init.rm.js?v=20151102");
         fs.write(file, html, "w");
     }
 }

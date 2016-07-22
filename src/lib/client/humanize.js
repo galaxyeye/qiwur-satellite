@@ -103,6 +103,8 @@ function __qiwur__humanize(doc) {
 
             // if any script error occurs, the flag can NOT be seen
             link.setAttribute('data-event-fired', eventCount);
+
+            __qiwur__fireEvent(link, 'mouseout');
         }
     }
 

@@ -201,79 +201,6 @@ var utils_functions = {
         return "http://" + host + ":" + port + path;
     },
 
-    getResourceUrls: function (page) {
-        return page.evaluate(function () {
-            var
-                // resources referenced in DOM
-                // notable exceptions: iframes, rss, links
-                selectors = [
-                    ['script', 'src'],
-                    ['img', 'src'],
-                    ['link[rel="stylesheet"]', 'href']
-                ],
-
-                resources = {},
-                baseScheme = document.location.toString().split("//")[0],
-                tallyResource = function (url) {
-                    if (url && url.substr(0,5)!='data:') {
-                        if (url.substr(0, 2)=='//') {
-                            url = baseScheme + url;
-                        }
-                        if (!resources[url]) {
-                            resources[url] = 0;
-                        }
-                        resources[url]++;
-                    }
-                },
-
-                elements, elementsLength, e,
-                stylesheets, stylesheetsLength, ss,
-                rules, rulesLength, r,
-                style, styleLength, s,
-                computed, computedLength, c,
-                value;
-
-            // attributes in DOM
-            selectors.forEach(function (selectorPair) {
-                elements = document.querySelectorAll(selectorPair[0]);
-                for (e = 0, elementsLength = elements.length; e < elementsLength; e++) {
-                    tallyResource(elements[e].getAttribute(selectorPair[1]));
-                };
-            });
-
-            // URLs in stylesheets
-            stylesheets = document.styleSheets;
-            for (ss = 0, stylesheetsLength = stylesheets.length; ss < stylesheetsLength; ss++) {
-                rules = stylesheets[ss].rules;
-                if (!rules) { continue; }
-                for (r = 0, rulesLength = rules.length; r < rulesLength; r++) {
-                    if (!rules[r]['style']) { continue; }
-                    style = rules[r].style;
-                    for (s = 0, styleLength = style.length; s < styleLength; s++) {
-                        value = style.getPropertyCSSValue(style[s]);
-                        if (value && value.primitiveType == CSSPrimitiveValue.CSS_URI) {
-                            tallyResource(value.getStringValue());
-                        }
-                    }
-                };
-            };
-
-            // URLs in styles on DOM
-            elements = document.querySelectorAll('*');
-            for (e = 0, elementsLength = elements.length; e < elementsLength; e++) {
-                computed = elements[e].ownerDocument.defaultView.getComputedStyle(elements[e], '');
-                for (c = 0, computedLength = computed.length; c < computedLength; c++) {
-                    value = computed.getPropertyCSSValue(computed[c]);
-                    if (value && value.primitiveType == CSSPrimitiveValue.CSS_URI) {
-                        tallyResource(value.getStringValue());
-                    }
-                }
-            };
-
-            return resources;
-        });
-    },
-
    // @Deprecated
    getEncoding: function(str) {
     	var encoding = null;
@@ -330,6 +257,43 @@ var utils_functions = {
 	    }
 	    return str;
 	}
+};
+
+/**
+ * Extends standard Date object, add format functionality
+ * */
+Date.prototype.pattern=function(fmt) {
+	var o = {
+		"M+" : this.getMonth()+1, //月份         
+		"d+" : this.getDate(), //日         
+		"h+" : this.getHours()%12 == 0 ? 12 : this.getHours()%12, //小时         
+		"H+" : this.getHours(), //小时         
+		"m+" : this.getMinutes(), //分         
+		"s+" : this.getSeconds(), //秒         
+		"q+" : Math.floor((this.getMonth()+3)/3), //季度         
+		"S" : this.getMilliseconds() //毫秒         
+	};
+	var week = {
+		"0" : "/u65e5",
+		"1" : "/u4e00",
+		"2" : "/u4e8c",
+		"3" : "/u4e09",
+		"4" : "/u56db",
+		"5" : "/u4e94",
+		"6" : "/u516d"
+	};
+	if(/(y+)/.test(fmt)){
+		fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+	}
+	if(/(E+)/.test(fmt)){
+		fmt=fmt.replace(RegExp.$1, ((RegExp.$1.length>1) ? (RegExp.$1.length>2 ? "/u661f/u671f" : "/u5468") : "")+week[this.getDay()+""]);
+	}
+	for(var k in o){
+		if(new RegExp("("+ k +")").test(fmt)){
+			fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));
+		}
+	}
+	return fmt;
 };
 
 for (var f in utils_functions) {
