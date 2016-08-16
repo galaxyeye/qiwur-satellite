@@ -70,6 +70,16 @@ try {
         }
     }
 
+    /**
+     * include and execute a script file, file is either a relative path or a absolute path
+     * */
+    if (!global.include) {
+        global.include = function(file) {
+            var script = fs.read(file);
+            eval(script);
+        }
+    }
+
     var requireVendor = function(require) {
         function getCurrentScriptRoot() {
             if ((phantom.vendorPath || "").indexOf(fs.workingDirectory) === 0) {

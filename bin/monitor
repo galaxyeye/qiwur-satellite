@@ -44,16 +44,8 @@ fi
 
 # some directories
 THIS_DIR=`dirname "$THIS"`
-SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
 
-SATELLITE=$SATELLITE_HOME/bin/satellite
-SATELLITE_OPTS="--load-images=true --ssl-protocol=any --cookies-file=output/satellite.cookie.txt"
-SATELLITE_LOG=$SATELLITE_HOME/logs
-SATELLITE_OUTPUT=$SATELLITE_HOME/output
-
-# since phantomjs built-in process bugs, we must restart the system periodically.
-# restart every SATELLITE_RESTART_PERIOD minites
-SATELLITE_RESTART_PERIOD=30
+ . ${THIS_DIR}/../config/satellite-env.sh
 
 cd $SATELLITE_HOME
 
@@ -61,7 +53,41 @@ cd $SATELLITE_HOME
 COMMAND=$1
 shift
 
-EXEC_CALL="$SATELLITE $SATELLITE_OPTS"
+if [ -z $SATELLITE_COOKIE_FILE ]; then
+    SATELLITE_COOKIE_FILE=output/cookies/satellite.cookie.txt
+fi
+
+SATELLITE_OPTS=(--load-images=true --ssl-protocol=any)
+SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --cookies-file=$SATELLITE_COOKIE_FILE)
+
+if [ -z $PROXY_POLICY ]; then
+    PROXY_POLICY=0
+    PROXY_IP_PORT=
+fi
+
+if (( $PROXY_POLICY == 2 )); then
+    . ${THIS_DIR}/proxy_selector.sh
+fi
+
+if (( $PROXY_POLICY > 0 )) && [ -n ${PROXY_IP_PORT} ]; then
+    SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --proxy=${PROXY_IP_PORT})
+fi
+
+if [ -z $SATELLITE_RESTART_PERIOD ]; then
+    SATELLITE_RESTART_PERIOD=30
+fi
+
+if [ -z $SATELLITE_LOG ]; then
+    SATELLITE_LOG=/tmp/satellite/logs
+    mkdir -p $SATELLITE_LOG
+fi
+
+if [ -z $SATELLITE_OUTPUT ]; then
+    SATELLITE_OUTPUT=/tmp/satellite/output
+    mkdir -p $SATELLITE_OUTPUT
+fi
+
+EXEC_CALL=($SATELLITE ${SATELLITE_OPTS[@]})
 EXEC_CALL_TEST="$SATELLITE test"
 
 function run() {
@@ -69,8 +95,9 @@ function run() {
     shift
 
     JS="$SATELLITE_HOME/$CMD"
-    echo "$EXEC_CALL $JS $@"
-    exec $EXEC_CALL $JS $@
+
+    echo "${EXEC_CALL[@]}" $JS $@
+    exec "${EXEC_CALL[@]}" $JS $@
 }
 
 function run_test() {
@@ -85,6 +112,8 @@ function start_all() {
 
     while [ 1 ]
     do
+        echo "-------------------------------------"
+        echo `date`
         echo "start all..."
         run src/coordinator.js start
         echo "waiting..."
@@ -93,7 +122,15 @@ function start_all() {
         pkill phantomjs
 
         # delete old log files
+        echo "try remove old log files : "
+        echo ">>>>>>>>>>>>"
+        ls $SATELLITE_LOG
+        ls $SATELLITE_OUTPUT
         find $SATELLITE_LOG $SATELLITE_OUTPUT -mtime +2 -a -type f -print -delete
+        echo "<<<<<<<<<<<<"
+        ls $SATELLITE_LOG
+        ls $SATELLITE_OUTPUT
+        echo
     done
 }
 

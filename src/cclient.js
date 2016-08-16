@@ -1,3 +1,5 @@
+/*global __utils__, CasperError, console, exports, phantom, patchRequire, require:true*/
+
 var system = require("system");
 var fs = require("fs");
 var utils = require('utils');
@@ -176,7 +178,7 @@ casper.start(site.seed).then(function() {
 });
 
 casper.run(function() {
-	this.exit();
+	this.exit(0);
 });
 
 /*******************************************************************************

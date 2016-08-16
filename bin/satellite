@@ -93,9 +93,7 @@ ENGINE_EXECUTABLE = ''
 SATELLITE_PATH = os.path.abspath(os.path.join(os.path.dirname(resolve(__file__)), '..'))
 VENDOR_BIN = os.path.join(SATELLITE_PATH, 'vendor/bin')
 CASPER_PATH = os.path.join(SATELLITE_PATH, 'vendor/casperjs/casperjs')
-# COOKIE_PATH = os.path.join(SATELLITE_PATH, 'output/satellite.cookie.txt')
 
-# SATELLITE_OPTS="--load-images=true --ssl-protocol=any --cookies-file=" + COOKIE_PATH
 CASPER_ARGS = []
 SYS_ARGS = sys.argv[1:]
 

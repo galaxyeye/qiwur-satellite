@@ -92,6 +92,7 @@ casper.then(function () {
     fs.write(file, content, 'w');
 
     this.echo("full page content has been saved in file : " + file);
+    this.echo(content.substr(0, 100));
 });
 
 casper.run(function () {
