@@ -62,10 +62,10 @@ casper.start(url, function() {
 
 	// this.download(this.getElementAttribute('#vcodeImg', 'src'), 'captcha');
 //	this.evaluate(function(captureAreaSelector) {
-//		__qiwur_createCaptureArea(captureAreaSelector);
+//		__warps_createCaptureArea(captureAreaSelector);
 //	}, "#loginForm");
 
-//	this.captureSelector("/tmp/captcha.png", ".QiwurCaptureArea > div.holder");
+//	this.captureSelector("/tmp/captcha.png", ".WarpsCaptureArea > div.holder");
 	this.capture("/tmp/captcha.png");
 	var child = spawn('eog', [ '/tmp/captcha.png' ]);
 

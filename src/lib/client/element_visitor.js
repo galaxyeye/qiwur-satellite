@@ -1,5 +1,7 @@
 /**
  * Created by vincent on 16-5-17.
+ *
+ * Element Visitor : used with Element ElementTraversor together
  */
 
 // TODO : record all features required
@@ -10,9 +12,9 @@ const VISION_SCHEMA_STRING = "top-left-width-height";
 "use strict";
 
 /**
- * Create a new ElementVisitor.
+ * Create a new WarpsElementVisitor.
  */
-var ElementVisitor = function() {
+var WarpsElementVisitor = function() {
     // this.schema = ["descend"];
     this.sequence = 0;
     this.stopped = false;
@@ -37,7 +39,7 @@ var ElementVisitor = function() {
  * 		to deduce file size
  * 0.2.2 : coming soon...
  * */
-ElementVisitor.prototype.generateMetadata = function() {
+WarpsElementVisitor.prototype.generateMetadata = function() {
     document.body.setAttribute("data-url", document.URL);
 
     var ele = document.createElement("input");
@@ -55,7 +57,7 @@ ElementVisitor.prototype.generateMetadata = function() {
 /**
  * Check if stopped
  */
-ElementVisitor.prototype.isStopped = function() {
+WarpsElementVisitor.prototype.isStopped = function() {
     return this.stopped;
 };
 
@@ -64,7 +66,7 @@ ElementVisitor.prototype.isStopped = function() {
  * @param ele {HTMLElement} the ele to enter
  * @param  depth {Number} the depth in the DOM
  */
-ElementVisitor.prototype.head = function(ele, depth) {
+WarpsElementVisitor.prototype.head = function(ele, depth) {
     ele.setAttribute("_descend", "0");
     ele.setAttribute("_depth", depth.toString());
 
@@ -78,7 +80,7 @@ ElementVisitor.prototype.head = function(ele, depth) {
  * @param ele {HTMLElement} the ele visited
  * @param  depth {Number} the depth in the DOM
  */
-ElementVisitor.prototype.tail = function(ele, depth) {
+WarpsElementVisitor.prototype.tail = function(ele, depth) {
     var current = ele;
     var parent = current.parentNode;
 
@@ -86,8 +88,8 @@ ElementVisitor.prototype.tail = function(ele, depth) {
         return;
     }
 
-    var myDescends = __qiwur_getAttributeAsInt(current, "_descend", 0);
-    var lastParentDescends = __qiwur_getAttributeAsInt(parent, "_descend", 0);
+    var myDescends = __warps_getAttributeAsInt(current, "_descend", 0);
+    var lastParentDescends = __warps_getAttributeAsInt(parent, "_descend", 0);
     var currentParentDescends = lastParentDescends + myDescends + 1;
 
     // this.report(ele);
@@ -97,7 +99,7 @@ ElementVisitor.prototype.tail = function(ele, depth) {
     // if (VISUALIZE_TAGS.indexOf(ele.tagName) != -1) {
     // }
     // Calculate every element's vision information
-    var vision = __qiwur__getVisionInfo(ele, VISION_SCHEMA);
+    var vision = __warps__getVisionInfo(ele, VISION_SCHEMA);
     if (vision) {
         ele.setAttribute('vi', vision);
     }
@@ -107,7 +109,7 @@ ElementVisitor.prototype.tail = function(ele, depth) {
  * Calculate the give element statistic information
  * @param ele {HTMLElement} the element to calculate
  */
-ElementVisitor.prototype.makeUrlAbsolute = function(ele) {
+WarpsElementVisitor.prototype.makeUrlAbsolute = function(ele) {
     var urls = {
         href : ele.getAttribute("href"),
         src : ele.getAttribute("src"),
@@ -116,7 +118,7 @@ ElementVisitor.prototype.makeUrlAbsolute = function(ele) {
 
     for (var name in urls) {
         if (urls[name]) {
-            var absoluteUrl = __qiwur__relativeToAbsolute(urls[name]);
+            var absoluteUrl = __warps__relativeToAbsolute(urls[name]);
             ele.setAttribute(name, absoluteUrl);
         }
     }
@@ -126,8 +128,8 @@ ElementVisitor.prototype.makeUrlAbsolute = function(ele) {
  * Calculate the give element statistic information
  * @param ele {HTMLElement} the element to calculate
  */
-ElementVisitor.prototype.calcSelfIndicator = function(ele) {
-    // var descend = __qiwur_getAttributeAsInt(ele, "_descend", 0);
+WarpsElementVisitor.prototype.calcSelfIndicator = function(ele) {
+    // var descend = __warps_getAttributeAsInt(ele, "_descend", 0);
     //
     ele.setAttribute("_seq", (++this.sequence).toString());
 };
@@ -136,8 +138,8 @@ ElementVisitor.prototype.calcSelfIndicator = function(ele) {
  * Report the element statistic information
  * @param ele {HTMLElement} the element to report
  */
-ElementVisitor.prototype.report = function(ele) {
-    var descends = __qiwur_getAttributeAsInt(ele, "_descend", 0);
+WarpsElementVisitor.prototype.report = function(ele) {
+    var descends = __warps_getAttributeAsInt(ele, "_descend", 0);
 
     __utils__.echo(ele.tagName
         + (ele.id ? ("#" + ele.id) : "")
@@ -148,7 +150,7 @@ ElementVisitor.prototype.report = function(ele) {
 /**
  * Get or set data with given name and value
  * */
-ElementVisitor.prototype.data = function(ele, name, value) {
+WarpsElementVisitor.prototype.data = function(ele, name, value) {
     if (!ele.data) {
         ele.data = [];
     }

@@ -30,7 +30,7 @@ var casper = require("casper").create({
     pageSettings : {
         userAgent : "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0",
         loadPlugins : false,
-        loadImages : false
+        loadImages : true
     },
     viewportSize : {
         width: config.viewportWidth,
@@ -38,10 +38,9 @@ var casper = require("casper").create({
     },
     logLevel : config.logLevel,
     verbose : true,
-    stepTimeout : 5000,
-    timeout : 5000,
+    stepTimeout : 5 * 1000,
+    timeout : 10 * 1000,
     onTimeout : function(timeout) {
-        // default behavior is exit the script?
         this.echo("timeout " + timeout);
     },
     onStepTimeout : function(timeout, stepNum) {
@@ -53,9 +52,9 @@ var casper = require("casper").create({
 });
 
 // register customer events
-include("src/samples/detail/ecommerce_events.js");
+include("src/sites/detail/ecommerce_events.js");
 var events = new EventRegister(casper);
-var entity = configure.loadSiteObject("jd.com");
+var entity = configure.loadSiteObject("jd.com", "config/sites/jd.com.json");
 var options = {'config' : config, 'casper' : casper, 'entity' : entity};
 
 var crawler = vendor("crawler").create(options);

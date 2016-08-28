@@ -46,16 +46,16 @@ casper.test.begin('test css selector with collection', 3, function suite(test) {
                     var v = __utils__.findAll(rule.value, node);
 
                     if (k && v) {
-                        var item = [__qiwur_getMergedTextContent(k), __qiwur_getMergedTextContent(v)];
+                        var item = [__warps_getMergedTextContent(k), __warps_getMergedTextContent(v)];
                         results.push(item);
                     }
 
                     __utils__.echo(i + " : " +
-                        __qiwur_getReadableNodeName(node) +
+                        __warps_getReadableNodeName(node) +
                         ", " + rule.key +
                         ", " + rule.value +
-                        ", " + (k ? __qiwur_getMergedTextContent(k) : "") +
-                        " : " + (v ? __qiwur_getMergedTextContent(v) : "")
+                        ", " + (k ? __warps_getMergedTextContent(k) : "") +
+                        " : " + (v ? __warps_getMergedTextContent(v) : "")
                     );
                 }
 

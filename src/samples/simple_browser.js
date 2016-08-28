@@ -78,8 +78,8 @@ casper.start(config.url, function () {
 //     	ele.setAttribute("data-base-uri", document.baseURI);
 //     	document.body.appendChild(ele);
 //
-//     	__qiwur__visualize(document);
-//     	__qiwur__humanize(document);
+//     	__warps__visualize(document);
+//     	__warps__humanize(document);
 //
 //     	// if any script error occurs, the flag can NOT be seen
 //     	document.body.setAttribute("data-evaluate-error", 0);

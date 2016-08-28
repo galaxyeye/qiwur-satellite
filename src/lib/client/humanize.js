@@ -16,7 +16,7 @@ var MAX_EVENT_COUNT = 30;
  * @param {String}
  *            eventName The name of the event without the "on" (e.g., "focus")
  */
-function __qiwur__fireEvent(node, eventName) {
+function __warps__fireEvent(node, eventName) {
     // Make sure we use the ownerDocument from the provided node to avoid
     // cross-window problems
     var doc;
@@ -73,7 +73,7 @@ function __qiwur__fireEvent(node, eventName) {
     }
 };
 
-function __qiwur__humanize(doc) {
+function __warps__humanize(doc) {
     // mouse over and click each link, notice that the navigation is locked, so it's OK to click the link
     // notice : do not use document.links since it ignores <a> tag without href attribute
     var links = doc.getElementsByTagName("a");
@@ -93,18 +93,18 @@ function __qiwur__humanize(doc) {
 //      hasEvent |= link.hasAttribute('onclick');
 
         if (noTarget || hasEvent) {
-//            __qiwur__fireEvent(link, 'mousedown');
-//            __qiwur__fireEvent(link, 'mouseup');
-            __qiwur__fireEvent(link, 'mouseover');
+//            __warps__fireEvent(link, 'mousedown');
+//            __warps__fireEvent(link, 'mouseup');
+            __warps__fireEvent(link, 'mouseover');
 
             // TODO : research : a click event contains mousedown, mouseup and mouseover?
-//            __qiwur__fireEvent(link, 'click');
+//            __warps__fireEvent(link, 'click');
             ++eventCount;
 
             // if any script error occurs, the flag can NOT be seen
             link.setAttribute('data-event-fired', eventCount);
 
-            __qiwur__fireEvent(link, 'mouseout');
+            __warps__fireEvent(link, 'mouseout');
         }
     }
 
@@ -115,10 +115,10 @@ function __qiwur__humanize(doc) {
         for (var i = 0; i < images.length; ++i) {
             var image = images[i];
 
-            __qiwur__fireEvent(image, 'mousedown');
-            __qiwur__fireEvent(image, 'mouseup');
-            __qiwur__fireEvent(image, 'mouseover');
-            __qiwur__fireEvent(image, 'click');
+            __warps__fireEvent(image, 'mousedown');
+            __warps__fireEvent(image, 'mouseup');
+            __warps__fireEvent(image, 'mouseover');
+            __warps__fireEvent(image, 'click');
 
             // if any script error occurs, the flag can NOT be seen
             image.setAttribute('data-event-fired', 1);

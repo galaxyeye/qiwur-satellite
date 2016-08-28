@@ -18,7 +18,7 @@ var utils_functions = {
     // directories
     /**********************************************************/
     getOutputDir : function() {
-    	return fs.workingDirectory + fs.separator + "output";
+    	return fs.workingDirectory + fs.separator + "tmp" + fs.separator + "output";
     },
 
     // @Deprecated
@@ -38,7 +38,7 @@ var utils_functions = {
 	},
 
 	logDir: function() {
-		return fs.workingDirectory + fs.separator + "logs";
+		return fs.workingDirectory + fs.separator + "tmp" + fs.separator + "logs";
 	},
 
 	// get the absolute path for a relative path

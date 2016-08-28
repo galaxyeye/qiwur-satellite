@@ -29,16 +29,16 @@ WeiboExtractor.prototype.extractFeed = function (feedElement) {
     var v;
 
     v = __utils__.findOne('.WB_detail > .WB_info', feedElement);
-    var author = __qiwur_getMergedTextContent(v);
+    var author = __warps_getMergedTextContent(v);
 
     v = __utils__.findOne('.WB_from a[href*="weibotime"]', feedElement);
-    var time = __qiwur_getMergedTextContent(v);
+    var time = __warps_getMergedTextContent(v);
 
     v = __utils__.findOne('.WB_from a[action-type*="app_source"]', feedElement);
-    var app = __qiwur_getMergedTextContent(v);
+    var app = __warps_getMergedTextContent(v);
 
     v = __utils__.findOne('div[node-type*="feed_list_content"]', feedElement);
-    var content = __qiwur_getMergedTextContent(v);
+    var content = __warps_getMergedTextContent(v);
 
     var feedExpand = this.extractExpandFeed(feedElement);
 
@@ -53,7 +53,7 @@ WeiboExtractor.prototype.extractExpandFeed = function (feedElement) {
     "use strict";
 
     var v = __utils__.findOne('.WB_feed_expand', feedElement);
-    var feedExpand = __qiwur_getMergedTextContent(v);
+    var feedExpand = __warps_getMergedTextContent(v);
 
     return {content : feedExpand};
 };

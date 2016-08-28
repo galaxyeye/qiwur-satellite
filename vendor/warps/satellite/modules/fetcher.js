@@ -215,7 +215,7 @@ Fetcher.prototype.processPage = function() {
 
     // humanize and visualize
     this.casper.thenEvaluate(function() {
-        __qiwur__visualizeHumanize();
+        __warps__visualizeHumanize();
     });
 
     this.casper.then(function() {

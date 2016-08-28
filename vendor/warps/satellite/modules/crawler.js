@@ -68,7 +68,7 @@ Crawler.prototype.start = function() {
 
 	var seed = this.options.entity.seed;
 	this.casper.start(seed).then(function() {
-//		this.echo("＝＝＝" + this.status(true));
+//		this.log("＝＝＝" + this.status(true));
 
 		this.scrollToBottom();
 	});
@@ -85,14 +85,35 @@ Crawler.prototype.start = function() {
 };
 
 Crawler.prototype.onSelectorNotExists = function() {
-	this.echo("No such selector available in this page.").exit();
+	this.log("No such selector available in this page.").exit();
 };
 
+/**
+ * Prints something to stdout.
+ *
+ * @param  text   String  A string to echo to stdout
+ * @param  style  String  An optional style name
+ * @param  pad    Number  An optional pad value
+ * @return Crawler
+ */
 Crawler.prototype.echo = function(text, style, pad) {
 	if (!style) {
 		style = 'TRACE';
 	}
 	this.casper.echo(text, style, pad);
+	return this;
+};
+
+/**
+ * Logs a message.
+ *
+ * @param  message  String  The message to log
+ * @param  level    String  The log message level (from Casper.logLevels property)
+ * @param  space    String  Space from where the logged event occurred (default: "phantom")
+ * @return Crawler
+ */
+Crawler.prototype.log = function (message, level, space) {
+	this.casper.log(message, level, space);
 	return this;
 };
 
@@ -103,12 +124,12 @@ Crawler.prototype.exit = function(status) {
 Crawler.prototype.terminate = function(message) {
 	message = message || "That's all";
 	this.casper.then(function() {
-		this.echo(message).exit();
+		this.log(message).exit();
 	});
 };
 
 Crawler.prototype.ignore = function() {
-	this.echo("Ignore url " + this.casper.getCurrentUrl());
+	this.log("Ignore url " + this.casper.getCurrentUrl());
 };
 
 /**
@@ -124,7 +145,7 @@ Crawler.prototype.optionChecker = function() {
  * Process seed page
  * */
 Crawler.prototype.processSeedPage = function() {
-//	this.echo("processSeedPage");
+//	this.log("processSeedPage");
 
 	this.processIndexPage();
 };
@@ -133,6 +154,7 @@ Crawler.prototype.processSeedPage = function() {
  * Process index page
  * */
 Crawler.prototype.processIndexPage = function() {
+	"use strict";
 //	var file = "/tmp/monitor/index-" + indexPageCounter + ".png";
 
 //	this.captureSelector(file, entityOptions.indexPageMainAreaSelector);
@@ -142,7 +164,7 @@ Crawler.prototype.processIndexPage = function() {
 	// TODO : how to avoid this intrusion?
 	var $ = this.crawler || this;
 
-    this.echo("Processing index page " + $.casper.getCurrentUrl());
+    $.log("Processing index page " + $.casper.getCurrentUrl());
 	$.saveIndexPage();
 	$.counter.indexPages++;
 
@@ -152,7 +174,7 @@ Crawler.prototype.processIndexPage = function() {
     var next = $.options.entity.page.index.paginator.next;
 	// don't go too far down the rabbit hole
 	if ($.counter.indexPages >= limit || !next || !$.casper.exists(next)) {
-		this.echo("All done. Crawled : " + $.counter.indexPages + " index pages. Limit : " + limit);
+		this.log("All done. Crawled : " + $.counter.indexPages + " index pages. Limit : " + limit);
 		$.casper.then(function() {
 			$.processDetailPages();
 		});
@@ -165,14 +187,14 @@ Crawler.prototype.processIndexPage = function() {
 	// go to the next index page
 	var url = $.casper.getCurrentUrl();
 	$.casper.thenClick(next).then(function() {
-		this.waitFor(function() {
-				this.echo("click, " + this.status(true));
+		this.log("Clicked next page selector : " + next);
 
-				return url !== this.getCurrentUrl();
-			}, // testFn
-			$.processIndexPage, // then
-			$.processDetailPages, // onTimeout
-			10 * 1000); // timeout
+		this.waitFor(function () {
+			return url !== this.getCurrentUrl();
+		}, // testFn
+		$.processIndexPage, // then
+		$.processDetailPages, // onTimeout
+		10 * 1000); // timeout
 	});
 };
 
@@ -180,45 +202,49 @@ Crawler.prototype.processIndexPage = function() {
  * Collect detail page links
  * */
 Crawler.prototype.collectDetailPageLinks = function() {
+	"use strict";
 	var mainArea = this.options.entity.page.index.main;
 	var pageRegex = this.options.entity.page.detail.regex;
 
 	if (!mainArea || !this.casper.exists(mainArea)) {
-		this.echo('No main area with selector ' + mainArea, 'WARN');
+		this.log('No main area with selector ' + mainArea, 'warning');
 		return;
 	}
 
+	/**
+	 * Do we mean UrlRegex?
+	 * */
 	if (!pageRegex) {
-		this.echo('Invalid detail page regex', 'WARN');
+		this.log('Invalid detail page regex', 'warning');
 		return;
 	}
 
-    this.echo('Try to extract links with regex ' + pageRegex + ' in area ' + mainArea);
+    this.log('Try to extract links with regex ' + pageRegex + ' in area ' + mainArea);
 	var links = this.casper.evaluate(function(selector, pageRegex) {
-		return __qiwur__searchLinks(selector, pageRegex);
+		return __warps__searchLinks(selector, pageRegex);
 	}, mainArea, pageRegex);
 
 	if (!links || links.length == 0) {
-        this.echo('No any detail links', 'WARN');
+        this.log('No any detail links', 'warning');
 		return;
 	}
-
+	
 	this.data.detailPageLinks = this.data.detailPageLinks.concat(links);
 
 	// make the array unique
-	this.data.detailPageLinks = this.data.detailPageLinks.sort().filter(function(el, i, arr) {
-		return (i == arr.indexOf(el));
+	this.data.detailPageLinks = this.data.detailPageLinks.sort().filter(function(link, i, arr) {
+		return (i == arr.indexOf(link));
 	});
 
-	this.echo('Extracted ' + links.length + ' detail page links');
+	this.log('Extracted ' + links.length + ' detail page links');
 };
 
 /**
  * Report current status
  * */
 Crawler.prototype.report = function() {
-	this.echo("detail pages : " + this.counter.detailPages
-		+ ", detail page links : " + this.data.detailPageLinks.length);
+	this.log("detail pages : " + this.counter.detailPages
+		+ ", detail page links : " + this.data.detailPageLinks.length, "info");
 	utils.dump(this.data.detailPageLinks);
 };
 
@@ -232,77 +258,104 @@ Crawler.prototype.report = function() {
  *
  * */
 Crawler.prototype.processDetailPages = function() {
+	"use strict";
 	// this can be crawler or casper
 	// TODO : avoid the confusion
 	var $ = this.crawler || this;
 
-	this.report();
-
-	// don't go too far down the rabbit hole
-	var limit = $.options.entity.page.detail.limit;
-	if ($.counter.detailPages > limit) {
-		return this.terminate("All done. " + $.counter.detailPages + " detail pages are fetched.");
-	}
-
-	// all detail pages are OK
-	if ($.counter.detailPages > $.data.detailPageLinks.length) {
-		return this.terminate("All done. " + $.data.detailPageLinks.length + " detail pages in fetch list are fetched.");
-	}
+	$.report();
 
 	var links = $.data.detailPageLinks;
-	for (var i = 0; i < links.length; ++i) {
-		$.echo($.counter.detailPages + 'th detail page : ' + links[i]);
-		$.processDetailPage(links[i]);
-	}
+	/** Random shuffle */
+	links.sort(function (a, b) {
+		return Math.random() > 0.5 ? -1 : 1;
+	});
+	/** Process detail page recursively */
+	$.processDetailPageRecursive(links);
 };
 
 /**
  * Process detail page
+ *
+ * @params links array
  * */
-Crawler.prototype.processDetailPage = function(url) {
+Crawler.prototype.processDetailPageRecursive = function(links) {
+	"use strict";
 	var $ = this.crawler || this;
 	var casper = $.casper;
 
-	$.counter.detailPages++;
+	var count = ++$.counter.detailPages;
 
-	// open detail page
+	if (links.length == 0) {
+		$.log("All done.");
+		return;
+	}
+
+	/** don't go too far down the rabbit hole */
+	var limit = $.options.entity.page.detail.limit || 100;
+	if (count > limit) {
+		$.log("All done. Hit limit " + limit + ", " + (count - 1) + " detail pages are fetched.");
+		return;
+	}
+
+	/** Pop up an url to process */
+	var url = links.pop();
+	// $.log('Fetching ' + count + "th page.");
+	$.echo('The ' + count + 'th detail page : ' + url, 'COMMENT');
+
+	/** Validate the url */
+	if (!url || !url.match(/^http(.+)/i)) {
+		$.log("Ignore invalid url " + url);
+
+		return;
+	}
+
+	/** Open the detail page */
 	casper.thenOpen(url, function() {
-		this.echo('Detail page title: ' + this.getTitle());
-		var file = "/tmp/satellite/detail-" + $.counter.detailPages + ".png";
-		this.capture(file);
+		casper.echo('Title: ' + this.getTitle(), 'COMMENT');
+		// var file = "/tmp/satellite/detail-" + $.counter.detailPages + ".png";
+		// casper.capture(file);
 	});
 
+	/** We wait for some time */
     var wait = $.options.entity.detailPageWaitTime = 5000;
     casper.then(function() {
-        this.wait(wait);
+		casper.wait(wait);
     });
 
+	/** And then scroll to bottom to load the entire page */
 	casper.then(function() {
-		this.scrollToBottom();
+		casper.scrollToBottom();
 	});
 
-	// Scroll to top again to calculate original element positions
-	casper.then(function() {
-		this.scrollTo(0, 0);
-	});
-
-	// humanize and visualize
+	/** Now, we do something to show we are human being */
 	casper.thenEvaluate(function() {
-		__qiwur__visualizeHumanize();
+		__warps__visualizeHumanize();
 	});
 
+	/** Scroll back to top again to calculate element positions */
 	casper.then(function() {
-		this.crawler.captureAreas();
+		casper.scrollTo(0, 0);
 	});
 
-	// cache page content
+	/** Now, we might want to load something else */
+	casper.then(function() {
+		casper.crawler.loadAjaxContent();
+	});
+
+	/** Capture interesting areas */
+	casper.then(function() {
+		casper.crawler.captureAreas();
+	});
+
+	/** Save the page */
 	casper.then(function () {
-		this.crawler.saveDetailPage();
+		casper.crawler.saveDetailPage();
 	});
 
 	casper.thenBypassUnless(function() {
-		// this.echo(extractJustInTime);
-		return this.crawler.options.extract.justInTime;
+		// this.log(extractJustInTime);
+		return casper.crawler.options.extract.justInTime;
 	}, 1);
 
 	// post to extract server
@@ -318,41 +371,97 @@ Crawler.prototype.processDetailPage = function(url) {
 	});
 
 	casper.then(function(response) {
-		this.echo('Extract Result : ' + this.getCurrentUrl() + ' - ' + this.getTitle());
+		// casper.log('Extract Result : ' + this.getCurrentUrl() + ' - ' + this.getTitle());
 		// this.debugPage();
 		// utils.dump(response);
 		// autoExtractDetailPage.call(this);
 	});
+
+	/** Recursive process another url */
+	casper.then(function () {
+		$.processDetailPageRecursive(links);
+	});
+};
+
+/**
+ * Load lazy content
+ * */
+Crawler.prototype.loadAjaxContent = function() {
+	"use strict";
+	var $ = this.crawler || this;
+	var casper = this.casper;
+
+	var extractor = $.options.entity.page.detail.extractor;
+	var requiredSelector = $.options.entity.page.detail.extractor.requiredSelector;
+	var clicks = $.options.entity.page.detail.clicks || [null];
+	var click = clicks[0];
+
+	casper.thenBypassIf(function () {
+		return click == null;
+	});
+
+	casper.then(function() {
+		casper.scrollTo(click.area[0], click.area[1]);
+		casper.log("We are now at " + JSON.stringify(click.area));
+	});
+
+	casper.thenClick(click.selector, function() {
+		casper.log("Clicked " + click.selector);
+	});
+
+	casper.wait(1000);
+
+	/** Now we might do some hacking if the hacker scripts exists */
+	var hackerScripts = loadScript($.options.entity.page.detail.hacker.scripts);
+	casper.thenEvaluate(function (hackerScripts) {
+		if (hackerScripts) {
+			eval(hackerScripts);
+		}
+	}, {hackerScripts : hackerScripts});
+
+	// casper.waitForResource(/(.+)commentsList2(.+)/i, function then() {
+	// 	casper.log("Key resource arrived");
+	// }, function onTimeout() {
+	// 	casper.log("Failed to load key resource");
+	// });
+
+	casper.thenClick(click.selector, function() {
+		casper.log("Click " + click.selector + " once again.");
+	});
+
+	casper.waitForSelector(requiredSelector, function then() {
+		var fields = casper.evaluate(function (extractor) {
+			var fields = new WarpsDomExtractor(extractor).extract();
+			return fields;
+		}, extractor);
+
+		utils.dump(fields);
+	}, function onTimeout() {
+		this.log("Failed to see " + requiredSelector, 'warning');
+	}, 20 * 1000);
 };
 
 /**
  * Save index page
  * */
 Crawler.prototype.saveIndexPage = function() {
-	var dir = this.config.cacheDirectory;
-	var domain = this.options.entity.name;
-	var date = this.startTime.pattern("MM.dd");
-	var url = this.casper.getCurrentUrl();
-
-	var file = getIndexPageLocalPath(dir, domain, date, url);
+	"use strict";
+	var file = this.getIndexPageLocalPath();
 
 	var content = this.casper.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
 
 	fs.write(file, content, 'w');
 
-	this.echo("page saved in : " + file);
+	this.log("page saved in : " + file);
 };
 
 /**
  * Save detail page
  * */
 Crawler.prototype.saveDetailPage = function() {
-	var dir = this.config.cacheDirectory;
-	var domain = this.options.entity.name;
-	var date = this.startTime.pattern("MM.dd");
-	var url = this.casper.getCurrentUrl();
+	"use strict";
 
-	var file = getDetailPageLocalPath(dir, domain, date, url);
+	var file = this.getDetailPageLocalPath();
 
 	// Note : can we do this in DOM?
 	// Answer : probably NOT.
@@ -364,90 +473,116 @@ Crawler.prototype.saveDetailPage = function() {
 
 	fs.write(file, content, 'w');
 
-	this.echo("page saved in : " + file);
+	fs.write("/tmp/satellite-last-file", file);
+
+	this.log("page saved in : " + file);
 };
 
 /**
  * Capture page area, save the picture into local disk
  * */
 Crawler.prototype.captureAreas = function() {
+	"use strict";
 	var captureOptions = this.options.entity.page.detail.capture;
 
+	this.log("Capture some areas.");
+
 	if (!captureOptions) {
+		this.log("No capture options, ignore capturing.");
+
 		return;
 	}
 
+	/** Get a path to save */
+	var fileNameBase = this.getDetailPageLocalPath();
 	for (var i = 0; i < captureOptions.length; ++i) {
 		var captureArea = captureOptions[i];
-		if (this.casper.exists(captureArea.selector)) {
-			// TODO : OR we need select the first element via the selector
+		if (!this.casper.exists(captureArea.selector)) {
+			continue;
+		}
 
-			// create a new element to hold the target capture area to avoid noise
-			this.casper.evaluate(function(captureAreaSelector) {
-				__qiwur_createCaptureArea(captureAreaSelector);
-			}, captureArea.selector);
-
-			var dir = this.config.cacheDirectory;
-			var domain = this.options.entity.name;
-			var date = (1 + this.startTime.getMonth()) + "_" + this.startTime.getDate();
-			var url = this.casper.getCurrentUrl();
-			var fileName = getDetailPageLocalPath(dir, domain, date, url);
-
-			// var fileName = getDetailPageLocalPath(options.name, this.casper.getCurrentUrl());
-			var imagePath = fileName + "." + captureArea.name + ".png";
-			var selectorParts = captureArea.selector.split(/\s+/);
-			var captureTargetSelector = '.QiwurCaptureArea > div.holder ' + selectorParts[selectorParts.length - 1];
-			this.casper.captureSelector(imagePath, captureTargetSelector);
-
-			// clean capture area
-			this.casper.evaluate(function(nearBy, name, imagePath) {
-				__qiwur_cleanCaptureArea();
-				__qiwur_insertImage(nearBy, name, imagePath);
-			}, captureArea.selector, captureArea.name, relativeImagePath);
-		} // if
+		this.captureArea(captureArea, fileNameBase);
 	} // for
+};
+
+/**
+ * Capture page area, save the picture to disk
+ *
+ * @param captureArea object
+ * @param fileNameBase string
+ * */
+Crawler.prototype.captureArea = function(captureArea, fileNameBase) {
+	var imagePath = fileNameBase + "." + captureArea.name + ".png";
+
+	/** Capture selector the simple way */
+	this.casper.captureSelector(imagePath, captureArea.selector);
+
+	/**
+	 * The code below need refine, so return immediately.
+	 *
+	 * We successfully used the code below to capture price information from ctrip.com before
+	 * */
+	if (true || captureArea.selector) {
+		return;
+	}
+
+	/** Create a new element to hold the target capture area to avoid noise */
+	this.casper.evaluate(function(captureAreaSelector) {
+		__warps_createCaptureArea(captureAreaSelector);
+	}, captureArea.selector);
+
+	/** Now, we do the capturing */
+	// var selectorParts = captureArea.selector.split(/\s+/);
+	imagePath = fileNameBase + "." + captureArea.name + ".png";
+	var captureTargetSelector = '.WarpsCaptureArea > div.holder';
+	this.casper.captureSelector(imagePath, captureTargetSelector);
+
+	/** Clean capture area */
+	this.casper.thenEvaluate(function () {
+		__warps_cleanCaptureArea();
+	});
+
+	/** TODO : Insert the captured image only with some pre-condition */
+	this.casper.bypass(1);
+
+	this.casper.thenEvaluate(function(nearBy, name, imagePath) {
+		__warps_insertImage(nearBy, name, imagePath);
+	}, captureArea.selector, captureArea.name, imagePath);
 };
 
 /**
  * Extract detail page using auto extraction API
  * */
 Crawler.prototype.autoExtractDetailPage = function() {
-	this.echo('Extract detail page : ' + this.getCurrentUrl());
+	this.log('Extract detail page : ' + this.getCurrentUrl());
 	this.casper.debugPage();
 
 	// var file = "/tmp/satellite/extract-" + detailPageCounter + ".png";
 	// this.capture(file);
 };
 
-/*******************************************************************************
- * free functions, TODO : move to utils
- ******************************************************************************/
-function listEntities(entities) {
-	return Array.prototype.map.call(entities, function(entity) {
-		return entity.name;
-	});
-}
+Crawler.prototype.getIndexPageLocalPath = function(dir, domain, date, url) {
+	if (!dir) dir = this.config.cacheDirectory;
+	if (!domain) domain = this.options.entity.name;
+	if (!date) date = this.startTime.pattern("MM.dd");
+	if (!url) url = this.casper.getCurrentUrl();
 
-function findSiteConfig(entities, name) {
-	for (var i = 0; i < entities.length; ++i) {
-		if (entities[i].name == name) {
-			return entities[i];
-		}
-	}
-}
-
-function getIndexPageLocalPath(dir, domain, date, url) {
 	var fileName = md5.hex_md5(url);
 
 	var path = "web/" + domain + "/" + date +  "/index/" + fileName + ".html";
 
-	return dir + path;
-}
+	return dir + "/" + path;
+};
 
-function getDetailPageLocalPath(dir, domain, date, url) {
+Crawler.prototype.getDetailPageLocalPath = function(dir, domain, date, url) {
+	if (!dir) dir = this.config.cacheDirectory;
+	if (!domain) domain = this.options.entity.name;
+	if (!date) date = this.startTime.pattern("MM.dd");
+	if (!url) url = this.casper.getCurrentUrl();
+
 	var fileName = md5.hex_md5(url);
 
 	var path = "web/" + domain + "/" + date + "/detail/" + fileName + ".html";
 
-	return dir + path;
-}
+	return dir + "/" + path;
+};

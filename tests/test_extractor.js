@@ -23,7 +23,7 @@ var testPage = resourceDir + "/web/detail/academic.microsoft.com/detail-0d50c3e5
 casper.test.begin('extractor basic tests', 6, function(test) {
     casper.start(testPage, function() {
         this.evaluate(function() {
-            new ElementTraversor(new ElementVisitor()).traverse(document.body);
+            new WarpsElementTraversor(new WarpsElementVisitor()).traverse(document.body);
         });
 
         // title extraction
@@ -51,38 +51,38 @@ casper.test.begin('extractor basic tests', 6, function(test) {
             {cssSelector : cssSelector}
         );
 
-        // Extract using satellite.Extractor.extractByRegex
+        // Extract using satellite.WarpsDomExtractor.extractByRegex
         test.assertEvalEquals(
             function(extractor) {
-                var fields = new Extractor(extractor).extractByRegex(extractor.regex);
+                var fields = new WarpsDomExtractor(extractor).extractByRegex(extractor.regex);
 
                 return fields[0][1];
             },
             "2003-09-Tu",
-            "Extract using satellite.Extractor.extractByRegex",
+            "Extract using satellite.WarpsDomExtractor.extractByRegex",
             {extractor : options.extractor}
         );
 
-        // Extract using satellite.Extractor.extractByVision
+        // Extract using satellite.WarpsDomExtractor.extractByVision
         test.assertEvalEquals(
             function(extractor) {
-                var fields = new Extractor(extractor).extractByVision(extractor.vision);
+                var fields = new WarpsDomExtractor(extractor).extractByVision(extractor.vision);
 
                 return fields[0][1];
             },
             "年份 2003-09-Tu",
-            "Extract using satellite.Extractor.extractByVision",
+            "Extract using satellite.WarpsDomExtractor.extractByVision",
             {extractor : options.extractor}
         );
 
-        // Extract using satellite.Extractor.extractByKVRules
+        // Extract using satellite.WarpsDomExtractor.extractByKVRules
         test.assertEvalEquals(
             function(extractor) {
-                var fields = new Extractor(extractor).extractByKVRules(extractor.kv);
+                var fields = new WarpsDomExtractor(extractor).extractByKVRules(extractor.kv);
                 return fields[4];
             },
             ["DOI", "10.1016/B978-012722442-8/50013-6"],
-            "Extract using satellite.Extractor.extractByKVRules",
+            "Extract using satellite.WarpsDomExtractor.extractByKVRules",
             {extractor : options.extractor}
         );
     }).run(function() {
@@ -93,13 +93,13 @@ casper.test.begin('extractor basic tests', 6, function(test) {
 casper.test.begin('extractor advanced tests', 1, function(test) {
     casper.start(testPage, function() {
         this.evaluate(function () {
-            new ElementTraversor(new ElementVisitor()).traverse(document.body);
+            new WarpsElementTraversor(new WarpsElementVisitor()).traverse(document.body);
         });
 
         // Extract using Satellite method
         test.assertEvalEquals(
             function(extractor) {
-                var fields = new Extractor(extractor).extract();
+                var fields = new WarpsDomExtractor(extractor).extract();
                 // return fields.length;
                 return true;
             },

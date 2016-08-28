@@ -6,10 +6,10 @@
 
 /**
  * Create a new traversor.
- * @param visitor {ElementVisitor} a class implementing the {@link ElementVisitor} interface, to be called when visiting each ele.
+ * @param visitor {WarpsElementVisitor} a class implementing the {@link WarpsElementVisitor} interface, to be called when visiting each ele.
  * @param options {Object} options, currently, only one option : options.diagnosis(= false);
  */
-function ElementTraversor(visitor) {
+function WarpsElementTraversor(visitor) {
     this.visitor = visitor;
     this.options = {
         diagnosis : false
@@ -33,7 +33,7 @@ function ElementTraversor(visitor) {
  * Start a depth-first traverse of the root and all of its descendants.
  * @param root {HTMLElement} the root ele point to traverse.
  */
-ElementTraversor.prototype.traverse = function(root) {
+WarpsElementTraversor.prototype.traverse = function(root) {
     if (!root) {
         __utils__.log("Invalid root to traverse.", "warn");
         return;
@@ -70,7 +70,7 @@ ElementTraversor.prototype.traverse = function(root) {
     }
 };
 
-ElementTraversor.prototype.diagnosis = function(ele, depth) {
+WarpsElementTraversor.prototype.diagnosis = function(ele, depth) {
     var info = ele + ", nodeType : " + ele.nodeType + ", nodeName : " + ele.nodeName;
 
     if (ele.nodeName === "A") {

@@ -96,7 +96,7 @@ function collectIps() {
         var ipTable = __utils__.findAll("#ip_list tr");
         for (var i = 0; i < ipTable.length; ++i) {
             var ipRow = ipTable[i];
-            var ip = __qiwur_getMergedTextContent(ipRow);
+            var ip = __warps_getMergedTextContent(ipRow);
             ipList.push(ip);
         }
         return ipList;

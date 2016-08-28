@@ -53,11 +53,18 @@ cd $SATELLITE_HOME
 COMMAND=$1
 shift
 
+SATELLITE_OPTS=()
+
+if [ $SATELLITE_LOAD_IMAGES ]; then
+    SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --load-images=true)
+fi
+
+SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --ssl-protocol=any)
+
 if [ -z $SATELLITE_COOKIE_FILE ]; then
     SATELLITE_COOKIE_FILE=output/cookies/satellite.cookie.txt
 fi
 
-SATELLITE_OPTS=(--load-images=true --ssl-protocol=any)
 SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --cookies-file=$SATELLITE_COOKIE_FILE)
 
 if [ -z $PROXY_POLICY ]; then

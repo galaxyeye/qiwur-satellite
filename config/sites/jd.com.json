@@ -1,0 +1,120 @@
+[
+  {
+    "name": "jd.com",
+    "seed": "http://search.jd.com/Search?keyword=长城葡萄酒&enc=utf-8&wq=长城葡萄酒&pvid=0uik88si.2kslfk",
+    "page.index.main": "#J_goodsList",
+    "page.index.paginator.selector": "#J_bottomPage",
+    "page.index.paginator.next": ".pn-next",
+    "page.index.start": 1,
+    "page.index.limit": 1,
+    "page.detail.regex": "(.+)item.jd.com(.+)",
+    "page.detail.start": 1,
+    "page.detail.limit": 1,
+    "page.detail.clicks": [
+      {
+        "area" : [1104, 914, 102, 30],
+        "selector" : "#detail-tab-comm"
+      },
+      {
+        "area" : [1104, 762, 56, 30],
+        "selector" : "#detail-tab-param"
+      }
+    ],
+    "page.detail.capture" : [
+      {
+        "name" : "snapshot",
+        "selector" : ":root"
+      }
+    ],
+    "page.detail.hacker.scripts" : "config/sites/hack/jd.com.hacker.js",
+    "page.detail.extractor.requiredSelector" : ".comments-item",
+    "page.detail.extractor.requiredText" : "/好评/i",
+    "page.detail.extractor.slim": [
+      "标题", "#itemInfo h1",
+      "价格", "#summary-price #jd-price",
+      "类别", ".breadcrumb",
+      "促销", "#summary-promotion",
+      "规格参数", "#parameter2"
+    ],
+    "page.detail.extractor.regex": [
+      {
+        "name" : "服务",
+        "container" : "#itemInfo",
+        "regex" : "(服\\s+务)(.+)",
+        "group" : 2,
+        "comment" : "Group means the group number of regex match result, which is used to extract the target string.",
+        "comment2" : "By default, group is 0 which means the whole string. Invalid group number will set to be 0."
+      }
+    ],
+    "page.detail.extractor.vision": [
+      {
+        "name" : "基本信息",
+        "vision" : {
+          "schema" : ["top", "left", "width", "height"],
+          "min" : [300, 840, 450, 35],
+          "max" : [760, 840, 520, 25]
+        }
+      }
+    ],
+    "page.detail.extractor.kv" : [
+      {
+        "name": "publication",
+        "collection": ".p-parameter-list li",
+        "key": ":not(form)",
+        "value": ":not(form)"
+      }
+    ],
+    "page.detail.extractor.full": [
+      {
+        "name": "entity-source",
+        "cssPath": ".entity-source",
+        "xpath" : "",
+        "regex" : "^(年份)(.+)",
+        "vision" : {
+          "schema" : ["top", "left", "width", "height"],
+          "min" : [0, 0, 0, 0],
+          "max" : [1000, 1000, 1000, 1000]
+        },
+        "validator": {
+          "regex": ".+",
+          "xpath": null
+        },
+        "comment" : "an element is extracted out if it matches one of the 4 rules : [cssPath, xpath, regex, vision]"
+      },
+      {
+        "name": "entity-references",
+        "cssPath": ".entity-references",
+        "xpath" : "",
+        "regex" : "",
+        "vision" : {
+          "min" : [0, 0, 0, 0],
+          "max" : [1000, 1000, 1000, 1000]
+        },
+        "validator": {
+          "cssPath": null,
+          "regex": ".+",
+          "xpath": null
+        }
+      }
+    ],
+    "page.detail.extractor.collection" : [
+      {
+        "name" : "评价列表",
+        "container" : ".com-table-main",
+        "collection" : ".comments-item",
+        "extractor" : {
+          "slim" : [
+            "评价时间", ".comment-time.type-item",
+            "规格", ".features.type-item",
+            "规格", ".features.type-item",
+            "内容", ".p-comment",
+            "会员名", ".user-item .user-name",
+            "会员级别", ".u-vip-level",
+            "会员区域", ".u-addr",
+            "客户端", ".user-item .user-access"
+          ]
+        }
+      }
+    ]
+  }
+]

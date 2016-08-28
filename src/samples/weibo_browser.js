@@ -8,9 +8,6 @@ var md5 = vendor("md5");
 var logger = vendor('logger');
 var configure = vendor('configure').create();
 
-// register customer events
-include("src/samples/detail/weibo_login_events.js");
-
 var weiboUrl = "http://weibo.com/kaifulee";
 weiboUrl = "/home/vincent/workspace/qiwur-satellite/output/weibo/feeds-local.html";
 
@@ -40,6 +37,10 @@ var casper = require('casper').create(
         logLevel : "debug",
         verbose : true
     });
+
+// register customer events
+include("src/samples/detail/weibo_login_events.js");
+var events = new EventRegister(casper);
 
 /*******************************************************************************
  * Start main logic

@@ -5,6 +5,7 @@
 
 var require = patchRequire(require);
 var fs = require('fs');
+var utils = require('utils');
 
 exports.create = function create() {
     "use strict";
@@ -33,10 +34,15 @@ Configure.prototype.test = function() {
 // config
 /**********************************************************/
 Configure.prototype.loadConfig = function(configFile) {
-    if (!fs.exists(configFile)) {
+    if (!configFile) {
         configFile = "config/config.json";
     }
-    
+
+    if (!fs.exists(configFile)) {
+        logger.error("Failed to load config file : " + configFile);
+        phantom.exit(0);
+    }
+
     // fs uses relative path based on fs.workingDirectory
     var result = JSON.parse(fs.read(configFile));
     return result;
@@ -80,6 +86,14 @@ Configure.prototype.mergeConfig = function(config, config2) {
     return config;
 };
 
+Configure.prototype.__findSite = function(name, sites) {
+    for (var i = 0; i < sites.length; ++i) {
+        if (sites[i].name == name) {
+            return sites[i];
+        }
+    }
+};
+
 /**
  * Build object from property based configuation, for example :
  * {
@@ -98,41 +112,64 @@ Configure.prototype.mergeConfig = function(config, config2) {
  * 		}
  * }
  * */
-Configure.prototype.buildObject = function(proprties) {
+Configure.prototype.buildObject = function(properties) {
     var obj = {};
 
-    for (var propName in proprties) {
-        this.__buildObjectProperty(obj, propName, proprties[propName]);
+    for (var propName in properties) {
+        var sequence = 0;
+        __recusiveBuildObjectProperty(obj, propName, properties[propName], sequence);
     }
 
     return obj;
 };
 
-Configure.prototype.__findSite = function(name, sites) {
-    for (var i = 0; i < sites.length; ++i) {
-        if (sites[i].name == name) {
-            return sites[i];
-        }
+/**
+ * @param obj {object|array}
+ * @param propName {string} dot separated property name
+ * @param propValue {object}
+ * @return {object|null}
+ * */
+function __recusiveBuildObjectProperty(obj, propName, propValue, sequence) {
+    ++sequence;
+
+    var splitPropNames = propName.split(".").reverse();
+
+    var name = splitPropNames.pop();
+
+    if (!utils.isObject(obj[name]) && splitPropNames.length > 0) {
+        console.log("Warning : object property override by {" + name + " : " + obj[name] + "}");
     }
-};
 
-Configure.prototype.__buildObjectProperty = function(obj, nestedPropNames, propValue) {
-    nestedPropNames = nestedPropNames.split(".").reverse();
-
-    __recusiveBuildObjectProperty(obj, nestedPropNames, propValue);
-};
-
-function __recusiveBuildObjectProperty(obj, nestedPropNames, value) {
-    var name = nestedPropNames.pop();
-
-    if (!obj[name]) {
+    if (obj[name] === undefined) {
         obj[name] = {};
     }
 
-    if (nestedPropNames.length == 0) {
-        obj[name] = value;
-        return obj;
+    // TODO : fix array problem
+    // if (utils.isArray(propValue)) {
+    //     var arr = [];
+    //     for (var i = 0; i < propValue.length; ++i) {
+    //         if (utils.isObject(propValue[i])) {
+    //             arr[i] = {};
+    //             var properties = propValue[i];
+    //
+    //             for (var propName2 in properties) {
+    //                 __recusiveBuildObjectProperty(arr[i], propName2, properties[propName2], sequence);
+    //             }
+    //         }
+    //         else {
+    //             arr[i] = propValue[i];
+    //         }
+    //     }
+    //     obj[name] = arr;
+    // }
+
+    if (splitPropNames.length == 0) {
+        obj[name] = propValue;
+    }
+    else {
+        splitPropNames = splitPropNames.reverse();
+        __recusiveBuildObjectProperty(obj[name], splitPropNames.join("."), propValue, sequence);
     }
 
-    return __recusiveBuildObjectProperty(obj[name], nestedPropNames, value);
+    return obj;
 }

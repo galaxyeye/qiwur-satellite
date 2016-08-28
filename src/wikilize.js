@@ -138,7 +138,7 @@ var processDetailPage = function() {
 
 	// humanize and visualize
 	this.thenEvaluate(function() {
-		__qiwur__visualizeHumanize();
+		__warps__visualizeHumanize();
 	});
 
 	// cache page content

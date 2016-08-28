@@ -1,20 +1,37 @@
-var system = require("system");
-var fs = require("fs");
 var utils = require('utils');
-var sutils = vendor('sutils');
-var md5 = vendor("md5");
-var logger = vendor('logger');
 var configure = vendor('configure').create();
 
-utils.dump(configure);
-console.log(JSON.stringify(configure));
-configure.test();
-utils.dump(configure.loadConfig());
+var properties1 = {
+    // "name": "jd.com",
+    // "page.index.main": "#J_goodsList",
+    // "page.index.paginator.selector": "#J_bottomPage",
+    // "nickname" : [
+    //     {
+    //         "nickname.first.name" : "no such name"
+    //     }
+    // ]
+};
 
-// var config = window.config.loadConfig().fetchController;
+// var properties2 = {
+//     "name": "jd.com",
+//     "page.index.main": "#J_goodsList",
+//     "page.index.paginator.selector": "#J_bottomPage",
+//     "page.index.paginator.next": ".pn-next",
+//     "page.index.start": 1,
+//     "page.index.limit": 1,
+//     "page.detail.regex": "(.+)item.jd.com(.+)",
+//     "page.detail.start": 1,
+//     "page.detail.limit": 1
+// };
 
-var entity = configure.loadSiteObject("academic.microsoft.com", "tests/resources/config/sites.json");
+var properties2 = {
+    "apple": "name",
+    "apple.banana" : "apple.banana"
+};
 
-utils.dump(entity);
+var obj = configure.buildObject(properties1);
+utils.dump(obj);
+obj = configure.buildObject(properties2);
+utils.dump(obj);
 
 phantom.exit(0);

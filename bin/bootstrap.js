@@ -80,6 +80,19 @@ try {
         }
     }
 
+    /**
+     * load a script file, return the content. File is either a relative path or a absolute path
+     * */
+    if (!global.loadScript) {
+        global.loadScript = function(file) {
+            var script = null;
+            if (file && fs.exists(file)) {
+                script = fs.read(file);
+            }
+            return script;
+        }
+    }
+
     var requireVendor = function(require) {
         function getCurrentScriptRoot() {
             if ((phantom.vendorPath || "").indexOf(fs.workingDirectory) === 0) {

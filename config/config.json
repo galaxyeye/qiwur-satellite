@@ -1,8 +1,4 @@
 {
-    "casperjs" : {
-        "autoLoad" : true,
-        "home" : "/home/hduser/workspace/casperjs"
-    },
     "server" : {
         "port": "19080p",
         "keepAlive": true,

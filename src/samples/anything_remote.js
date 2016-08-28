@@ -21,8 +21,8 @@ casper.start(testPage, function() {
         var str = JSON.stringify({message : "JSON is supported."});
         __utils__.echo(str);
         
-        // new ElementTraversor(new ElementVisitor(), {diagnosis : true}).traverse(document.body);
-        new ElementTraversor(new ElementVisitor()).traverse(document.body);
+        // new WarpsElementTraversor(new WarpsElementVisitor(), {diagnosis : true}).traverse(document.body);
+        new WarpsElementTraversor(new WarpsElementVisitor()).traverse(document.body);
     });
 });
 

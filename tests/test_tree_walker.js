@@ -59,8 +59,8 @@ casper.test.begin('tree walker tests', 3, function(test) {
                     var currentElement = treeWalker.currentNode;
                     var parentElement = currentElement.parentElement;
 
-                    var descend = __qiwur_getAttributeAsInt(currentElement, "_descend", 0);
-                    var lastParentDescend = __qiwur_getAttributeAsInt(parentElement, "_descend", 0);
+                    var descend = __warps_getAttributeAsInt(currentElement, "_descend", 0);
+                    var lastParentDescend = __warps_getAttributeAsInt(parentElement, "_descend", 0);
 
                     var currentParentDescend = lastParentDescend + descend + 1;
                     parentElement.setAttribute("_descend", currentParentDescend);
@@ -77,9 +77,9 @@ casper.test.begin('tree walker tests', 3, function(test) {
 
         test.assertEval(
             function() {
-                new ElementTraversor(new ElementVisitor()).traverse(document.body);
+                new WarpsElementTraversor(new WarpsElementVisitor()).traverse(document.body);
 
-                return __qiwur_getAttributeAsInt(document.body, "_descend", 0) > 0;
+                return __warps_getAttributeAsInt(document.body, "_descend", 0) > 0;
             },
             "Walked through the tree and compute vision feature"
         );

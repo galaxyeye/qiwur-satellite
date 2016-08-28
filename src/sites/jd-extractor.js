@@ -53,11 +53,56 @@ var casper = require("casper").create({
 });
 
 // register customer events
-include("src/samples/detail/ecommerce_events.js");
+include("src/sites/detail/local_resource_events.js");
 var events = new EventRegister(casper);
-var entity = configure.loadSiteObject("jd.com");
-var options = {'config' : config, 'casper' : casper, 'entity' : entity};
+var entity = configure.loadSiteObject("jd.com", "config/sites/jd.com.json");
+var options = {'config' : config, 'casper' : casper, 'entity' : entity, 'extractor' : entity.page.detail.extractor};
+var limit = 3;
 
-var crawler = vendor("crawler").create(options);
-console.log("Current directory : " + fs.workingDirectory);
-crawler.start();
+var resourceDir = "/home/vincent/Data/warps/satellite/web/jd.com/08.24/detail";
+
+// Get a list all files in directory
+var uris = [];
+fs.list(resourceDir).filter(function (uri) {
+    return uri.indexOf("html") > 0 && !fs.isFile(uri);
+}).forEach(function(uri) {
+    uris.push(resourceDir + "/" + uri);
+});
+
+// casper.echo(JSON.stringify(entity));
+// casper.exit(0);
+
+casper.start("about:blank", function() {
+    extractDocument.call(this, uris);
+});
+
+var i = 0;
+var extractDocument = function(uris) {
+    if (uris.length == 0) {
+        return;
+    }
+
+    if (i++ >= limit) {
+        this.echo("Hit limit " + limit + ", exit.");
+        return;
+    }
+
+    var uri = uris.pop();
+
+    this.echo("\n");
+    this.echo("Process the " + i + "th document: " + uri, 'COMMENT');
+
+    this.thenOpen(uri, function() {
+        this.evaluate(function (extractor) {
+            // __utils__.echo(document.baseURI);
+            var fields = new WarpsDomExtractor(extractor).extract();
+            __utils__.echo(JSON.stringify(fields));
+        }, {extractor : options.extractor});
+    }).then(function () {
+        extractDocument.call(this, uris);
+    });
+};
+
+casper.run(function() {
+    this.exit(0);
+});

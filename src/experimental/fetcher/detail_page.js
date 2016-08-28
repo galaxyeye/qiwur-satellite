@@ -145,7 +145,7 @@ var processDetailPage = function(url) {
 
 	// humanize and visualize
 	this.thenEvaluate(function() {
-		__qiwur__visualizeHumanize();
+		__warps__visualizeHumanize();
 	});
 
 	this.then(function() {
@@ -210,20 +210,20 @@ var captureAreas = function() {
 
 			// create a new element to hold the target capture area to avoid noise
 			this.evaluate(function(captureAreaSelector) {
-				__qiwur_createCaptureArea(captureAreaSelector);
+				__warps_createCaptureArea(captureAreaSelector);
 			}, captureArea.selector);
 
 			var fileName = getDetailPageLocalFileName(siteName, this.getCurrentUrl());
 			var relativeImagePath = fileName + "." + captureArea.name + ".png";
 			var imagePath = conf.cacheDirectory + "/" + relativeImagePath;
 			var selectorParts = captureArea.selector.split(/\s+/);
-			var captureTargetSelector = '.QiwurCaptureArea > div.holder ' + selectorParts[selectorParts.length - 1];
+			var captureTargetSelector = '.WarpsCaptureArea > div.holder ' + selectorParts[selectorParts.length - 1];
 			this.captureSelector(imagePath, captureTargetSelector);
 
 			// clean capture area
 			this.evaluate(function(nearBy, name, imagePath) {
-				__qiwur_cleanCaptureArea();
-				__qiwur_insertImage(nearBy, name, imagePath);
+				__warps_cleanCaptureArea();
+				__warps_insertImage(nearBy, name, imagePath);
 			}, captureArea.selector, captureArea.name, relativeImagePath);
 		} // if
 	} // for
