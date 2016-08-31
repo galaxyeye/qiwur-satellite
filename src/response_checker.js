@@ -1,28 +1,27 @@
 /*global __utils__, CasperError, console, exports, phantom, patchRequire, require:true*/
 
 var fs = require("fs");
-var system = require("system");
 var utils = require('utils');
-
 var configure = vendor('configure').create();
-var sutils = vendor('sutils');
-var logger = vendor('logger');
 
 var args = phantom.satelliteArgs;
 if (args.length == 0) {
-	console.log("Usage : phantomjs [options] client.js url");
+	console.log("usage : monitor src/response.js url");
 	phantom.exit(0);
 }
 
 var config = configure.loadConfig().fetcher;
 var url = args[0];
+var statusOutput = "tmp/last-response-status";
+var contentOutput = "tmp/last-page-body";
 
-// utils.dump(config);
+fs.write(statusOutput, "", "w");
+fs.write(contentOutput, "", "w");
 
 var fetcher = vendor('fetcher').create({config : config});
 fetcher.fetch(url, function(response, page) {
-	var file = sutils.getTemporaryFile(response.url);
-	fs.write(file, page.content, 'w');
-	console.log("Response status : " + response.status + ", " + response.statusText + ", saved in " + file);
+	response.bodySize = page.content.length;
+	fs.write(statusOutput, utils.serialize(response, 4), "w");
+	fs.write(contentOutput, page.content, "w");
 	phantom.exit();
 });

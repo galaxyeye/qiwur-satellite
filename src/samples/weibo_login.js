@@ -72,7 +72,7 @@ var casper = require('casper').create(
         }
     });
 
-var events = new EventRegister(casper);
+var events = new CasperEventRegister(casper);
 
 casper.on('load.failed', function() {
     this.echo("load.failed");

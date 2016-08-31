@@ -40,7 +40,7 @@ var casper = require('casper').create(
 
 // register customer events
 include("src/samples/detail/weibo_login_events.js");
-var events = new EventRegister(casper);
+var events = new CasperEventRegister(casper);
 
 /*******************************************************************************
  * Start main logic

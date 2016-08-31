@@ -54,7 +54,7 @@ var casper = require("casper").create({
 
 // register customer events
 include("src/samples/detail/ecommerce_events.js");
-var events = new EventRegister(casper);
+var events = new CasperEventRegister(casper);
 var entity = configure.loadSiteObject("jd.com");
 var options = {'config' : config, 'casper' : casper, 'entity' : entity};
 

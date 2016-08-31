@@ -1,14 +1,15 @@
 "use strict";
 
-var EventRegister = function EventRegister(casper) {
+var CasperEvents = function CasperEvents() {
     /*jshint maxstatements:40*/
     // init & checks
-    if (!(this instanceof EventRegister)) {
+    if (!(this instanceof CasperEvents)) {
         "use strict";
-
-        return new EventRegister(casper);
+        return new CasperEvents();
     }
+};
 
+CasperEvents.prototype.registerTo = function(casper) {
     /*******************************************************************************
      * network events
      ******************************************************************************/
@@ -113,4 +114,4 @@ var EventRegister = function EventRegister(casper) {
     });
 };
 
-window.EventRegister = EventRegister;
+window.CasperEvents = CasperEvents;

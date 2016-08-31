@@ -94,11 +94,20 @@ function __warps__searchLinks(mainAreaSelector, urlRegex) {
 	var map = Array.prototype.map;
 
 	var links = document.querySelectorAll(mainAreaSelector + " a");
-	return map.call(filter.call(links, function(link) {
+	var urls = map.call(filter.call(links, function(link) {
 		return new RegExp(urlRegex).test(link.href);
 	}), function(link) {
-		return link.href;
+		// TODO : add a normalize util
+		var pos = link.href.indexOf("#");
+		return link.href.substring(0, pos == -1 ? 200 : pos);
 	});
+
+	// make it unique
+	urls = urls.sort().filter(function(link, i, arr) {
+		return link && link.length > 0 && (i == arr.indexOf(link));
+	});
+
+	return urls;
 }
 
 function __warps__relativeToAbsolute(url) {

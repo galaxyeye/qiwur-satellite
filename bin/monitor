@@ -30,9 +30,22 @@ while [ -h "$THIS" ]; do
   fi
 done
 
+declare SATELLITE
+declare SATELLITE_HOME
+declare THIS_DIR=`dirname "$THIS"`
+declare BASH_CONFIG=${THIS_DIR}/../config/common.env.sh
+declare PERIODICALLY=false
+declare -i PROXY_POLICY
+declare PROXY_IP_PORT
+declare SATELLITE_RESTART_PERIOD
+declare SATELLITE_LOG
+declare SATELLITE_OUTPUT
+declare SATELLITE_COOKIE_FILE
+declare SATELLITE_LOAD_IMAGES
+
 # if no args specified, show usage
 if [ $# = 0 ]; then
-  echo "Usage: satellite COMMAND"
+  echo "Usage: satellite OPTIONS COMMAND"
   echo "where COMMAND is one of:"
   echo "start"
   echo "stop"
@@ -42,37 +55,43 @@ if [ $# = 0 ]; then
   exit 1
 fi
 
-# some directories
-THIS_DIR=`dirname "$THIS"`
+for i in "$@"
+do
+case ${i} in
+    -c=*|--config-file=*)
+    BASH_CONFIG="${i#*=}"
+    shift
+    ;;
+    -p=*|--periodically=*)
+    PERIODICALLY="${i#*=}"
+    shift
+    ;;
+    --default)
+    DEFAULT=YES
+    shift
+    ;;
+    *)
+          # unknown option
+    ;;
+esac
+done
 
- . ${THIS_DIR}/../config/satellite-env.sh
+echo "Load bash config file : ${BASH_CONFIG}"
 
-cd $SATELLITE_HOME
+### Load config
+ . ${BASH_CONFIG}
+
+cd ${SATELLITE_HOME}
 
 # get arguments
 COMMAND=$1
 shift
 
-SATELLITE_OPTS=()
-
-if [ $SATELLITE_LOAD_IMAGES ]; then
-    SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --load-images=true)
-fi
-
-SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --ssl-protocol=any)
-
-if [ -z $SATELLITE_COOKIE_FILE ]; then
-    SATELLITE_COOKIE_FILE=output/cookies/satellite.cookie.txt
-fi
-
-SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --cookies-file=$SATELLITE_COOKIE_FILE)
-
-if [ -z $PROXY_POLICY ]; then
-    PROXY_POLICY=0
-    PROXY_IP_PORT=
-fi
+### build program options
+declare -a SATELLITE_OPTS=(--load-images=${SATELLITE_LOAD_IMAGES} --ssl-protocol=any --cookies-file=${SATELLITE_COOKIE_FILE})
 
 if (( $PROXY_POLICY == 2 )); then
+    export BASH_CONFIG=${BASH_CONFIG}
     . ${THIS_DIR}/proxy_selector.sh
 fi
 
@@ -80,36 +99,68 @@ if (( $PROXY_POLICY > 0 )) && [ -n ${PROXY_IP_PORT} ]; then
     SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --proxy=${PROXY_IP_PORT})
 fi
 
-if [ -z $SATELLITE_RESTART_PERIOD ]; then
-    SATELLITE_RESTART_PERIOD=30
-fi
-
-if [ -z $SATELLITE_LOG ]; then
-    SATELLITE_LOG=/tmp/satellite/logs
-    mkdir -p $SATELLITE_LOG
-fi
-
-if [ -z $SATELLITE_OUTPUT ]; then
-    SATELLITE_OUTPUT=/tmp/satellite/output
-    mkdir -p $SATELLITE_OUTPUT
-fi
-
-EXEC_CALL=($SATELLITE ${SATELLITE_OPTS[@]})
+EXEC_CALL=(${SATELLITE} ${SATELLITE_OPTS[@]})
 EXEC_CALL_TEST="$SATELLITE test"
 
+mkdir -p ${SATELLITE_LOG}
+mkdir -p ${SATELLITE_OUTPUT}
+
 function run() {
+    if [ ${PERIODICALLY} == "true" ]; then
+        run_periodically $@
+    else
+        run_once $@
+    fi
+}
+
+function run_once() {
     local CMD="$1"
     shift
 
     JS="$SATELLITE_HOME/$CMD"
 
-    echo "${EXEC_CALL[@]}" $JS $@
-    exec "${EXEC_CALL[@]}" $JS $@
+    echo "${EXEC_CALL[@]}" ${JS} $@
+    exec "${EXEC_CALL[@]}" ${JS} $@
+}
+
+# sleep for some time and restart all
+function run_periodically() {
+    # kill all
+    pkill phantomjs
+
+    seconds=`expr ${SATELLITE_RESTART_PERIOD} \* 60`
+    while [ 1 ]
+    do
+        echo "-------------------------------------"
+        echo `date`
+
+        run_once $@
+
+        echo "Waiting for $seconds ..."
+        sleep seconds
+        echo "stop all ..."
+        pkill phantomjs
+
+        clean_logs
+    done
+}
+
+function clean_logs() {
+    # delete old log files
+    echo "try remove old log files : "
+    echo ">>>>>>>>>>>>"
+    ls ${SATELLITE_LOG}
+    ls ${SATELLITE_OUTPUT}
+    find ${SATELLITE_LOG} ${SATELLITE_OUTPUT} -mtime +2 -a -type f -print -delete
+    echo "<<<<<<<<<<<<"
+    ls ${SATELLITE_LOG}
+    ls ${SATELLITE_OUTPUT}
+    echo
 }
 
 function run_test() {
-    echo "$EXEC_CALL_TEST $@"
-    exec $EXEC_CALL_TEST $@
+    echo "${EXEC_CALL_TEST} $@"
+    exec ${EXEC_CALL_TEST} $@
 }
 
 # sleep for 30 minites and restart all
@@ -117,27 +168,22 @@ function start_all() {
     # kill all
     pkill phantomjs
 
+    seconds=`expr ${SATELLITE_RESTART_PERIOD} \* 60`
     while [ 1 ]
     do
         echo "-------------------------------------"
         echo `date`
         echo "start all..."
+
         run src/coordinator.js start
-        echo "waiting..."
-        sleep `expr $SATELLITE_RESTART_PERIOD \* 60`
-        echo "stop all..."
+
+        echo "Waiting for $seconds ..."
+        sleep seconds
+        echo "stop all ..."
+        pkill phantomjs
         pkill phantomjs
 
-        # delete old log files
-        echo "try remove old log files : "
-        echo ">>>>>>>>>>>>"
-        ls $SATELLITE_LOG
-        ls $SATELLITE_OUTPUT
-        find $SATELLITE_LOG $SATELLITE_OUTPUT -mtime +2 -a -type f -print -delete
-        echo "<<<<<<<<<<<<"
-        ls $SATELLITE_LOG
-        ls $SATELLITE_OUTPUT
-        echo
+        clean_logs
     done
 }
 
@@ -160,7 +206,7 @@ function pps() {
 
 # figure out which class to run
 if [ "$COMMAND" = "start" ] ; then
-    start_all $@
+    start_all
 elif [ "$COMMAND" = "stop" ] ; then
     stop_all
 elif [ "$COMMAND" = "pps" ] ; then
@@ -168,5 +214,5 @@ elif [ "$COMMAND" = "pps" ] ; then
 elif [ "$COMMAND" = "test" ] ; then
     run_test $@
 else
-    run $COMMAND $@
+    run ${COMMAND} $@
 fi

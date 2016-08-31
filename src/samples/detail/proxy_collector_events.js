@@ -1,12 +1,12 @@
 "use strict";
 
-var EventRegister = function EventRegister(casper) {
+var CasperEventRegister = function CasperEventRegister(casper) {
     /*jshint maxstatements:40*/
     // init & checks
-    if (!(this instanceof EventRegister)) {
+    if (!(this instanceof CasperEventRegister)) {
         "use strict";
 
-        return new EventRegister(casper);
+        return new CasperEventRegister(casper);
     }
 
     this.test = function () {
@@ -92,4 +92,4 @@ var EventRegister = function EventRegister(casper) {
     });
 };
 
-window.EventRegister = EventRegister;
+window.CasperEventRegister = CasperEventRegister;

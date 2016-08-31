@@ -6,10 +6,10 @@
     "page.index.paginator.selector": "#J_bottomPage",
     "page.index.paginator.next": ".pn-next",
     "page.index.start": 1,
-    "page.index.limit": 1,
+    "page.index.limit": 100,
     "page.detail.regex": "(.+)item.jd.com(.+)",
     "page.detail.start": 1,
-    "page.detail.limit": 1,
+    "page.detail.limit": 1000,
     "page.detail.clicks": [
       {
         "area" : [1104, 914, 102, 30],

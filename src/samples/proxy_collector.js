@@ -1,4 +1,4 @@
-/*global __utils__, CasperError, console, exports, phantom, patchRequire, require:true*/
+/** global __utils__, CasperError, console, exports, phantom, patchRequire, require:true */
 
 "use strict";
 
@@ -36,7 +36,7 @@ var casper = require('casper').create(
         verbose : true
     });
 
-var events = new EventRegister(casper);
+var events = new CasperEventRegister(casper);
 
 casper.on('load.failed', function() {
     this.echo("load.failed");
@@ -53,20 +53,19 @@ casper.start(seed).then(function() {
     clickOpenAndCollect.call(this);
 });
 
-/*******************************************************************************
- * start main logic
- ******************************************************************************/
+/**
+ * Click to open the next page
+ * */
 function clickOpenAndCollect() {
-    if (finished || page++ > maxPage) {
+    if (finished || ++page > maxPage) {
         return;
     }
 
     if (page % 10 == 0) {
-        // we can crawl other web site now
-        this.wait(20 * 1000);
+        // We can crawl other web site now
+        peresistIpList();
+        this.wait(60 * 1000);
     }
-
-    fs.write(outFile + "." + page, ipList.join("\n"), 'w');
 
     lastUrl = this.getCurrentUrl();
     this.then(function() {
@@ -81,8 +80,8 @@ function clickOpenAndCollect() {
         finished = true;
     });
 
-    this.wait(1000);
-    
+    this.wait(2 * 1000);
+
     this.waitFor(function() {
         return lastUrl !== casper.getCurrentUrl();
     }, function () {
@@ -90,8 +89,11 @@ function clickOpenAndCollect() {
     });
 }
 
+/**
+ * Collect Ips
+ * */
 function collectIps() {
-    var ipList = casper.evaluate(function() {
+    var collectedIpList = casper.evaluate(function() {
         var ipList = [];
         var ipTable = __utils__.findAll("#ip_list tr");
         for (var i = 0; i < ipTable.length; ++i) {
@@ -102,11 +104,18 @@ function collectIps() {
         return ipList;
     });
 
-    return ipList;
+    return collectedIpList;
+}
+
+/**
+ * @param ipList {Array}
+ * */
+function peresistIpList() {
+    casper.echo("Total " + ipList.length + " ips, saved in " + outFile);
+    fs.write(outFile, ipList.join("\n"), 'a+');
+    ipList = [];
 }
 
 casper.run(function() {
-    this.echo("Total " + ipList.length + " ips, saved in " + outFile);
-    fs.write(outFile, ipList.join("\n"), 'w');
     this.exit(0);
 });

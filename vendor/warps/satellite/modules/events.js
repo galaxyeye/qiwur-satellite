@@ -3,14 +3,14 @@
  * */
 exports.create = function create(casper) {
 	"use strict";
-	return new EventRegister(casper);
+	return new CasperEventRegister(casper);
 };
 
-var EventRegister = function EventRegister(casper) {
+var CasperEventRegister = function CasperEventRegister(casper) {
     /*jshint maxstatements:40*/
     // init & checks
-    if (!(this instanceof EventRegister)) {
-        return new EventRegister(casper);
+    if (!(this instanceof CasperEventRegister)) {
+        return new CasperEventRegister(casper);
     }
 
     /*******************************************************************************

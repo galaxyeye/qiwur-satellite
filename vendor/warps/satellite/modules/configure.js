@@ -136,8 +136,8 @@ function __recusiveBuildObjectProperty(obj, propName, propValue, sequence) {
 
     var name = splitPropNames.pop();
 
-    if (!utils.isObject(obj[name]) && splitPropNames.length > 0) {
-        console.log("Warning : object property override by {" + name + " : " + obj[name] + "}");
+    if (obj[name] && !utils.isObject(obj[name]) && splitPropNames.length > 0) {
+        console.log("Warning : build config object, property override by {" + name + " : " + obj[name] + "}");
     }
 
     if (obj[name] === undefined) {

@@ -1,34 +1,3 @@
-// Extractor Rule Example
-const ExtractorRuleTemplate = {
-    slim: ["k1", "v1", "k2", "v2", "k3", "v3"],
-    full: [
-        {
-            "name": "entity-source",
-            "cssPath": ".entity-source",
-            "validator": {
-                "regex": ".+",
-                "xpath": null
-            },
-            "min-left": null,
-            "max-left": null,
-            "min-top": null,
-            "max-top": null,
-            "min-width": null,
-            "max-width": null,
-            "min-height": null,
-            "max-height": null
-        }
-    ],
-    kv: [
-        {
-            "name": "publication",
-            "container": ".entity-section div",
-            "key": " > span",
-            "value": " > p"
-        }
-    ]
-};
-
 // Note : seems can not come before constants
 "use strict";
 
@@ -45,6 +14,7 @@ var WarpsDomExtractor = function Extractor(extractor, options) {
     }
 
     this.defaults = {
+        'metadata' : true,
         'verbose' : false
     };
     /** Extract rules */
@@ -64,7 +34,7 @@ var WarpsDomExtractor = function Extractor(extractor, options) {
  *
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is window.document
- * @return array contains [k, v] pairs
+ * @return {Array} contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extract = function (scope) {
     "use strict";
@@ -76,6 +46,9 @@ WarpsDomExtractor.prototype.extract = function (scope) {
     scope = scope || window.document;
 
     try {
+        if (this.options.metadata) {
+            this.extractMetadata();
+        }
         if (this.extractor.slim) {
             this.extractBySlimRules(this.extractor.slim, scope);
         }
@@ -100,12 +73,40 @@ WarpsDomExtractor.prototype.extract = function (scope) {
 };
 
 /**
+ * Extract metadata
+ *
+ * @return Array contains [k, v] pairs
+ * */
+WarpsDomExtractor.prototype.extractMetadata = function () {
+    "use strict";
+
+    if (this.verbose) {
+        __utils__.log('Extract by slim rules', 'debug');
+    }
+
+    var nodeList = __utils__.findAll("head meta");
+    for (var i = 0; i < nodeList.length; ++i) {
+        var node = nodeList[i];
+
+        var k = node.getAttribute("http-equiv");
+        var v = node.getAttribute("content");
+
+        if (k && k.length > 0 && v && v.length > 0 ) {
+            var item = {name : k, value : v, type : 'metadata'};
+            this.results.push(item);
+        }
+    }
+
+    return this.results;
+};
+
+/**
  * Extract fields from an element using the given rules
  *
  * @param rules {Array|null} extract rules
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractBySlimRules = function (rules, scope) {
     "use strict";
@@ -143,7 +144,7 @@ WarpsDomExtractor.prototype.extractBySlimRules = function (rules, scope) {
  * @param rules {Array|null} extract rules
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByRegex = function (rules, scope) {
     "use strict";
@@ -170,7 +171,7 @@ WarpsDomExtractor.prototype.extractByRegex = function (rules, scope) {
  *      if group number is not valid, for example, out of range, it's set to be 0.
  * @param {HTMLElement|null} scope Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByOneRegex = function (rule, scope) {
     "use strict";
@@ -276,7 +277,7 @@ WarpsDomExtractor.prototype.extractBySelector = function (rules, scope) {
  * @param rules {Array|null} extract rules
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByOneSelector = function (rule, scope) {
     "use strict";
@@ -311,7 +312,7 @@ WarpsDomExtractor.prototype.extractByOneSelector = function (rule, scope) {
  * @param rules {Array} extract rules
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByVision = function (rules, scope) {
     // "use strict";
@@ -331,7 +332,7 @@ WarpsDomExtractor.prototype.extractByVision = function (rules, scope) {
  * @param rule {Object|null} extract rule
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByOneVision = function (rule, scope) {
     // "use strict";
@@ -393,7 +394,7 @@ WarpsDomExtractor.prototype.extractByOneVision = function (rule, scope) {
             continue;
         }
 
-        // convert string to array, for example, "100 100 100 100" => ["100", "100", "100", "100"]
+        // convert string to Array, for example, "100 100 100 100" => ["100", "100", "100", "100"]
         vision = vision.split(" ");
         if (vision.length !== 4) {
             continue;
@@ -437,7 +438,7 @@ WarpsDomExtractor.prototype.extractByOneVision = function (rule, scope) {
  * @param rules {Array|null} extract rules
  * @param scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByFullRules = function (rules, scope) {
     // "use strict";
@@ -467,7 +468,7 @@ WarpsDomExtractor.prototype.extractByFullRules = function (rules, scope) {
  * @param  rule {Object} Extract rule
  * @param  scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractByFullRule = function (rule, scope) {
     "use strict";
@@ -604,7 +605,7 @@ WarpsDomExtractor.prototype.extractCollections = function (rules, scope) {
  * @param  rule {Object} Extract rule
  * @param  scope {HTMLElement|null} Element to search child elements within,
  *  default scope is document
- * @return array contains [k, v] pairs
+ * @return Array contains [k, v] pairs
  * */
 WarpsDomExtractor.prototype.extractCollection = function (rule, scope) {
     "use strict";
@@ -631,20 +632,10 @@ WarpsDomExtractor.prototype.extractCollection = function (rule, scope) {
     var entities = [];
     for (var i = 0; i < nodeList.length; ++i) {
         var node = nodeList[i];
-        entities = new WarpsDomExtractor(rule.extractor).extract(node);
-        
-        // __utils__.log(node.textContent);
-
-        // var k = __utils__.findAll(rule.key, node);
-        // var v = __utils__.findAll(rule.value, node);
-        //
-        // if (rule.debug) {
-        //     this.__debugContent(rule.key, rule.value, node);
-        // }
-        //
-        // if (k && v) {
-        //     entities.push([__warps_getMergedTextContent(k), __warps_getMergedTextContent(v)]);
-        // }
+        var options = {};
+        options.metadata = false;
+        var entity = new WarpsDomExtractor(rule.extractor, options).extract(node);
+        entities.push(entity);
     }
     // this.results.push([name, entities, "collection"]);
     var item = {name : name, value : entities, type : "collection"};
