@@ -38,10 +38,10 @@ WarpsElementTraversor.prototype.traverse = function(root) {
         __utils__.log("Invalid root to traverse.", "warn");
         return;
     }
-    
+
     var ele = root;
     var depth = 0;
-    
+
     while (ele && !this.visitor.isStopped()) {
         this.visitor.head(ele, depth);
 

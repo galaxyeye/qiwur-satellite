@@ -1,7 +1,7 @@
 var fs = require("fs");
 var system = require("system");
 
-var args = phantom.satelliteArgs;
+var args = system.args;
 if (args.length < 1) {
     console.log("Usage : ./bin/satellite src/disable_scripts <dir>");
     phantom.exit(0);

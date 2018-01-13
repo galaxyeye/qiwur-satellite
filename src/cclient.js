@@ -1,5 +1,7 @@
 /*global __utils__, CasperError, console, exports, phantom, patchRequire, require:true*/
 
+require("./bootstrap");
+
 var system = require("system");
 var fs = require("fs");
 var utils = require('utils');
@@ -56,15 +58,15 @@ var casper = require('casper').create(
 
 var sites = configure.loadConfig("config/sites.json");
 
-if (system.args.length < 2) {
-	console.log("usage : monitor [options] cclient.js <site-name>");
+if (!casper.cli.has(0)) {
+	console.log("usage : casperjs [options] cclient.js <site-name>");
 
-	console.log("site name is one of the following : " + JSON.stringify(listSites(sites)));
+	console.log("Site name is one of the following : " + JSON.stringify(listSites(sites)));
 
 	phantom.exit(0);
 }
 
-var siteName = system.args[1];
+var siteName = casper.cli.get(0);
 var site = findSiteConfig(sites, siteName);
 if (!site) {
 	console.log("No site available");
@@ -166,7 +168,7 @@ casper.on('timeout', function() {
  * start main logic
  ******************************************************************************/
 casper.start(site.seed).then(function() {
-	if (status == 'timeout') {
+	if (status === 'timeout') {
 		terminate.call(this);
 	}
 
@@ -265,7 +267,7 @@ var collectDetailPageLinks = function() {
 		return __warps__searchLinks(selector, regex);
 	}, site.indexPageMainAreaSelector, site.detailPageUrlRegex);
 
-	if (!links || links.length == 0) {
+	if (!links || links.length === 0) {
 		logger.warn("No any detail links");
 	}
 
@@ -377,7 +379,7 @@ var saveIndexPage = function() {
 	fs.write(file, content, 'w');
 
 	this.echo("page saved in : " + file);
-}
+};
 
 var saveDetailPage = function() {
 	var fileName = getDetailPageLocalFileName(siteName, this.getCurrentUrl());

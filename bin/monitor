@@ -30,7 +30,7 @@ while [ -h "$THIS" ]; do
   fi
 done
 
-declare SATELLITE
+declare CASPER_HOME
 declare SATELLITE_HOME
 declare THIS_DIR=`dirname "$THIS"`
 declare BASH_CONFIG=${THIS_DIR}/../config/common.env.sh
@@ -87,8 +87,17 @@ cd ${SATELLITE_HOME}
 COMMAND=$1
 shift
 
+CASPER=$CASPER_HOME/bin/casperjs
+
 ### build program options
-declare -a SATELLITE_OPTS=(--load-images=${SATELLITE_LOAD_IMAGES} --ssl-protocol=any --cookies-file=${SATELLITE_COOKIE_FILE})
+declare -a CASPERJS_OPTS=(
+--load-images=false
+--ssl-protocol=any
+--cookies-file=${SATELLITE_COOKIE_FILE}
+--disk-cache=false
+--verbose
+--log-level=debug
+)
 
 if (( $PROXY_POLICY == 2 )); then
     export BASH_CONFIG=${BASH_CONFIG}
@@ -96,11 +105,11 @@ if (( $PROXY_POLICY == 2 )); then
 fi
 
 if (( $PROXY_POLICY > 0 )) && [ -n ${PROXY_IP_PORT} ]; then
-    SATELLITE_OPTS=(${SATELLITE_OPTS[@]} --proxy=${PROXY_IP_PORT})
+    CASPERJS_OPTS=(${CASPERJS_OPTS[@]} --proxy=${PROXY_IP_PORT})
 fi
 
-EXEC_CALL=(${SATELLITE} ${SATELLITE_OPTS[@]})
-EXEC_CALL_TEST="$SATELLITE test"
+EXEC_CALL=($CASPER ${CASPERJS_OPTS[@]})
+EXEC_CALL_TEST="$CASPER test"
 
 mkdir -p ${SATELLITE_LOG}
 mkdir -p ${SATELLITE_OUTPUT}
@@ -189,15 +198,15 @@ function start_all() {
 
 function stop_all() {
     echo "running phantomjs programs : "
-    ps -ef | grep satellite
+    ps -ef | grep casperjs
     ps -ef | grep phantomjs
     pkill phantomjs
     echo "waiting..."
     sleep 3
     echo "running phantomjs programs : "
-    ps -ef | grep satellite
+    ps -ef | grep casperjs
     ps -ef | grep phantomjs
-    pkill satellite
+    pkill casperjs
 }
 
 function pps() {

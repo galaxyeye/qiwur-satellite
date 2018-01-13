@@ -4,8 +4,8 @@ var fs = require("fs");
 var utils = require('utils');
 var configure = vendor('configure').create();
 
-var args = phantom.satelliteArgs;
-if (args.length == 0) {
+var args = system.args;
+if (args.length === 0) {
 	console.log("usage : monitor src/response.js url");
 	phantom.exit(0);
 }

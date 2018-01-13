@@ -5,6 +5,8 @@ THIS="$0"
 THIS_DIR=`dirname "$THIS"`
 export SATELLITE_HOME=`cd "$THIS_DIR/.." ; pwd`
 
+export CASPER_HOME=$HOME/node_modules/casperjs
+
 export PROXY_FILE=${SATELLITE_HOME}/output/proxy/proxy.txt
 
 # Proxy policy
@@ -14,7 +16,6 @@ export PROXY_FILE=${SATELLITE_HOME}/output/proxy/proxy.txt
 export PROXY_POLICY=0
 export PROXY_IP_PORT=182.90.23.129:80
 
-export SATELLITE=${SATELLITE_HOME}/bin/satellite
 export SATELLITE_COOKIE_FILE=output/cookies/satellite.cookie.txt
 
 export SATELLITE_LOG=${SATELLITE_HOME}/logs

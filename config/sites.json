@@ -1,1 +1,68 @@
-[]
+[
+  {
+    "name" : "tuan.ctrip.com",
+    "seed" : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
+    "indexPageMainAreaSelector" : ".pic-list",
+    "paginatorSelector" : ".page-box",
+    "nextPageSelector" : ".page-box .page-next",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://tuan.ctrip.com/group/(.+)",
+    "maxIndexPageCount" : 3,
+    "maxDetailPageCount" : 300,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : ".detail-info .price-set .price"}
+    ]
+  },
+  {
+    "name" : "tuan.elong.com",
+    "seed" : "http://tuan.elong.com/beijing_0101_jiudian_tuangou/",
+    "indexPageMainAreaSelector" : "#productList",
+    "paginatorSelector" : ".loadingmore",
+    "nextPageSelector" : ".loadingmore",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://tuan.elong.com/(.+)_(.+)_tuangou-(.+)",
+    "maxIndexPageCount" : 3,
+    "maxDetailPageCount" : 300,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : "#hoverArea .h_ord_price"}
+    ]
+  },
+  {
+    "name" : "electronic.jd.com",
+    "seed" : "http://list.jd.com/list.html?cat=737%2C794%2C798&page=1&JL=6_0_0",
+    "indexPageMainAreaSelector" : "#plist ul",
+    "paginatorSelector" : "div.page",
+    "nextPageSelector" : "div.page a.pn-next",
+    "startPage" : 1,
+    "detailPageUrlRegex" : "http://item.jd.com/(.+)",
+    "maxIndexPageCount" : 2,
+    "maxDetailPageCount" : 100,
+    "detailPageCaptureAreas" : [
+      {"name" : "Price", "selector" : "#jd-price .p-price"}
+    ]
+  },
+  {
+    "name" : "academic.microsoft.com",
+    "seed" : "http://academic.microsoft.com",
+    "indexPageMainAreaSelector" : ".news-content",
+    "paginatorSelector" : "#noNextPage",
+    "nextPageSelector" : "#noNextPage",
+    "startPage" : 1,
+    "detailPageUrlRegex" : ".+",
+    "maxIndexPageCount" : 1,
+    "maxDetailPageCount" : 100,
+    "detailPageCaptureAreas" : null
+  },
+  {
+    "name" : "twitter.com",
+    "seed" : "http://twitter.com/",
+    "indexPageMainAreaSelector" : "body",
+    "paginatorSelector" : "#noNextPage",
+    "nextPageSelector" : "#noNextPage",
+    "startPage" : 1,
+    "detailPageUrlRegex" : ".+",
+    "maxIndexPageCount" : 1,
+    "maxDetailPageCount" : 100,
+    "detailPageCaptureAreas" : null
+  }
+]

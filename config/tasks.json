@@ -1,65 +1,64 @@
 [
     {
-        entity : {
-            name : "tuan.ctrip.com",
-            seed : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
-            page : {
-                index : {
-                    main : '.pic-list',
-                    paginator : {
-                        'selector' : '.page-box',
-                        'next' : '.page-box .page-next'
+        "entity" : {
+            "name" : "tuan.ctrip.com",
+            "seed" : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
+            "page" : {
+                "index" : {
+                    "main" : ".pic-list",
+                    "paginator" : {
+                        "selector" : ".page-box",
+                        "next" : ".page-box .page-next"
                     },
-                    start : 1,
-                    limit : 3
+                    "start" : 1,
+                    "limit" : 3
                 },
-                detail : {
-                    regex : 'http://tuan.ctrip.com/group/(.+)',
-                    start : 1,
-                    limit : 100,
-                    capture : {
-                        name : 'Price',
-                        selector : '.detail-info .price-set .price'
+                "detail" : {
+                    "regex" : "http://tuan.ctrip.com/group/(.+)",
+                    "start" : 1,
+                    "limit" : 100,
+                    "capture" : {
+                        "name" : "Price",
+                        "selector" : ".detail-info .price-set .price"
                     }
                 }
             } // page
         },
 
-        extract : {
-            justInTime : false,
-            serivce : 'http://localhost:8082'
+        "extract" : {
+            "justInTime" : false,
+            "serivce" : "http://localhost:8082"
         }
     },
     {
-        entity : {
-            name : "tuan.ctrip.com",
-            seed : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
-            page : {
-                index : {
-                    main : '.pic-list',
-                    paginator : {
-                        'selector' : '.page-box',
-                        'next' : '.page-box .page-next'
+        "entity" : {
+            "name" : "tuan.ctrip.com",
+            "seed" : "http://tuan.ctrip.com/group/city_shanghai/item_6/page_1",
+            "page" : {
+                "index" : {
+                    "main" : ".pic-list",
+                    "paginator" : {
+                        "selector" : ".page-box",
+                        "next" : ".page-box .page-next"
                     },
-                    start : 1,
-                    limit : 3
+                    "start" : 1,
+                    "limit" : 3
                 },
-                detail : {
-                    regex : 'http://tuan.ctrip.com/group/(.+)',
-                    start : 1,
-                    limit : 100,
-                    capture : {
-                        name : 'Price',
-                        selector : '.detail-info .price-set .price'
+                "detail" : {
+                    "regex" : "http://tuan.ctrip.com/group/(.+)",
+                    "start" : 1,
+                    "limit" : 100,
+                    "capture" : {
+                        "name" : "Price",
+                        "selector" : ".detail-info .price-set .price"
                     }
                 }
             } // page
         },
 
-        extract : {
-            justInTime : false,
-            serivce : 'http://localhost:8082'
+        "extract" : {
+            "justInTime" : false,
+            "serivce" : "http://localhost:8082"
         }
-    },
-    
+    }
 ]

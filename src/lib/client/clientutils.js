@@ -20,7 +20,6 @@ function __warps__checkVariables(variables) {
 	return report;
 }
 
-
 /**
  * Clones an object.
  *
@@ -75,7 +74,7 @@ function __warps__visualizeHumanize() {
 	new WarpsElementTraversor(new WarpsElementVisitor()).traverse(document.body);
 
 	// do some action like a real user
-	__warps__humanize(document.body);
+	// __warps__humanize(document.body);
 
 	// if any script error occurs, the flag can NOT be seen
 	document.body.setAttribute("data-error", '0');

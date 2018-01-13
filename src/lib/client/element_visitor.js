@@ -16,15 +16,14 @@ const VISION_SCHEMA_STRING = "top-left-width-height";
  */
 var WarpsElementVisitor = function() {
     // this.schema = ["descend"];
-    this.sequence = 0;
-    this.stopped = false;
-
-    var metadata = document.querySelector("#" + META_INFORMATION_ID);
-    if (metadata) {
-        // already exists
-        this.stopped = true;
+    if (__utils__.exists("#" + META_INFORMATION_ID)) {
         return;
     }
+
+    __utils__.log("creating WarpsElementVisitor", 'info');
+
+    this.sequence = 0;
+    this.stopped = false;
 
     this.generateMetadata();
 };

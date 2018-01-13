@@ -32,7 +32,7 @@ var Coordinator = function Coordinator(options) {
     this.monitoredProcesses  = [];
 
     this.status  = 'notready';
-}
+};
 
 Coordinator.prototype.startWebServer = function() {
     var coordinator = this;
@@ -42,12 +42,12 @@ Coordinator.prototype.startWebServer = function() {
         var cmd = request.url;
 
         var body = '';
-        if (cmd == '/') {
+        if (cmd === '/') {
             body = coordinator.index();
         }
         else {
             body = coordinator.execute(cmd.substring(1));
-            if (body == 'unrecognized command') {
+            if (body === 'unrecognized command') {
                 var path = sutils.virtualPath2LocalPath(request.url);
 
                 if (fs.isFile(path)) {
@@ -80,7 +80,7 @@ Coordinator.prototype.run = function () {
     this.startWebServer();
 
     var cmd = "";
-    var args = phantom.satelliteArgs;
+    var args = system.args;
     if (args.length > 0) {
         cmd = args[0];
     }
@@ -88,9 +88,9 @@ Coordinator.prototype.run = function () {
     logger.info('=============================');
     logger.info('coordinator command : ' + cmd);
 
-    if (cmd == 'start') this.start();
-    else if (cmd == 'update') this.update();
-    else if (cmd == 'report') this.report();
+    if (cmd === 'start') this.start();
+    else if (cmd === 'update') this.update();
+    else if (cmd === 'report') this.report();
 
     logger.info("monitor started, open http://127.0.0.1:" + config.port + " for administration");
 };
@@ -98,32 +98,32 @@ Coordinator.prototype.run = function () {
 Coordinator.prototype.execute = function(cmd) {
     var result = '';
 
-    if (cmd == 'status') {
+    if (cmd === 'status') {
         result = this.getStatus();
     }
-    else if (cmd == 'report') {
+    else if (cmd === 'report') {
         result = this.report();
     }
-    else if (cmd == 'update') {
+    else if (cmd === 'update') {
         result = this.update();
     }
-    else if (cmd == 'start') {
+    else if (cmd === 'start') {
         result = this.start();
     }
-    else if (cmd == 'restart') {
+    else if (cmd === 'restart') {
         result = this.restart();
     }
-    else if (cmd == 'stop') {
+    else if (cmd === 'stop') {
         result = this.stop();
     }
-    else if (cmd == 'quit') {
+    else if (cmd === 'quit') {
         result = this.quit();
     }
     else {
         result = 'unrecognized command';
     }
 
-    if (result != 'unrecognized command') {
+    if (result !== 'unrecognized command') {
         // logger.info('execute command : ' + cmd);
     }
 
@@ -136,7 +136,7 @@ Coordinator.prototype.index = function() {
 
 Coordinator.prototype.getStatus = function() {
     var message = this.status;
-    if (this.status == 'started') {
+    if (this.status === 'started') {
         message = JSON.stringify(this.monitoredProcesses);
     }
 
@@ -175,7 +175,7 @@ Coordinator.prototype.update = function() {
  * Start fetcher client, the fetcher client asks the fetch server for tasks,
  * download the web page and then upload it back to the fetch server.
  *
- * @param port a dummy number to indicate the process
+ * @param clientId a dummy number to indicate the process
  * */
 Coordinator.prototype.startFetcherClient = function(clientId) {
     logger.info("starting fetcher client");
@@ -184,10 +184,10 @@ Coordinator.prototype.startFetcherClient = function(clientId) {
 
     var processes = this.monitoredProcesses;
     child.stderr.on("data", function (data) {
-        if (data == 'terminate') {
+        if (data === 'terminate') {
             for (var i = 0; i < processes.length; ++i) {
                 var process = processes[i];
-                if (process.port == clientId) {
+                if (process.port === clientId) {
                     logger.info('terminate process : ' + JSON.stringify(process));
                     process.process.child.kill('SIGKILL');
                     process.process = false;
@@ -211,7 +211,7 @@ Coordinator.prototype.startFetcherClient = function(clientId) {
 Coordinator.prototype.start = function() {
     var THIS = this;
 
-    if (THIS.status == 'started') {
+    if (THIS.status === 'started') {
         return 'coordinator is already running';
     }
 
@@ -249,22 +249,21 @@ Coordinator.prototype.startTimer = function() {
     var tick = 0;
     var restartInterval = 20;
     var reportInterval = 4; // report interval 4, 8, 16, 32, ...1024s
-    var THIS = this;
     var processes = this.monitoredProcesses;
     this.timer = setInterval(function() {
         ++tick;
 
-        if (THIS.status == 'notready' && (tick % 10 == 0)) {
+        if (THIS.status === 'notready' && (tick % 10 === 0)) {
             THIS.status = 'started';
         }
 
-        if (THIS.status == 'quit' && (tick % 10 == 0)) {
+        if (THIS.status === 'quit' && (tick % 10 === 0)) {
             THIS.stopTimer();
             phantom.exit();
         }
 
         var restartCount = 0;
-        if (THIS.status == 'started' && tick % (restartInterval / 2) == 0) {
+        if (THIS.status === 'started' && tick % (restartInterval / 2) === 0) {
             for (var i = 0; i < processes.length; ++i) {
                 var process = processes[i];
 
@@ -273,7 +272,7 @@ Coordinator.prototype.startTimer = function() {
                     process.status = 'dead';
                 }
 
-                if (process.status == 'dead') {
+                if (process.status === 'dead') {
                     logger.info("process is dead. process information : " + JSON.stringify(process));
                     logger.info("try to restart it");
                     processes[i] = THIS.startFetcherClient(process.port);
@@ -287,7 +286,7 @@ Coordinator.prototype.startTimer = function() {
             } // for
         } // if
 
-        if (tick % reportInterval == 0) {
+        if (tick % reportInterval === 0) {
             THIS.report();
             reportInterval *= 2;
             // about 20 minites

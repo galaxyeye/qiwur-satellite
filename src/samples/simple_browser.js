@@ -1,3 +1,5 @@
+require("./../bootstrap");
+
 var fs = require("fs");
 var utils = require('utils');
 var system = require('system');
@@ -19,14 +21,7 @@ var DefaultConfig = {
     "logLevel": 'debug'
 };
 
-var args = phantom.satelliteArgs;
-if (args.length < 1) {
-    console.log("usage : satellite [options] simple_browser.js url");
-    phantom.exit(0);
-}
-
-config = configure.mergeConfig(DefaultConfig, configure.loadConfig().fetcher);
-var url = config.url = args[0];
+var config = configure.mergeConfig(DefaultConfig, configure.loadConfig().fetcher);
 
 var casper = require("casper").create({
     clientScripts: ['src/lib/client/dist/satellite.min.js'],
@@ -42,6 +37,12 @@ var casper = require("casper").create({
     logLevel: config.logLevel,
     verbose: true
 });
+
+var url = casper.cli.get(0);
+if (!url) {
+    console.log("usage : satellite [options] simple_browser.js url");
+    phantom.exit(0);
+}
 
 var pageInfo = {
     ajaxRequests: 0,
@@ -59,40 +60,42 @@ casper.on('resource.received', function (response) {
 });
 
 // TODO : lock the navigation
-casper.start(config.url, function () {
+casper.start(url, function () {
     this.scrollToBottom();
 });
 
 // wait for a second
-// casper.wait(5000, function() {
-//     __utils__.echo("start evaluate");
-//
-// 	this.evaluate(function() {
-//     	document.body.setAttribute("data-url", document.URL);
-//
-//     	var ele = document.createElement("input");
-//     	ele.setAttribute("type", "hidden");
-//     	ele.setAttribute("id", "QiwurScrapingMetaInformation");
-//     	ele.setAttribute("data-domain", document.domain);
-//     	ele.setAttribute("data-url", document.URL);
-//     	ele.setAttribute("data-base-uri", document.baseURI);
-//     	document.body.appendChild(ele);
-//
-//     	__warps__visualize(document);
-//     	__warps__humanize(document);
-//
-//     	// if any script error occurs, the flag can NOT be seen
-//     	document.body.setAttribute("data-evaluate-error", 0);
-// 	});
-// });
+casper.wait(5000, function() {
+
+	this.evaluate(function() {
+        // __utils__.echo("start evaluate");
+
+        document.body.setAttribute("data-url", document.URL);
+
+    	var ele = document.createElement("input");
+    	ele.setAttribute("type", "hidden");
+    	ele.setAttribute("id", "QiwurScrapingMetaInformation");
+    	ele.setAttribute("data-domain", document.domain);
+    	ele.setAttribute("data-url", document.URL);
+    	ele.setAttribute("data-base-uri", document.baseURI);
+    	document.body.appendChild(ele);
+
+    	__warps__visualizeHumanize(document);
+
+    	// if any script error occurs, the flag can NOT be seen
+    	document.body.setAttribute("data-evaluate-error", 0);
+
+        // __utils__.echo("end evaluate");
+    });
+});
 
 casper.then(function () {
-    var file = sutils.getTemporaryFile(config.url);
+    var file = sutils.getTemporaryFile(url);
     var content = casper.getHTML().replace(/gbk|gb2312|big5|gb18030/gi, 'utf-8');
     fs.write(file, content, 'w');
 
     this.echo("full page content has been saved in file : " + file);
-    this.echo(content.substr(0, 100));
+    // this.echo(content.substr(0, 100));
 });
 
 casper.run(function () {
